@@ -7,18 +7,10 @@ Created on Mon Apr 14 19:37:32 2014
 
 import matplotlib.pyplot as plt
 import dicom 
-import pylab
 import numpy as np
 from scipy import ndimage
-#from scipy.stats import cumfreq
 from matplotlib import colors
-#from scipy.cluster.vq import kmeans,vq
-#from skimage.filter import threshold_adaptive
-#from skimage.segmentation import felzenszwalb, slic, quickshift
-#from skimage.filter import canny
-#from skimage.filter import rank
-#from skimage.morphology import disk
-from skimage.segmentation import *
+from sklearn import cluster
 
 
 def read_image(image):
@@ -29,7 +21,6 @@ def read_image(image):
     return fixed
 
 def reduction(img, factor):
-#    factor_zoom=(100.0/450) #El punto le indica al interprete que el resultado sera float
     img_reduced=ndimage.interpolation.zoom(img, factor)
         
     #dado que la imagen se rota al reducirla, se 
@@ -38,40 +29,24 @@ def reduction(img, factor):
     
     return reduced
 
-def clasify(img):
-    for elem in np.nditer(img, op_flags=['readwrite']):
-        if elem[...]<=-1200:
-            elem[...]=0
-        elif -500<elem[...]<1600:
-            elem[...]=1
-        elif elem[...]>=1600:
-            elem[...]=2
+def view(fixed, img_clas, values):
     
-    return img 
-
-def view(fixed, img_clas):
-    cmap = colors.ListedColormap(['white', 'blue', 'red'])
-    bounds=[0, 1, 2, 3]
-    norm = colors.BoundaryNorm(bounds, cmap.N)
-    f = pylab.figure()
- 
+#    cmap = colors.ListedColormap(['white', 'blue', 'red'])
+#    bounds=values
+#    norm = colors.BoundaryNorm(bounds, cmap.N)
+    
+    f = plt.figure()
     f.add_subplot(1, 2, 1)  # this line outputs images on top of each other       
-    implot=plt.imshow(fixed)
-    #implot.set_cmap('afmhot')
-#    implot.set_cmap('BrBG')
-    #implot.set_cmap('spectral')
-#    implot.set_cmap('seismic')
-    implot.set_cmap('seismic')
-    plt.colorbar()
-    f.add_subplot(1, 2, 2)  # this line outputs images side-by-side
-#    img = plt.imshow(fixed, interpolation='nearest', origin='lower', cmap=cmap, norm=norm)
-#    img = plt.imshow(img_clas, interpolation='nearest', origin='lower', cmap=cmap, norm=norm)
-    img = plt.imshow(img_clas)
-#    img.set_cmap('seismic')
-    # make a color bar
-#    plt.colorbar(img, cmap=cmap, norm=norm, boundaries=bounds, ticks=[0, 1, 2, 3])
+    implot=plt.imshow(fixed, cmap='seismic')
+    plt.colorbar(implot, cmap='seismic')
     
-    pylab.show()
+    f.add_subplot(1, 2, 2)  # this line outputs images side-by-side
+    img = plt.imshow(img_clas, 'seismic')
+
+    # make a color bar
+    plt.colorbar(img, cmap='seismic')
+    
+    plt.show()
 
 def histograma(img_red):   
 #    values, bins=np.histogram(img_red, bins=3)
@@ -79,18 +54,40 @@ def histograma(img_red):
 #    print values
 #    plt.plot(values, bins[:-1], lw=2)
 #    plt.show()
-    pylab.hist(img_red, bins=3, histtype='bar')
-    pylab.show()
+    pl.hist(img_red, bins=3, histtype='bar')
+    pl.show()
+
+def clasify(img):
+    n_clusters = 3 # number of clusters: void, aggregate and mastic
+    
+    #convert the image to a linear array
+    X = img.reshape((-1, 1))  # We need an (n_sample, n_feature) array
+    
+    k_means = cluster.KMeans(n_clusters=n_clusters, n_init=4)#create the object kmeans
+    k_means.fit(X)# execute kmeans over the image
+    
+    values = k_means.cluster_centers_.squeeze() #extractthe valyes (centroids)
+    labels = k_means.labels_
+
+    
+    # create an array from labels and values
+    img_segmented = np.choose(labels, values) #label the image
+    img_segmented.shape = img.shape #reshape the image with original dimensions
+    
+    return img_segmented, values
+    
 
 
 
-image ='/home/sjdps/MUESTRA/66719/6/00490278'          
-fixed_arreglo = read_image(image)
+ruta ='/home/sjdps/MUESTRA/66719/6/00490278'          
+fixed_arreglo = read_image(ruta)
 
 factor_zoom = (100.0/450)
-img_red = reduction(fixed_arreglo, factor_zoom)
-histograma(fixed_arreglo)
-#img_red = clasify(img_red)
-label=felzenszwalb(img_red)
-img_red=mark_boundaries(img_red, label)
-view(fixed_arreglo, img_red)
+
+
+#histograma(fixed_arreglo)
+
+img_seg, values = clasify(fixed_arreglo)
+
+img_red = reduction(img_seg, factor_zoom)
+view(img_seg, img_red, values)
