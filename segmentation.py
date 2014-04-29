@@ -9,96 +9,94 @@ import matplotlib.pyplot as plt
 import dicom
 import numpy as np
 from scipy import ndimage
-from matplotlib import colors
 from sklearn import cluster
 
 
-def read_image(image):
-    ds=dicom.read_file('/home/santiago/Documentos/Pruebas Python/PruebasGraficas/00490278')
-    #ds=dicom.read_file('/home/sjdps/MUESTRA/66719/6/00490278')
-    arreglo=ds.pixel_array
-    fixed=arreglo[35:485, 35:485]
-    return fixed
+class Segmentation(object):
 
-def reduction(img, factor, values):
+    def read_image(self, ruta):
+        # we could provide slices as parameters in order to
+        # customize the dimension of fixed
+        ds = dicom.read_file(ruta)
+        arreglo = ds.pixel_array  # get the data (image) from the file
+        fixed = arreglo[35:485, 35:485]  # cut the image
 
-#	for elem in np.nditer(img, op_flags=['readwrite']):
-#		if elem[...]<=values[0]:
-#			elem[...]=int(0)
-#		elif values[0]<elem[...]<values[1]:
-#			elem[...]=int(1)
-#		elif elem[...]>=values[2]:
-#			elem[...]=int(2)
+        return fixed
 
-	reduced=ndimage.interpolation.zoom(img, factor)
+    def reduction(self, img, factor=(100./450.)):
 
-	#dado que la imagen se rota al reducirla
-	reduced=ndimage.rotate(reduced, 180, reshape=False)
-	reduced=np.fliplr(reduced)
+        reduced = ndimage.interpolation.zoom(img, factor)
 
-	return reduced
+        # since the image is turned over when it is reduced
+        # we should turn it over again
+        reduced = ndimage.rotate(reduced, 180, reshape=False)
+        reduced = np.fliplr(reduced)
 
-def view(original, segmentada, reducida, values):
+        return reduced[1:, 1:]  # return and cut "noise"
 
-    f = plt.figure()
+    def view(self, original, segmented, reduced, values):
 
-    f.add_subplot(1, 3, 1)  # Imagen original
-    plt.imshow(original, cmap='seismic')
-#    plt.colorbar()
+        f = plt.figure()
 
-    f.add_subplot(1, 3, 2)  # Imagen segmentada: K-Means
-    plt.imshow(segmentada, cmap='seismic')
-#    plt.colorbar()
+        f.add_subplot(1, 3, 1)  # Original image
+        plt.imshow(original, cmap='seismic')
+    #    plt.colorbar()
 
-    f.add_subplot(1, 3, 3)  # Imagen reducida por interpolacion zoom
-    plt.imshow(reducida, interpolation='nearest', origin='lower', cmap='seismic' )
-#    plt.colorbar()
+        f.add_subplot(1, 3, 2)  # Segmented image  by K-means
+        plt.imshow(segmented, cmap='seismic')
+    #    plt.colorbar()
 
-    plt.show()
+        f.add_subplot(1, 3, 3)  # Reduced image
+        plt.imshow(reduced, interpolation='nearest',
+                   origin='lower', cmap='seismic')
+    #    plt.colorbar()
 
-def histograma(img_red):
-#    values, bins=np.histogram(img_red, bins=3)
-#    print bins
-#    print values
-#    plt.plot(values, bins[:-1], lw=2)
-#    plt.show()
-    plt.hist(img_red, bins=3, histtype='bar')
-    plt.show()
+        plt.show()
 
-def clasify(img):
-    n_clusters = 3 # number of clusters: void, aggregate and mastic
+    def histograma(self, img_red):
 
-    #convert the image to a linear array
-    X = img.reshape((-1, 1))  # We need an (n_sample, n_feature) array
+        plt.hist(img_red, bins=3, histtype='bar')
+        plt.show()
 
-    k_means = cluster.KMeans(n_clusters=n_clusters, n_init=4)#create the object kmeans
-    k_means.fit(X)# execute kmeans over the image
+    def clasify(self, img):
+        n_clusters = 3  # number of clusters: void, aggregate and mastic
 
-    values = k_means.cluster_centers_.squeeze() #extractthe valyes (centroids)
-    labels = k_means.labels_
+        # convert the image to a linear array
+        X = img.reshape((-1, 1))  # We need an (n_sample, n_feature) array
 
-    # create an array from labels and values
-    img_segmented = np.choose(labels, values) #label the image
-    img_segmented.shape = img.shape #reshape the image with original dimensions
+        k_means = cluster.KMeans(n_clusters=n_clusters,
+                                 n_init=4)  # create the object kmeans
+        k_means.fit(X)  # execute kmeans over the image
 
-    valores=sorted(values)
+        # extract the valyes (centroids)
+        values = k_means.cluster_centers_.squeeze()
+        labels = k_means.labels_
 
-    return img_segmented, valores
+        # create an array from labels and values
+        img_segmented = np.choose(labels, values)  # label the image
+        img_segmented.shape = img.shape  # reshape with original dimensions
 
-#====================================================================#
+        # Since the values returned by k-means are always different, we
+        # sort them to ease later labeling...
+        valores = sorted(values)
 
-ruta ='/home/santiago/Documentos/Pruebas Python/PruebasGraficas/00490278'
-img_org = read_image(ruta)
-img_temporal = img_org.copy()  #Copia de la imagen a procesar
+        return img_segmented, valores
 
-factor_zoom = (100.0/450)
 
-#histograma(img_org)
+if __name__ == '__main__':
 
-img_seg, values = clasify(img_org)  #Segmentar imagen original
+    ruta1 = '/home/sjdps/MUESTRA/66719/6/00490278'
+    ruta2 = '/home/santiago/Documentos/Pruebas Python/PruebasGraficas/00490278'
 
-img_red = reduction(img_temporal, factor_zoom, values) #Reducir imagen temporal (evitar manipulacion de variable)
+    seg1 = Segmentation()
+    img_org = seg1.read_image(ruta1)
+    img_temporal = img_org.copy()  # Copy of the image to process
 
-red_seg, val_red = clasify(img_red) #Reducir imagen segmentada
+    img_seg, values = seg1.clasify(img_org)  # Segment orginal image
 
-view(img_org, img_seg, red_seg, val_red) #Mostrar resultados
+    # Reduce img_temporal (avoid manipulation of the variable)
+    img_red = seg1.reduction(img_temporal)
+
+    red_seg, val_red = seg1.clasify(img_red)  # Segment reduced image
+
+    seg1.view(img_org, img_seg, red_seg, val_red) # Show results
