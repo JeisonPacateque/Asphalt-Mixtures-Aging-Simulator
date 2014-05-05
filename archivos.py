@@ -8,7 +8,7 @@ import dicom
 import matplotlib.pyplot as plt
 
 
-archivos=[] #Arreglo de archivos
+coleccion_imagenes=[] #Arreglo de archivos
 
 for dirname, dirnames, filenames in os.walk('/home/santiago/Documentos/Pruebas Python/66719/6/'):
     # print path to all subdirectories first.s
@@ -21,4 +21,4 @@ for dirname, dirnames, filenames in os.walk('/home/santiago/Documentos/Pruebas P
         print ruta_archivo                              #Muesta la ruta de cada archivo por consola
         temporal=dicom.read_file(ruta_archivo)          #Variable temporal para poder usar el metodo pixel_array
         imagen=temporal.pixel_array                     #Tranformacion de imagen dicom a arreglo numpy
-        archivos.append(imagen)                         #Agrega la imagen a memoria
+        coleccion_imagenes.append(imagen)               #Agrega la imagen a memoria
