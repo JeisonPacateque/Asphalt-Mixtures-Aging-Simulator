@@ -7,7 +7,6 @@ import os
 import dicom
 import matplotlib.pyplot as plt
 
-
 coleccion_imagenes = [] #Image list
 
 for dirname, dirnames, filenames in os.walk('/home/santiago/Documentos/Pruebas Python/66719/6/'):
