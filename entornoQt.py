@@ -1,13 +1,10 @@
 from __future__ import unicode_literals
-import sys, os, random
+import sys
 from PyQt4 import QtGui, QtCore
-
-from numpy import arange, sin, pi
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import dicom
-progname = os.path.basename(sys.argv[0])
-progversion = "0.1"
+import archivos
 
 
 class MyMplCanvas(FigureCanvas):
@@ -20,7 +17,6 @@ class MyMplCanvas(FigureCanvas):
 
         self.compute_initial_figure()
 
-        #
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)
 
@@ -36,62 +32,64 @@ class MyMplCanvas(FigureCanvas):
 class MyStaticMplCanvas(MyMplCanvas):
     """Simple canvas with a sine plot."""
     def compute_initial_figure(self):
-#        t = arange(0.0, 3.0, 0.01)
-#        s = sin(2*pi*t)
         ds=dicom.read_file('/home/santiago/Documentos/Pruebas Python/PruebasGraficas/00490278')
         arreglo=ds.pixel_array
         fixed=arreglo[35:485, 35:485]
-        self.axes.imshow(fixed)
+        self.axes.imshow(fixed, cmap='seismic')
 
 
 class MyDynamicMplCanvas(MyMplCanvas):
+    
+    global miGlobal
     """A canvas that updates itself every second with a new plot."""
     def __init__(self, *args, **kwargs):
         MyMplCanvas.__init__(self, *args, **kwargs)
+        global miGlobal
+        miGlobal=0
         timer = QtCore.QTimer(self)
         QtCore.QObject.connect(timer, QtCore.SIGNAL("timeout()"), self.update_figure)
-        timer.start(1000)
+        timer.start(500)
 
     def compute_initial_figure(self):
-         self.axes.plot([0, 1, 2, 3], [1, 2, 0, 4], 'r')
+        self.axes.imshow(archivos.coleccion_imagenes[0])
 
     def update_figure(self):
         # Build a list of 4 random integers between 0 and 10 (both inclusive)
-        l = [ random.randint(0, 10) for i in range(4) ]
-
-        self.axes.plot([0, 1, 2, 3], l, 'r')
+        global miGlobal
+        self.axes.imshow(archivos.coleccion_imagenes[miGlobal])
+        miGlobal=miGlobal+1
         self.draw()
-
-
+    
 class ApplicationWindow(QtGui.QMainWindow):
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-        self.setWindowTitle("application main window")
+        self.setWindowTitle("Ventana Principal")
 
-        self.file_menu = QtGui.QMenu('&File', self)
-        self.file_menu.addAction('&Quit', self.fileQuit,
+        self.file_menu = QtGui.QMenu('&Archivo', self)
+        self.file_menu.addAction('&Salir', self.fileQuit,
                                  QtCore.Qt.CTRL + QtCore.Qt.Key_Q)
         self.menuBar().addMenu(self.file_menu)
 
-        self.help_menu = QtGui.QMenu('&Help', self)
+        self.help_menu = QtGui.QMenu('&Ayuda', self)
         self.menuBar().addSeparator()
         self.menuBar().addMenu(self.help_menu)
 
-        self.help_menu.addAction('&About', self.about)
+        self.help_menu.addAction('&Acerca de...', self.about)
 
         self.main_widget = QtGui.QWidget(self)
 
-        l = QtGui.QVBoxLayout(self.main_widget)
+        l = QtGui.QGridLayout(self.main_widget)
         sc = MyStaticMplCanvas(self.main_widget, width=5, height=4, dpi=100)
         dc = MyDynamicMplCanvas(self.main_widget, width=5, height=4, dpi=100)
         l.addWidget(sc)
         l.addWidget(dc)
 
+
         self.main_widget.setFocus()
         self.setCentralWidget(self.main_widget)
 
-        self.statusBar().showMessage("All hail matplotlib!", 2000)
+        self.statusBar().showMessage("Vista Inicial")
 
     def fileQuit(self):
         self.close()
@@ -101,21 +99,14 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def about(self):
         QtGui.QMessageBox.about(self, "About",
-"""embedding_in_qt4.py example
-Copyright 2005 Florent Rougon, 2006 Darren Dale
-
-This program is a simple example of a Qt4 application embedding matplotlib
-canvases.
-
-It may be used and modified with no restriction; raw copies as well as
-modified versions may be distributed without limitation."""
-)
+        """Primer prueba del entorno Qt utilizando tipos de datos de 
+    MatPlotLib renderizados con la libreriagrafica Qt en Python""")
 
 
 qApp = QtGui.QApplication(sys.argv)
 
 aw = ApplicationWindow()
-aw.setWindowTitle("%s" % progname)
+aw.setWindowTitle("Entorno Qt")
 aw.show()
 sys.exit(qApp.exec_())
 #qApp.exec_()
