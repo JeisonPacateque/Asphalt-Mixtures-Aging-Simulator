@@ -105,7 +105,6 @@ class ApplicationWindow(QtGui.QMainWindow):
         """Primer prueba del entorno Qt utilizando tipos de datos de 
     MatPlotLib renderizados con la libreriagrafica Qt en Python""")
 
-
 qApp = QtGui.QApplication(sys.argv)
 
 aw = ApplicationWindow()
