@@ -5,7 +5,7 @@ Created on Mon Apr 14 19:37:32 2014
 @author: sjdps
 """
 
-import matplotlib.pyplot as plt
+from matplotlib import pyplot, colors
 import dicom
 import numpy as np
 from scipy import ndimage
@@ -34,31 +34,31 @@ class Segmentation(object):
 
         return reduced[1:, 1:]  # return and cut "noise"
 
-    def view(self, original, segmented, reduced, values):
+    def view(self, original, segmented, reduced):
 
-        f = plt.figure()
+        f = pyplot.figure()
+        norm = colors.Normalize(vmin=0, vmax=2)
 
         f.add_subplot(1, 3, 1)  # Original image
-        plt.imshow(original, cmap='seismic')
+        pyplot.imshow(original, cmap='seismic')
     #    plt.colorbar()
 
         f.add_subplot(1, 3, 2)  # Segmented image  by K-means
-        plt.imshow(segmented, cmap='seismic')
-    #    plt.colorbar()
+        pyplot.imshow(segmented, cmap='seismic', norm=norm)
 
         f.add_subplot(1, 3, 3)  # Reduced image
-        plt.imshow(reduced, interpolation='nearest',
-                   origin='lower', cmap='seismic')
+        pyplot.imshow(reduced, interpolation='nearest',
+                      origin='lower', cmap='seismic')
     #    plt.colorbar()
 
-        plt.show()
+        pyplot.show()
 
     def histograma(self, img_red):
 
-        plt.hist(img_red, bins=3, histtype='bar')
-        plt.show()
+        pyplot.hist(img_red, bins=3, histtype='bar')
+        pyplot.show()
 
-    def clasify(self, img):
+    def clasify(self, img, normalize=True):
         n_clusters = 3  # number of clusters: void, aggregate and mastic
 
         # convert the image to a linear array
@@ -69,20 +69,28 @@ class Segmentation(object):
         k_means.fit(X)  # execute kmeans over the image
 
         # extract the valyes (centroids)
-        values = k_means.cluster_centers_.squeeze()
+        values_kmeans = k_means.cluster_centers_.squeeze()
         labels = k_means.labels_
 
-        print labels
+        if normalize:
+            # normalize values, so all slices have the same values
+            values = values_kmeans.copy()
+            values_kmeans = values_kmeans.tolist()
+            values.sort()
+            normalized_values = np.empty(len(values_kmeans))
+            for i in xrange(len(values)):
+                index = values_kmeans.index(values[i])
+                normalized_values[index] = i
 
-        # create an array from labels and values
-        img_segmented = np.choose(labels, values)  # label the image
+            # label the image with norma values [0, 1, 2, 3, ...]
+            img_segmented = np.choose(labels, normalized_values)
+
+        else:
+            img_segmented = np.choose(labels, values_kmeans)
+
         img_segmented.shape = img.shape  # reshape with original dimensions
 
-        # Since the values returned by k-means are always different, we
-        # sort them to ease later labeling...
-        valores = sorted(values)
-
-        return img_segmented, valores
+        return img_segmented
 
 if __name__ == '__main__':
 
@@ -93,11 +101,11 @@ if __name__ == '__main__':
     img_org = seg1.read_image(ruta1)
     img_temporal = img_org.copy()  # Copy of the image to process
 
-    img_seg, values = seg1.clasify(img_org)  # Segment orginal image
+    img_seg = seg1.clasify(img_org)  # Segment orginal image
 
     # Reduce img_temporal (avoid manipulation of the variable)
     img_red = seg1.reduction(img_temporal)
 
-    red_seg, val_red = seg1.clasify(img_red)  # Segment reduced image
+    red_seg = seg1.clasify(img_red)  # Segment reduced image
 
-    seg1.view(img_org, img_seg, red_seg, val_red) # Show results
+    seg1.view(img_org, img_seg, red_seg) # Show results
