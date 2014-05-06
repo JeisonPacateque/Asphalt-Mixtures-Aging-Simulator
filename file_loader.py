@@ -22,3 +22,5 @@ for dirname, dirnames, filenames in os.walk('/home/santiago/Documentos/Pruebas P
         imagen = temporal.pixel_array                       #Transform DICOM image as numpy array
         fixed = imagen[35:485, 35:485]                      #Cut image to fit plot
         coleccion_imagenes.append(fixed)                    #Add current image to a list
+        
+print "Finalizada la carga de archivos"
