@@ -85,7 +85,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         l = QtGui.QGridLayout(self.main_widget)
         sc = MyStaticMplCanvas(self.main_widget, width=5, height=4, dpi=100)
         dc = MyDynamicMplCanvas(self.main_widget, width=5, height=4, dpi=100)
-        l.addWidget(sc)
+        #l.addWidget(sc)
         l.addWidget(dc)
 
 
