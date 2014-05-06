@@ -72,6 +72,8 @@ class Segmentation(object):
         values = k_means.cluster_centers_.squeeze()
         labels = k_means.labels_
 
+        print labels
+
         # create an array from labels and values
         img_segmented = np.choose(labels, values)  # label the image
         img_segmented.shape = img.shape  # reshape with original dimensions
@@ -81,7 +83,6 @@ class Segmentation(object):
         valores = sorted(values)
 
         return img_segmented, valores
-
 
 if __name__ == '__main__':
 
