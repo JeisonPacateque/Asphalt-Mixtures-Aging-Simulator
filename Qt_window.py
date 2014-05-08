@@ -51,13 +51,16 @@ class MyDynamicMplCanvas(MyMplCanvas):
         global index
         if index != len(collection) : #Conditional to restart the loop  
             self.axes.imshow(collection[index], cmap='seismic')
-            print "Imagen numero: ",index
+            #print "Imagen numero: ",index
+            aw.update_staus(str(index))
             index += 1
             self.draw()
         else:
             index=0
 
+
 class ApplicationWindow(QtGui.QMainWindow):
+
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
@@ -78,20 +81,24 @@ class ApplicationWindow(QtGui.QMainWindow):
 
         l = QtGui.QGridLayout(self.main_widget)
         dc = MyDynamicMplCanvas(self.main_widget, width=5, height=4, dpi=100)
-        #l.addWidget(sc)
         l.addWidget(dc)
-
 
         self.main_widget.setFocus()
         self.setCentralWidget(self.main_widget)
 
-        self.statusBar().showMessage("Cortes transverzales de la muestra")
+        self.statusBar().showMessage("Visor de muestras")
 
+    def update_staus(self, message):
+        self.statusBar().showMessage("Muestra: "+message)
+        
     def fileQuit(self):
         self.close()
 
     def closeEvent(self, ce):
         self.fileQuit()
+        
+    def contador(self):
+        return self
 
     def about(self):
         QtGui.QMessageBox.about(self, "Acerca de",
