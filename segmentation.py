@@ -37,19 +37,22 @@ class Segmentation(object):
     def view(self, original, segmented, reduced):
 
         f = pyplot.figure()
-        norm = colors.Normalize(vmin=0, vmax=2)
+        levels = [0, 1, 2]
+        colores = ['red', 'white', 'gray', 'black']
+        cmap, norm = colors.from_levels_and_colors(levels,
+                                                   colores, extend='both')
 
         f.add_subplot(1, 3, 1)  # Original image
         pyplot.imshow(original, cmap='seismic')
-    #    plt.colorbar()
+#        pyplot.colorbar()
 
         f.add_subplot(1, 3, 2)  # Segmented image  by K-means
-        pyplot.imshow(segmented, cmap='seismic', norm=norm)
+        pyplot.imshow(segmented, cmap=cmap, norm=norm)
 
         f.add_subplot(1, 3, 3)  # Reduced image
         pyplot.imshow(reduced, interpolation='nearest',
-                      origin='lower', cmap='seismic')
-    #    plt.colorbar()
+                      origin='lower', cmap=cmap, norm=norm)
+#        pyplot.colorbar()
 
         pyplot.show()
 
