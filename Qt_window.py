@@ -3,7 +3,7 @@ import sys
 from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from file_loader import FileLoader
+from file_loader import FileLoader, FileLoaderNPY
 
 
 class MyMplCanvas(FigureCanvas):
@@ -27,15 +27,20 @@ class MyMplCanvas(FigureCanvas):
     def compute_initial_figure(self):
         pass
 
-loader=FileLoader() #Creates the FileLoader object
-collection=loader.get_collection() #Gets the collection of images
 
 class MyDynamicMplCanvas(MyMplCanvas):
-    #Load the dinamic plot    
+    # Load the dinamic plot
     global index
-    loader.load_path('/home/santiago/Documentos/Pruebas Python/66719/6/') #Load the path
-    
+
     def __init__(self, *args, **kwargs):
+
+        path = '/home/sjdps/MUESTRA/66719/6/Segmented/'
+        #path = '/home/santiago/Documentos/Pruebas Python/66719/6/'
+        #loader=FileLoader() #Creates the FileLoader object
+        loader = FileLoaderNPY()
+        self.collection = loader.get_collection()  # Gets the collection of images
+        loader.load_path(path) #Load the path
+
         MyMplCanvas.__init__(self, *args, **kwargs)
         global index
         index = 0                       #Set the initial index
@@ -44,13 +49,13 @@ class MyDynamicMplCanvas(MyMplCanvas):
         timer.start(100)                #Set the update time
 
     def compute_initial_figure(self):
-        self.axes.imshow(collection[0], cmap='seismic') #Set the initial image
+        self.axes.imshow(self.collection[0], cmap='seismic') #Set the initial image
 
     def update_figure(self):
         #Read and plot all the images stored in the image list
         global index
-        if index != len(collection) : #Conditional to restart the loop  
-            self.axes.imshow(collection[index], cmap='seismic')
+        if index != len(self.collection) : #Conditional to restart the loop
+            self.axes.imshow(self.collection[index], cmap='seismic')
             #print "Imagen numero: ",index
             aw.update_staus(str(index))
             index += 1
@@ -88,24 +93,24 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def update_staus(self, message):
         self.statusBar().showMessage("Muestra: "+message)
-        
+
     def fileQuit(self):
         self.close()
 
     def closeEvent(self, ce):
         self.fileQuit()
-        
+
     def contador(self):
         return self
 
     def about(self):
         QtGui.QMessageBox.about(self, "Acerca de",
         """Primera prueba del entorno Qt utilizando tipos de datos
-MatPlotLib renderizados con la libreria grafica Qt en Python
+        MatPlotLib renderizados con la libreria grafica Qt en Python
 
-Desarrollado por:
-Jeison Pacateque
-Santiago Puerto""")
+        Desarrollado por:
+        Jeison Pacateque
+        Santiago Puerto""")
 
 qApp = QtGui.QApplication(sys.argv)
 
