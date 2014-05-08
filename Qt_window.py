@@ -86,8 +86,6 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.main_widget.setFocus()
         self.setCentralWidget(self.main_widget)
 
-        self.statusBar().showMessage("Visor de muestras")
-
     def update_staus(self, message):
         self.statusBar().showMessage("Muestra: "+message)
         
