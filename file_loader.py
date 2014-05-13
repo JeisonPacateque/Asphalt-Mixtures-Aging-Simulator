@@ -41,8 +41,6 @@ class FileLoader(object):
         num_archivos=len(self.coleccion_imagenes)
         end_time=time.time()    #Get the time when method ends
         print num_archivos, "dicom files loaded in ", str(end_time - start_time), " seconds."
-
-    def get_collection(self):
         return self.coleccion_imagenes  # Access method to the loaded images
 
     def show_path(self):
