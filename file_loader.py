@@ -10,19 +10,21 @@ import dicom
 import time
 import numpy as np
 
-
 class FileLoader(object):
+    """This Class provides the logic to read DICOM images and return it as NumPy arrays """
 
-    def __init__(self):
-        self.coleccion_imagenes = []  # Image list
+    def __init__(self, path):
+        self.samples_collection = []    # Image list
+        self.coleccion_reducida = []    # Toy Model
+        self.path = path                # Set the working Path
+        self.archive_list = np.array
 
-    def load_path(self, path):
+    def load_path(self):
+
         start_time = time.time()  # Measures file loading time
-        
-        del self.coleccion_imagenes[:] #Clear the collection if any previous run
         print "Loading dicom files..."
 
-        for dirname, dirnames, filenames in os.walk(path):
+        for dirname, dirnames, filenames in os.walk(self.path):
 
             # print path to all subdirectories first.s
             for subdirname in dirnames:
@@ -33,28 +35,28 @@ class FileLoader(object):
             # join the path with all filenames.
             for filename in filenames:
                 ruta_archivo=os.path.join(dirname, filename)        #Set the path file
-                #print ruta_archivo                                  #Print file path
                 temporal = dicom.read_file(ruta_archivo)            #Read the file as DICOM image
                 imagen = temporal.pixel_array                       #Transform DICOM image as numpy array
                 fixed = imagen[35:485, 35:485]                      #Cut image to fit plot
-                self.coleccion_imagenes.append(fixed)                    #Add current image to a list
+                self.samples_collection.append(fixed)               #Add current image to a list
 
-        num_archivos=len(self.coleccion_imagenes)
+
+        num_archivos=len(self.samples_collection)
         end_time=time.time()    #Get the time when method ends
         print num_archivos, "dicom files loaded in ", str(end_time - start_time), " seconds."
-        return self.coleccion_imagenes  # Access method to the loaded images
+        return self.samples_collection  # Access method to the loaded images
 
-    def show_path(self):
-        print "Path: ", self.path
+    def analize_path(self, path):
+        archives_list = glob.glob(path+"*.dcm")
+        print "Total files detected: "+str(len(archives_list))
 
 
 class FileLoaderNPY(FileLoader):
     """The aim of this class is to provide to the user the
-    ability to read segmented files (*npy)"""
+    ability to read segmented files (*.npy)"""
 
     def __init__(self):
-        self.coleccion_imagenes = []
-#        self.load_path(path)
+        self.samples_collection = []
 
     def load_path(self, path):
         archives_list = glob.glob(path+"*.npy")
@@ -66,4 +68,4 @@ class FileLoaderNPY(FileLoader):
             archive = archives_list[i]
             print archive
             img = np.load(archive)
-            self.coleccion_imagenes.append(img)
+            self.samples_collection.append(img)
