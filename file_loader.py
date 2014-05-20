@@ -18,11 +18,10 @@ class FileLoader(object):
         self.archives_list = []
         shape = self.analize_path(path)
         self.len_sample = len(self.archives_list)
-        self.sample = np.zeros((shape[0], shape[1], self.len_sample))
+        self.sample = np.zeros((shape[0], shape[1], self.len_sample+1))
 
     def analize_path(self, path):
         self.archives_list = glob.glob(path+"*.dcm")
-        self.archives_list.sort()
         print "Total files detected: "+str(len(self.archives_list))
 
         temp = self.archives_list[0]
@@ -33,12 +32,12 @@ class FileLoader(object):
 
     def load_path(self):
 
-        for i in xrange(self.len_sample):
-            archive = self.archives_list[i]
-            print archive
+        for archive in self.archives_list:
             ds = dicom.read_file(archive)
             img = ds.pixel_array
+            i = ds.InstanceNumber
             self.sample[..., ..., i] = img
+            print i
 
 #        return self.sample
 
@@ -60,9 +59,10 @@ class FileLoaderNPY(FileLoader):
             print archive
             img = np.load(archive)
             self.sample[i] = img.copy()
+#            print i
 
         return self.sample
 
 if __name__ == '__main__':
     file_loader = FileLoader('/home/sjdps/MUESTRA/66719/6/')
-    file_loader.load_path()
+    collection = file_loader.load_path()
