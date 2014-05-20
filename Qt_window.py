@@ -5,28 +5,29 @@ from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from file_loader import FileLoader
-from _markerlib import __init__
 
 
 class ApplicationWindow(QtGui.QMainWindow):
-    collection = [] #Class attribute
+    """This Class contains the main window of the DICOM sample viewer """
     timer = QtCore.QTimer()     #Timer intended to update the image
 
     def __init__(self):
+        
+        self.collection = []
 
         QtGui.QMainWindow.__init__(self)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
         self.file_menu = QtGui.QMenu('&File', self)
+        self.file_menu.addAction('&Choose path', self.open_path,
+                                 QtCore.Qt.CTRL + QtCore.Qt.Key_O)
         self.file_menu.addAction('&Exit', self.fileQuit,
                                  QtCore.Qt.CTRL + QtCore.Qt.Key_Q)
         self.menuBar().addMenu(self.file_menu)
         
         self.sample_menu = QtGui.QMenu('&Sample', self)
-        self.sample_menu.addAction('&Resume', self.resume_animation,
-                                   QtCore.Qt.CTRL + QtCore.Qt.Key_R)
-        self.sample_menu.addAction('&Pause', self.stop_animation,
-                                   QtCore.Qt.CTRL + QtCore.Qt.Key_P)
+        self.sample_menu.addAction('&Resume', self.resume_animation, QtCore.Qt.Key_Return)
+        self.sample_menu.addAction('&Pause', self.stop_animation, QtCore.Qt.Key_Space)
         self.menuBar().addMenu(self.sample_menu)
 
         self.help_menu = QtGui.QMenu('&Help', self)
@@ -53,20 +54,20 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.main_widget.setFocus()
         self.setCentralWidget(self.main_widget)
         
-    def open_path(self, pressed):
+    def open_path(self):
 
         chosen_path = QtGui.QFileDialog.getExistingDirectory(None, 
                                                          'Open working directory', 
                                 '/home/santiago/Documentos/Pruebas Python/66719/', 
                                                     QtGui.QFileDialog.ShowDirsOnly)
-
+        
         path = str(chosen_path) #QString to python string
         print "Load files from: " + path
         self.folder_path.setText(path)
 
         #Modifiying the class attribute to get the loaded collection of images
-        self.__class__.collection = FileLoader().load_path(path)
-
+        self.collection = FileLoader().load_path(path)
+        aw.update_staus('Loading files from: '+path) #Show in status bar the current index
         QtCore.QObject.connect(self.__class__.timer, QtCore.SIGNAL("timeout()"), self.dc.update_figure)
         self.__class__.timer.start(100)                #Set the update time
 
@@ -80,6 +81,8 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.statusBar().showMessage("Sample: "+message)
 
     def fileQuit(self):
+        self.stop_animation()
+        self.dc.destroy()
         self.close()
 
     def closeEvent(self, ce):
@@ -93,6 +96,9 @@ MatPlotLib figures created from DICOM files
         Developed by:
         Jeison Pacateque
         Santiago Puerto""")
+    
+    def get_collection(self):
+        return self.collection
         
 class Canvas(FigureCanvas):
 #Set the graphical elements to show in a Qt Window
@@ -113,24 +119,25 @@ class Canvas(FigureCanvas):
 #-------------------------------------------------------------------------------
 
 class MyDynamicMplCanvas(Canvas):
-    # Load the dinamic plot
-    index = 0
+    """This Class implements the canvas update method to animate the samples """
+    def __init__(self, main_widget, width=5, height=4, dpi=100):
+        super(MyDynamicMplCanvas, self).__init__(main_widget, width=5, height=4, dpi=100)
+        self.index = 0
+        
     def update_figure(self):
         #Read and plot all the images stored in the image list
-        collection = ApplicationWindow.collection
-        if self.__class__.index != len(collection) : #Conditional to restart the loop
-            self.axes.imshow(collection[self.__class__.index], cmap='seismic')
-            aw.update_staus(str(self.__class__.index)) #Show in status bar the current index
-            self.__class__.index += 1
+        col = aw.get_collection()
+        if self.index != len(col) : #Conditional to restart the loop
+            self.axes.imshow(col[self.index], cmap='seismic')
+            aw.update_staus(str(self.index)) #Show in status bar the current index
+            self.index += 1
             self.draw()
         else:
-            self.__class__.index=0
+            self.index=0 #When iteration catches the len(col) restart the loop
 
 #------------------------------------------------------------------------
 
-
 qApp = QtGui.QApplication(sys.argv)
-
 aw = ApplicationWindow()
 aw.setWindowTitle("DICOM Samples Viewer")
 aw.show()
