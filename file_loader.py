@@ -17,8 +17,9 @@ class FileLoader(object):
         self.coleccion_imagenes = []  # Image list
 
     def load_path(self, path):
-
         start_time = time.time()  # Measures file loading time
+        
+        del self.coleccion_imagenes[:] #Clear the collection if any previous run
         print "Loading dicom files..."
 
         for dirname, dirnames, filenames in os.walk(path):
