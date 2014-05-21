@@ -3,11 +3,11 @@ Created on 2/05/2014
 
 @author: santiago
 '''
-
 import glob
 import os
 import dicom
 import time
+import re
 import numpy as np
 
 
@@ -16,23 +16,29 @@ class FileLoader(object):
     def __init__(self):
         self.coleccion_imagenes = []  # Image list
 
+    def human_key(self, key):
+        """Method to 'Natural sorting' a list"""
+        parts = re.split('(\d*\.\d+|\d+)', key)
+        return tuple((e.swapcase() if i % 2 == 0 else float(e))
+                for i, e in enumerate(parts))
+
     def load_path(self, path):
 
         start_time = time.time()  # Measures file loading time
-        print "Loading dicom files..."
-
+        print "Loading DICOM files from: "+path
         for dirname, dirnames, filenames in os.walk(path):
 
             # print path to all subdirectories first.s
             for subdirname in dirnames:
                 print os.path.join(dirname, subdirname)
 
-            filenames.sort()  # Sort files by name
+            filenames.sort(key=self.human_key)  # Sort files by name
+
 
             # join the path with all filenames.
             for filename in filenames:
                 ruta_archivo=os.path.join(dirname, filename)        #Set the path file
-                #print ruta_archivo                                  #Print file path
+                #print ruta_archivo                                 #Print file path
                 temporal = dicom.read_file(ruta_archivo)            #Read the file as DICOM image
                 imagen = temporal.pixel_array                       #Transform DICOM image as numpy array
                 fixed = imagen[35:485, 35:485]                      #Cut image to fit plot
