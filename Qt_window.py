@@ -58,16 +58,12 @@ class ApplicationWindow(QtGui.QMainWindow):
 
         chosen_path = QtGui.QFileDialog.getExistingDirectory(None, 
                                                          'Open working directory', 
-                                '/home/santiago/Documentos/Pruebas Python/66719/', 
+                                                         '/home/santiago/Documentos/Pruebas Python/66719/', 
                                                     QtGui.QFileDialog.ShowDirsOnly)
         
-        path = str(chosen_path) #QString to python string
-        print "Load files from: " + path
+        path = str(chosen_path+"/") #QString to python string
         self.folder_path.setText(path)
-
-        #Modifiying the class attribute to get the loaded collection of images
-        self.collection = FileLoader().load_path(path)
-        aw.update_staus('Loading files from: '+path) #Show in status bar the current index
+        self.collection = FileLoader().load_path(path) #Load Files
         QtCore.QObject.connect(self.__class__.timer, QtCore.SIGNAL("timeout()"), self.dc.update_figure)
         self.__class__.timer.start(100)                #Set the update time
 
