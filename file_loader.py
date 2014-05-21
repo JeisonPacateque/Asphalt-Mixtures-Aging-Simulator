@@ -5,64 +5,64 @@ Created on 2/05/2014
 '''
 
 import glob
+import os
 import dicom
 import time
 import numpy as np
 
+
 class FileLoader(object):
-    """This Class provides the logic to read DICOM images and return it as
-    NumPy arrays """
 
-    def __init__(self, path):
-        self.path = path                # Set the working Path
-        self.archives_list = []
-        shape = self.analize_path(path)
-        self.len_sample = len(self.archives_list)
-        self.sample = np.zeros((shape[0], shape[1], self.len_sample+1))
+    def __init__(self):
+        self.coleccion_imagenes = []  # Image list
 
-    def analize_path(self, path):
-        self.archives_list = glob.glob(path+"*.dcm")
-        print "Total files detected: "+str(len(self.archives_list))
+    def load_path(self, path):
 
-        temp = self.archives_list[0]
-        ds = dicom.read_file(temp)
-        img = ds.pixel_array
-        return img.shape
+        start_time = time.time()  # Measures file loading time
+        print "Loading dicom files..."
 
+        for dirname, dirnames, filenames in os.walk(path):
 
-    def load_path(self):
+            # print path to all subdirectories first.s
+            for subdirname in dirnames:
+                print os.path.join(dirname, subdirname)
 
-        for archive in self.archives_list:
-            ds = dicom.read_file(archive)
-            img = ds.pixel_array
-            i = ds.InstanceNumber
-            self.sample[..., ..., i] = img
-            print i
+            filenames.sort()  # Sort files by name
 
-#        return self.sample
+            # join the path with all filenames.
+            for filename in filenames:
+                ruta_archivo=os.path.join(dirname, filename)        #Set the path file
+                #print ruta_archivo                                  #Print file path
+                temporal = dicom.read_file(ruta_archivo)            #Read the file as DICOM image
+                imagen = temporal.pixel_array                       #Transform DICOM image as numpy array
+                fixed = imagen[35:485, 35:485]                      #Cut image to fit plot
+                self.coleccion_imagenes.append(fixed)                    #Add current image to a list
+
+        num_archivos=len(self.coleccion_imagenes)
+        end_time=time.time()    #Get the time when method ends
+        print num_archivos, "dicom files loaded in ", str(end_time - start_time), " seconds."
+        return self.coleccion_imagenes  # Access method to the loaded images
+
+    def show_path(self):
+        print "Path: ", self.path
 
 
 class FileLoaderNPY(FileLoader):
     """The aim of this class is to provide to the user the
-    ability to read segmented files (*.npy)"""
+    ability to read segmented files (*npy)"""
 
-    def analize_path(self, path):
+    def __init__(self):
+        self.coleccion_imagenes = []
+#        self.load_path(path)
+
+    def load_path(self, path):
         archives_list = glob.glob(path+"*.npy")
-        print "Total files detected: "+str(len(archives_list))
+        archives_list.sort()
 
-        return archives_list
+        num_archives = len(archives_list)
 
-    def load_path(self):
-
-        for i in xrange(self.len_sample):
-            archive = self.archives_list[i]
+        for i in xrange(num_archives):
+            archive = archives_list[i]
             print archive
             img = np.load(archive)
-            self.sample[i] = img.copy()
-#            print i
-
-        return self.sample
-
-if __name__ == '__main__':
-    file_loader = FileLoader('/home/sjdps/MUESTRA/66719/6/')
-    collection = file_loader.load_path()
+            self.coleccion_imagenes.append(img)
