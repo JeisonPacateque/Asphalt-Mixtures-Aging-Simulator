@@ -98,10 +98,10 @@ class Segmentation(object):
 if __name__ == '__main__':
 
     ruta1 = '/home/sjdps/MUESTRA/66719/6/00490278'
-    ruta2 = '/home/santiago/Documentos/Pruebas Python/PruebasGraficas/00490278'
+    ruta2 = '/home/santiago/Proyecto-de-Grado-Codes/samples/sample_300.dcm'
 
     seg1 = Segmentation()
-    img_org = seg1.read_image(ruta1)
+    img_org = seg1.read_image(ruta2)
     img_temporal = img_org.copy()  # Copy of the image to process
 
     img_seg = seg1.clasify(img_org)  # Segment orginal image
