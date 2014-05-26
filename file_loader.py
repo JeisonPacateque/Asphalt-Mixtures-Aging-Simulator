@@ -22,35 +22,38 @@ class FileLoader(object):
         return tuple((e.swapcase() if i % 2 == 0 else float(e))
                 for i, e in enumerate(parts))
 
+    def single_dicom_read(self, dicom_file):
+        """Read a single DICOM file and return a NumPy Pixel Array"""
+        temp = dicom.read_file(dicom_file)  # Read the file as DICOM image
+        px_array = temp.pixel_array  # Transform DICOM image as numpy array
+        dicom_slice = px_array[35:485, 35:485] #Cut the slice to match draw area
+        print "Loaded", str(dicom_file)
+        return dicom_slice
+
     def load_path(self, path):
 
         start_time = time.time()  # Measures file loading time
-        print "Loading DICOM files from: "+path
+        
         for dirname, dirnames, filenames in os.walk(path):
 
-            # print path to all subdirectories first.s
+            # print path to all sub-directories first
             for subdirname in dirnames:
                 print os.path.join(dirname, subdirname)
 
             filenames.sort(key=self.human_key)  # Sort files by name
-
+            print "Loading " + str(len(filenames)) + " DICOM files from: " + path
 
             # join the path with all filenames.
             for filename in filenames:
-                ruta_archivo=os.path.join(dirname, filename)        #Set the path file
-                #print ruta_archivo                                 #Print file path
-                temporal = dicom.read_file(ruta_archivo)            #Read the file as DICOM image
-                imagen = temporal.pixel_array                       #Transform DICOM image as numpy array
-                fixed = imagen[35:485, 35:485]                      #Cut image to fit plot
-                self.coleccion_imagenes.append(fixed)                    #Add current image to a list
+                file_path = os.path.join(dirname, filename)  # Set the path file
+                # print file_path
+                image = self.single_dicom_read(file_path)
+                self.coleccion_imagenes.append(image)  # Add current image to a list
 
-        num_archivos=len(self.coleccion_imagenes)
-        end_time=time.time()    #Get the time when method ends
-        print num_archivos, "dicom files loaded in ", str(end_time - start_time), " seconds."
+        num_archivos = len(self.coleccion_imagenes)
+        end_time = time.time()  # Get the time when method ends
+        print num_archivos, "DICOM files loaded in ", str(end_time - start_time), " seconds."
         return self.coleccion_imagenes  # Access method to the loaded images
-
-    def show_path(self):
-        print "Path: ", self.path
 
 
 class FileLoaderNPY(FileLoader):
@@ -62,7 +65,7 @@ class FileLoaderNPY(FileLoader):
 #        self.load_path(path)
 
     def load_path(self, path):
-        archives_list = glob.glob(path+"*.npy")
+        archives_list = glob.glob(path + "*.npy")
         archives_list.sort()
 
         num_archives = len(archives_list)

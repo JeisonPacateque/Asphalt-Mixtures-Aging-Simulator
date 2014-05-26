@@ -6,27 +6,19 @@ Created on Mon Apr 14 19:37:32 2014
 """
 
 from matplotlib import pyplot, colors
-import dicom
 import numpy as np
 from scipy import ndimage
 from sklearn import cluster
-
+from file_loader import FileLoader
 
 class Segmentation(object):
 
-    def read_image(self, ruta):
-        # we could provide slices as parameters in order to
-        # customize the dimension of fixed
-        ds = dicom.read_file(ruta)
-        arreglo = ds.pixel_array  # get the data (image) from the file
-        fixed = arreglo[35:485, 35:485]  # cut the image
+    def __init__(self):
+        self.loader = FileLoader()
 
-        return fixed
-
-    def reduction(self, img, factor=(100./450.)):
-
+    def reduction(self, img, factor=(100. / 450.)):
+        print "Running redution..."
         reduced = ndimage.interpolation.zoom(img, factor)
-
         # since the image is turned over when it is reduced
         # we should turn it over again
         reduced = ndimage.rotate(reduced, 180, reshape=False)
@@ -39,8 +31,7 @@ class Segmentation(object):
         f = pyplot.figure()
         levels = [0, 1, 2]
         colores = ['red', 'white', 'gray', 'black']
-        cmap, norm = colors.from_levels_and_colors(levels,
-                                                   colores, extend='both')
+        cmap, norm = colors.from_levels_and_colors(levels, colores, extend='both')
 
         f.add_subplot(1, 3, 1)  # Original image
         pyplot.imshow(original, cmap='seismic')
@@ -51,17 +42,16 @@ class Segmentation(object):
 
         f.add_subplot(1, 3, 3)  # Reduced image
         pyplot.imshow(reduced, interpolation='nearest',
-                      origin='lower', cmap=cmap, norm=norm)
+                      origin='lower', cmap = cmap, norm = norm)
 #        pyplot.colorbar()
-
         pyplot.show()
 
     def histograma(self, img_red):
-
         pyplot.hist(img_red, bins=3, histtype='bar')
         pyplot.show()
 
     def clasify(self, img, normalize=True):
+        print "Running Clasify..."
         n_clusters = 3  # number of clusters: void, aggregate and mastic
 
         # convert the image to a linear array
@@ -98,17 +88,17 @@ class Segmentation(object):
 if __name__ == '__main__':
 
     ruta1 = '/home/sjdps/MUESTRA/66719/6/00490278'
-    ruta2 = '/home/santiago/Proyecto-de-Grado-Codes/samples/sample_300.dcm'
+    ruta2 = 'D:/Santiago/Datos/66719/6/sample_244.dcm'
 
-    seg1 = Segmentation()
-    img_org = seg1.read_image(ruta2)
+    segmentation = Segmentation()
+    img_org = segmentation.loader.single_dicom_read(ruta2)
     img_temporal = img_org.copy()  # Copy of the image to process
 
-    img_seg = seg1.clasify(img_org)  # Segment orginal image
+    img_seg = segmentation.clasify(img_org)  # Segment orginal image
 
     # Reduce img_temporal (avoid manipulation of the variable)
-    img_red = seg1.reduction(img_temporal)
+    img_red = segmentation.reduction(img_temporal)
 
-    red_seg = seg1.clasify(img_red)  # Segment reduced image
+    red_seg = segmentation.clasify(img_red)  # Segment reduced image
 
-    seg1.view(img_org, img_seg, red_seg) # Show results
+    segmentation.view(img_org, img_seg, red_seg)  # Show results
