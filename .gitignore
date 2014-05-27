@@ -3,3 +3,4 @@
 *.pdf
 /samples/
 /file_loader.pyc
+/segmentation.pyc
