@@ -1,6 +1,11 @@
-from __future__ import unicode_literals
+'''
+Created on 2/05/2014
+
+@author: santiago
+'''
 import sys
 import matplotlib.image as mpimg
+import numpy as np
 from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -64,7 +69,7 @@ class ApplicationWindow(QtGui.QMainWindow):
 
         chosen_path = QtGui.QFileDialog.getExistingDirectory(None, 
                                                          'Open working directory', 
-                                                         '/home/santiago/Documentos/Pruebas Python/66719/', 
+                                                         'samples/', 
                                                     QtGui.QFileDialog.ShowDirsOnly)
         
         path = str(chosen_path+"/") #QString to Python string
@@ -73,8 +78,9 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.folder_path.setText(path)
         self.update_staus(total_loaded)
 
-        
+
     def start_animation(self):
+        self.dc.reset_index()
         QtCore.QObject.connect(self.__class__.timer, QtCore.SIGNAL("timeout()"), self.dc.update_figure)
         self.__class__.timer.start(100)                #Set the update time
 
@@ -88,8 +94,12 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.statusBar().showMessage(message)
 
     def segment_sample(self):
+        self.pause_animation()
+        self.update_staus("Running sample segmentation...")
         segmentation = Segmentation()
-        self.collection = segmentation.segment_all_samples(self.collection)
+        segmented = segmentation.reduction(self.collection)
+        self.collection = segmentation.segment_all_samples(segmented)
+        self.start_animation()
 
     def fileQuit(self):
         self.pause_animation()
@@ -109,7 +119,7 @@ MatPlotLib figures created from DICOM files
         Santiago Puerto""")
     
     def get_collection(self):
-        return self.collection
+        return np.array(self.collection)
         
 class Canvas(FigureCanvas):
 #Set the graphical elements to show in a Qt Window
@@ -117,7 +127,7 @@ class Canvas(FigureCanvas):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
         self.axes.hold(False) #We want the axes cleared every time plot() is called
-        initial = mpimg.imread('/home/santiago/Proyecto-de-Grado-Codes/images/python.png')
+        initial = mpimg.imread('images/python.png')
         self.axes.imshow(initial)   #Show an initial image for the app
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)
@@ -134,18 +144,23 @@ class MyDynamicMplCanvas(Canvas):
     def __init__(self, main_widget, width=5, height=4, dpi=100):
         super(MyDynamicMplCanvas, self).__init__(main_widget, width=5, height=4, dpi=100)
         self.index = 0
-        
+        self.collection = 0
+
     def update_figure(self):
         #Read and plot all the images stored in the image list
-        col = aw.get_collection()
-        if self.index != len(col) : #Conditional to restart the loop
-            self.axes.imshow(col[self.index], cmap='seismic')
+        if type(self.collection) == int:
+            self.collection = aw.get_collection()
+        if self.index != len(self.collection) : #Conditional to restart the loop
+            self.axes.imshow(self.collection[self.index], cmap='seismic')
             status_text = "Sample: "+str(self.index)
             aw.update_staus(status_text) #Show in status bar the current index
             self.index += 1
             self.draw()
         else:
-            self.index=0 #When iteration catches the len(col) restart the loop
+            self.index=0 #When iteration catches the len(self.collection) restart the loop
+
+    def reset_index(self):
+        self.index = 0
 
 #------------------------------------------------------------------------
 
