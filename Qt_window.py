@@ -92,7 +92,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.collection = segmentation.segment_all_samples(self.collection)
 
     def fileQuit(self):
-        self.pause_animation()()
+        self.pause_animation()
         self.dc.destroy()
         self.close()
 
