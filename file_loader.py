@@ -17,7 +17,7 @@ class FileLoader(object):
         self.coleccion_imagenes = []  # Image list
 
     def human_key(self, key):
-        """Method to 'Natural sorting' a list"""
+        """Method to 'Natural sort' a list"""
         parts = re.split('(\d*\.\d+|\d+)', key)
         return tuple((e.swapcase() if i % 2 == 0 else float(e))
                 for i, e in enumerate(parts))
@@ -27,12 +27,13 @@ class FileLoader(object):
         temp = dicom.read_file(dicom_file)  # Read the file as DICOM image
         px_array = temp.pixel_array  # Transform DICOM image as numpy array
         dicom_slice = px_array[35:485, 35:485] #Cut the slice to match draw area
-        print "Loaded", str(dicom_file)
+        #print "Loaded", str(dicom_file)
         return dicom_slice
 
     def load_path(self, path):
 
         start_time = time.time()  # Measures file loading time
+        del self.coleccion_imagenes[:]#Clean collection if previous executions
         
         for dirname, dirnames, filenames in os.walk(path):
 
@@ -54,7 +55,9 @@ class FileLoader(object):
         end_time = time.time()  # Get the time when method ends
         print num_archivos, "DICOM files loaded in ", str(end_time - start_time), " seconds."
         return self.coleccion_imagenes  # Access method to the loaded images
-
+    
+    def get_collection(self):
+            return self.coleccion_imagenes
 
 class FileLoaderNPY(FileLoader):
     """The aim of this class is to provide to the user the
