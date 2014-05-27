@@ -11,6 +11,7 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from file_loader import FileLoader
 from segmentation import Segmentation
+from ToyModel3d import ToyModel3d
 
 
 class ApplicationWindow(QtGui.QMainWindow):
@@ -20,6 +21,7 @@ class ApplicationWindow(QtGui.QMainWindow):
     def __init__(self):
         
         self.collection = []
+        self.segmentation = Segmentation()
 
         QtGui.QMainWindow.__init__(self)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
@@ -39,6 +41,7 @@ class ApplicationWindow(QtGui.QMainWindow):
 
         self.sample_menu = QtGui.QMenu('&Sample', self)
         self.sample_menu.addAction('Segment sample', self.segment_sample)
+        self.sample_menu.addAction('Show 3D sample', self.show_3d_sample)
         self.menuBar().addMenu(self.sample_menu)
 
         self.help_menu = QtGui.QMenu('&Help', self)
@@ -96,10 +99,15 @@ class ApplicationWindow(QtGui.QMainWindow):
     def segment_sample(self):
         self.pause_animation()
         self.update_staus("Running sample segmentation...")
-        segmentation = Segmentation()
-        segmented = segmentation.reduction(self.collection)
-        self.collection = segmentation.segment_all_samples(segmented)
+        segmented = self.segmentation.reduction(self.collection)
+        self.collection = self.segmentation.segment_all_samples(segmented)
         self.start_animation()
+        
+    def show_3d_sample(self):
+        print "Running 3D sample segmentation..."
+        segmented = self.segmentation.reduction(self.collection)
+        reduced = self.segmentation.segment_all_samples(segmented)
+        ToyModel3d(reduced)
 
     def fileQuit(self):
         self.pause_animation()
