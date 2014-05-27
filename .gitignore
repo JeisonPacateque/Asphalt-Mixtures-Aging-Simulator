@@ -2,3 +2,4 @@
 *.directory
 *.pdf
 /samples/
+/file_loader.pyc
