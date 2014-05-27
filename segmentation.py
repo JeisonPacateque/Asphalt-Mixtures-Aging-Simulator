@@ -18,7 +18,7 @@ class Segmentation(object):
         self.loader = FileLoader()
 
     def reduction(self, img, factor=(100. / 450.)):
-        print "Running redution..."
+        print "Running reduction..."
         start_time = time.time()  # Measures file loading time
         reduced = ndimage.interpolation.zoom(img, factor)
         # since the image is turned over when it is reduced
@@ -91,35 +91,31 @@ class Segmentation(object):
         """Take all the samples, uses K-Means algorithm with each sample slice
         and returns the interpolated samples"""
         start_time = time.time()  # Measures file loading t
-        collection = samples
-        col_length = len(collection)
-        factor = (100./450.)
-        
+        segmented = samples
+        col_length = len(segmented)
         print "Running segmentation for", str(col_length), "samples."
 
         for i in xrange(col_length):
-            collection[i] = self.clasify(collection[i])
-
-        reduced = self.reduction(collection, factor)
-        red_length = len(reduced)
+            segmented[i] = self.clasify(segmented[i])
 
         end_time = time.time()  # Get the time when method ends
-        print "Segmentation finished with",str(red_length),"samples in", str(end_time - start_time), "seconds."
+        print "Segmentation finished with",str(col_length),"samples in", str(end_time - start_time), "seconds."
 
-        return reduced
+        return segmented
+
 
 #----------------------------------------------------------------------------------
 
 if __name__ == '__main__':
  
     ruta1 = '/home/sjdps/MUESTRA/66719/6/00490278'
-    ruta2 = 'D:/Santiago/Datos/66719/6/sample_244.dcm'
+    ruta2 = '/home/santiago/Documentos/Pruebas Python/66719/6/sample_244.dcm'
  
     segmentation = Segmentation()
     img_org = segmentation.loader.single_dicom_read(ruta2)
     img_temporal = img_org.copy()  # Copy of the image to process
  
-    img_seg = segmentation.clasify(img_org)  # Segment orginal image
+    img_seg = segmentation.clasify(img_org)  # Segment original image
  
     # Reduce img_temporal (avoid manipulation of the variable)
     img_red = segmentation.reduction(img_temporal)
