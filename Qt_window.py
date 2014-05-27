@@ -5,6 +5,7 @@ from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from file_loader import FileLoader
+from segmentation import Segmentation
 
 
 class ApplicationWindow(QtGui.QMainWindow):
@@ -25,9 +26,14 @@ class ApplicationWindow(QtGui.QMainWindow):
                                  QtCore.Qt.CTRL + QtCore.Qt.Key_Q)
         self.menuBar().addMenu(self.file_menu)
         
+        self.animation_menu = QtGui.QMenu('&Animation', self)
+        self.animation_menu.addAction('&Start', self.start_animation, QtCore.Qt.Key_S)
+        self.animation_menu.addAction('&Resume', self.resume_animation, QtCore.Qt.Key_Return)
+        self.animation_menu.addAction('&Pause', self.pause_animation, QtCore.Qt.Key_Space)
+        self.menuBar().addMenu(self.animation_menu)
+
         self.sample_menu = QtGui.QMenu('&Sample', self)
-        self.sample_menu.addAction('&Resume', self.resume_animation, QtCore.Qt.Key_Return)
-        self.sample_menu.addAction('&Pause', self.stop_animation, QtCore.Qt.Key_Space)
+        self.sample_menu.addAction('Segment sample', self.segment_sample)
         self.menuBar().addMenu(self.sample_menu)
 
         self.help_menu = QtGui.QMenu('&Help', self)
@@ -61,23 +67,32 @@ class ApplicationWindow(QtGui.QMainWindow):
                                                          '/home/santiago/Documentos/Pruebas Python/66719/', 
                                                     QtGui.QFileDialog.ShowDirsOnly)
         
-        path = str(chosen_path+"/") #QString to python string
-        self.folder_path.setText(path)
+        path = str(chosen_path+"/") #QString to Python string
         self.collection = FileLoader().load_path(path) #Load Files
+        total_loaded = str(len(self.collection))+" DICOM files loaded"
+        self.folder_path.setText(path)
+        self.update_staus(total_loaded)
+
+        
+    def start_animation(self):
         QtCore.QObject.connect(self.__class__.timer, QtCore.SIGNAL("timeout()"), self.dc.update_figure)
         self.__class__.timer.start(100)                #Set the update time
 
-    def stop_animation(self):
+    def pause_animation(self):
         self.__class__.timer.stop()
-        
+
     def resume_animation(self):
         self.__class__.timer.start(100)
-        
+
     def update_staus(self, message):
-        self.statusBar().showMessage("Sample: "+message)
+        self.statusBar().showMessage(message)
+
+    def segment_sample(self):
+        segmentation = Segmentation()
+        self.collection = segmentation.segment_all_samples(self.collection)
 
     def fileQuit(self):
-        self.stop_animation()
+        self.pause_animation()()
         self.dc.destroy()
         self.close()
 
@@ -106,7 +121,7 @@ class Canvas(FigureCanvas):
         self.axes.imshow(initial)   #Show an initial image for the app
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)
- 
+
         FigureCanvas.setSizePolicy(self,
                                    QtGui.QSizePolicy.Expanding,
                                    QtGui.QSizePolicy.Expanding)
@@ -125,7 +140,8 @@ class MyDynamicMplCanvas(Canvas):
         col = aw.get_collection()
         if self.index != len(col) : #Conditional to restart the loop
             self.axes.imshow(col[self.index], cmap='seismic')
-            aw.update_staus(str(self.index)) #Show in status bar the current index
+            status_text = "Sample: "+str(self.index)
+            aw.update_staus(status_text) #Show in status bar the current index
             self.index += 1
             self.draw()
         else:
