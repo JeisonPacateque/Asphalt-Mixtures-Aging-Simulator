@@ -7,6 +7,7 @@ Created on Mon Apr 14 19:37:32 2014
 
 from matplotlib import pyplot, colors
 import numpy as np
+import time
 from scipy import ndimage
 from sklearn import cluster
 from file_loader import FileLoader
@@ -18,11 +19,15 @@ class Segmentation(object):
 
     def reduction(self, img, factor=(100. / 450.)):
         print "Running redution..."
+        start_time = time.time()  # Measures file loading time
         reduced = ndimage.interpolation.zoom(img, factor)
         # since the image is turned over when it is reduced
         # we should turn it over again
         reduced = ndimage.rotate(reduced, 180, reshape=False)
         reduced = np.fliplr(reduced)
+
+        end_time = time.time()  # Get the time when method ends
+        print "Reduction completed in ", str(end_time - start_time), " seconds."
 
         return reduced[1:, 1:]  # return and cut "noise"
 
@@ -51,7 +56,6 @@ class Segmentation(object):
         pyplot.show()
 
     def clasify(self, img, normalize=True):
-        print "Running Clasify..."
         n_clusters = 3  # number of clusters: void, aggregate and mastic
 
         # convert the image to a linear array
@@ -74,31 +78,52 @@ class Segmentation(object):
             for i in xrange(len(values)):
                 index = values_kmeans.index(values[i])
                 normalized_values[index] = i
-
             # label the image with norma values [0, 1, 2, 3, ...]
             img_segmented = np.choose(labels, normalized_values)
-
         else:
             img_segmented = np.choose(labels, values_kmeans)
 
         img_segmented.shape = img.shape  # reshape with original dimensions
 
         return img_segmented
+        
+    def segment_all_samples(self, samples):
+        """Take all the samples, uses K-Means algorithm with each sample slice
+        and returns the interpolated samples"""
+        start_time = time.time()  # Measures file loading t
+        collection = samples
+        col_length = len(collection)
+        factor = (100./450.)
+        
+        print "Running segmentation for", str(col_length), "samples."
+
+        for i in xrange(col_length):
+            collection[i] = self.clasify(collection[i])
+
+        reduced = self.reduction(collection, factor)
+        red_length = len(reduced)
+
+        end_time = time.time()  # Get the time when method ends
+        print "Segmentation finished with",str(red_length),"samples in", str(end_time - start_time), "seconds."
+
+        return reduced
+
+#----------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-
+ 
     ruta1 = '/home/sjdps/MUESTRA/66719/6/00490278'
     ruta2 = 'D:/Santiago/Datos/66719/6/sample_244.dcm'
-
+ 
     segmentation = Segmentation()
     img_org = segmentation.loader.single_dicom_read(ruta2)
     img_temporal = img_org.copy()  # Copy of the image to process
-
+ 
     img_seg = segmentation.clasify(img_org)  # Segment orginal image
-
+ 
     # Reduce img_temporal (avoid manipulation of the variable)
     img_red = segmentation.reduction(img_temporal)
-
+ 
     red_seg = segmentation.clasify(img_red)  # Segment reduced image
-
+ 
     segmentation.view(img_org, img_seg, red_seg)  # Show results
