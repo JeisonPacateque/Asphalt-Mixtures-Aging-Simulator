@@ -11,7 +11,6 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from file_loader import FileLoader
 from segmentation import Segmentation
-from ToyModel3d import ToyModel3d
 
 
 class ApplicationWindow(QtGui.QMainWindow):
@@ -69,7 +68,8 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.setCentralWidget(self.main_widget)
         
     def open_path(self):
-
+        self.dc.reset_index() #Reset index from previous executions
+        del self.collection[:] #Clean previous executions
         chosen_path = QtGui.QFileDialog.getExistingDirectory(None, 
                                                          'Open working directory', 
                                                          'samples/', 
@@ -97,14 +97,14 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.statusBar().showMessage(message)
 
     def segment_sample(self):
-        self.pause_animation()
-        self.update_staus("Running sample segmentation...")
+        self.dc.reset_index()
         segmented = self.segmentation.reduction(self.collection)
+        del self.collection[:]
         self.collection = self.segmentation.segment_all_samples(segmented)
         self.start_animation()
         
     def show_3d_sample(self):
-        print "Running 3D sample segmentation..."
+        from ToyModel3d import ToyModel3d
         segmented = self.segmentation.reduction(self.collection)
         reduced = self.segmentation.segment_all_samples(segmented)
         ToyModel3d(reduced)
@@ -128,6 +128,9 @@ MatPlotLib figures created from DICOM files
     
     def get_collection(self):
         return np.array(self.collection)
+        
+    def set_collection(self, collection):
+        self.collection = collection
         
 class Canvas(FigureCanvas):
 #Set the graphical elements to show in a Qt Window
