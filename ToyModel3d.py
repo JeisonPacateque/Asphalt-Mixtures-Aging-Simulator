@@ -15,7 +15,7 @@ def ToyModel3d(sample):
     mlab.pipeline.iso_surface(src, opacity=0.4)
     #
     mlab.pipeline.image_plane_widget(src,
-                                plane_orientation='z_axes',
+                                plane_orientation='x_axes',
                                 slice_index=10,
                             )
     #fig=mlab.pipeline.iso_surface(src, color=(1.0,1.0,0.0), contours=[0.1, ], opacity=0.3)
