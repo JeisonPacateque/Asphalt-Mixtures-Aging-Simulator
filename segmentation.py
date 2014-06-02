@@ -20,7 +20,7 @@ class Segmentation(object):
     def reduction(self, img, factor=(100. / 450.)):
         print "Running reduction..."
         start_time = time.time()  # Measures file loading time
-        reduced = ndimage.interpolation.zoom(img, factor)
+        reduced = ndimage.interpolation.zoom(img, factor, output=np.int16)
         # since the image is turned over when it is reduced
         # we should turn it over again
         reduced = ndimage.rotate(reduced, 180, reshape=False)
@@ -56,6 +56,8 @@ class Segmentation(object):
         pyplot.show()
 
     def clasify(self, img, normalize=True):
+#        start_time = time.time()  # Measures file loading t
+        
         n_clusters = 3  # number of clusters: void, aggregate and mastic
 
         # convert the image to a linear array
@@ -84,8 +86,13 @@ class Segmentation(object):
             img_segmented = np.choose(labels, values_kmeans)
 
         img_segmented.shape = img.shape  # reshape with original dimensions
+        
+        convert_matrix = img_segmented.astype(np.int16)
+        
+#        end_time = time.time()  # Get the time when method ends
+#        print "Slice segmentation finished in", str(end_time - start_time), "seconds."
 
-        return img_segmented
+        return convert_matrix
         
     def segment_all_samples(self, samples):
         """Take all the samples, uses K-Means algorithm with each sample slice
@@ -109,7 +116,7 @@ class Segmentation(object):
 if __name__ == '__main__':
  
     ruta1 = '/home/sjdps/MUESTRA/66719/6/00490278'
-    ruta2 = '/home/santiago/Documentos/Pruebas Python/66719/6/sample_244.dcm'
+    ruta2 = '/home/santiago/Proyecto-de-Grado-Codes/samples/6/sample_33.dcm'
  
     segmentation = Segmentation()
     img_org = segmentation.loader.single_dicom_read(ruta2)
