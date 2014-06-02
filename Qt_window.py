@@ -40,7 +40,8 @@ class ApplicationWindow(QtGui.QMainWindow):
 
         self.sample_menu = QtGui.QMenu('&Sample', self)
         self.sample_menu.addAction('Segment sample', self.segment_sample)
-        self.sample_menu.addAction('Show 3D sample', self.show_3d_sample)
+        self.sample_menu.addAction('Show 3D model', self.show_3d_sample)
+        self.sample_menu.addAction('Count segmented elements', self.count_element_values)
         self.menuBar().addMenu(self.sample_menu)
 
         self.help_menu = QtGui.QMenu('&Help', self)
@@ -68,8 +69,8 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.setCentralWidget(self.main_widget)
         
     def open_path(self):
-        self.dc.reset_index() #Reset index from previous executions
-        del self.collection[:] #Clean previous executions
+#        self.dc.reset_index() #Reset index from previous executions
+#        del self.collection[:] #Clean previous executions
         chosen_path = QtGui.QFileDialog.getExistingDirectory(None, 
                                                          'Open working directory', 
                                                          'samples/', 
@@ -85,29 +86,38 @@ class ApplicationWindow(QtGui.QMainWindow):
     def start_animation(self):
         self.dc.reset_index()
         QtCore.QObject.connect(self.__class__.timer, QtCore.SIGNAL("timeout()"), self.dc.update_figure)
-        self.__class__.timer.start(100)                #Set the update time
+        self.__class__.timer.start(200)                #Set the update time
 
     def pause_animation(self):
         self.__class__.timer.stop()
 
     def resume_animation(self):
-        self.__class__.timer.start(100)
+        self.__class__.timer.start(200)
 
     def update_staus(self, message):
         self.statusBar().showMessage(message)
 
     def segment_sample(self):
+        print "Running segmentation..."
         self.dc.reset_index()
         segmented = self.segmentation.reduction(self.collection)
         del self.collection[:]
         self.collection = self.segmentation.segment_all_samples(segmented)
+        self.count_element_values()
         self.start_animation()
         
     def show_3d_sample(self):
+        print "Running 3D Modeling..."
         from ToyModel3d import ToyModel3d
         segmented = self.segmentation.reduction(self.collection)
         reduced = self.segmentation.segment_all_samples(segmented)
         ToyModel3d(reduced)
+    
+    def count_element_values(self):
+        print "The current sample loaded has:"
+        print np.count_nonzero(self.collection==0), "Empty pixels"
+        print np.count_nonzero(self.collection==1), "Mastic pixels"
+        print np.count_nonzero(self.collection==2), "Aggregate pixels"
 
     def fileQuit(self):
         self.pause_animation()
