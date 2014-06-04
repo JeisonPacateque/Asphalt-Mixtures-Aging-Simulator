@@ -33,15 +33,15 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.menuBar().addMenu(self.file_menu)
         
         self.animation_menu = QtGui.QMenu('&Animation', self)
-        self.animation_menu.addAction('&Start', self.start_animation, QtCore.Qt.Key_S)
-        self.animation_menu.addAction('&Resume', self.resume_animation, QtCore.Qt.Key_Return)
-        self.animation_menu.addAction('&Pause', self.pause_animation, QtCore.Qt.Key_Space)
+        self.action_animation_start = self.animation_menu.addAction('&Start', self.start_animation, QtCore.Qt.Key_S)
+        self.action_animation_resume = self.animation_menu.addAction('&Resume', self.resume_animation, QtCore.Qt.Key_Return)
+        self.action_animation_pause = self.animation_menu.addAction('&Pause', self.pause_animation, QtCore.Qt.Key_Space)
         self.menuBar().addMenu(self.animation_menu)
 
         self.sample_menu = QtGui.QMenu('&Sample', self)
-        self.sample_menu.addAction('Segment sample', self.segment_sample)
-        self.sample_menu.addAction('Show 3D model', self.show_3d_sample)
-        self.sample_menu.addAction('Count segmented elements', self.count_element_values)
+        self.action_sample_segment = self.sample_menu.addAction('Segment sample', self.segment_sample)
+        self.action_sample_3d = self.sample_menu.addAction('Show 3D model', self.show_3d_sample)
+        self.action_sample_count = self.sample_menu.addAction('Count segmented elements', self.count_element_values)
         self.menuBar().addMenu(self.sample_menu)
 
         self.help_menu = QtGui.QMenu('&Help', self)
@@ -67,13 +67,13 @@ class ApplicationWindow(QtGui.QMainWindow):
 
         self.main_widget.setFocus()
         self.setCentralWidget(self.main_widget)
+        self.menu_buttons_state()
         
     def open_path(self):
-#        self.dc.reset_index() #Reset index from previous executions
-#        del self.collection[:] #Clean previous executions
+        self.update_staus("Loading files from path...")
         chosen_path = QtGui.QFileDialog.getExistingDirectory(None, 
                                                          'Open working directory', 
-                                                         'samples/', 
+                                                                     'samples/6/', 
                                                     QtGui.QFileDialog.ShowDirsOnly)
         
         path = str(chosen_path+"/") #QString to Python string
@@ -81,6 +81,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         total_loaded = str(len(self.collection))+" DICOM files loaded"
         self.folder_path.setText(path)
         self.update_staus(total_loaded)
+        self.menu_buttons_state(True)
 
 
     def start_animation(self):
@@ -101,23 +102,46 @@ class ApplicationWindow(QtGui.QMainWindow):
         print "Running segmentation..."
         self.dc.reset_index()
         segmented = self.segmentation.reduction(self.collection)
-        del self.collection[:]
-        self.collection = self.segmentation.segment_all_samples(segmented)
-        self.count_element_values()
-        self.start_animation()
-        
+        reduced = self.segmentation.segment_all_samples(segmented)
+        del self.collection
+        self.collection = reduced
+        self.update_staus("Reduction complete")
+        self.action_sample_count.setEnabled(True) #Enables the count method
+
     def show_3d_sample(self):
         print "Running 3D Modeling..."
+        self.update_staus("Running 3D Modeling...")
         from ToyModel3d import ToyModel3d
         segmented = self.segmentation.reduction(self.collection)
         reduced = self.segmentation.segment_all_samples(segmented)
         ToyModel3d(reduced)
     
     def count_element_values(self):
-        print "The current sample loaded has:"
-        print np.count_nonzero(self.collection==0), "Empty pixels"
-        print np.count_nonzero(self.collection==1), "Mastic pixels"
-        print np.count_nonzero(self.collection==2), "Aggregate pixels"
+        """Shows the total count of detected elements after the segmentation"""
+        empty = np.count_nonzero(self.collection==0)
+        mastic = np.count_nonzero(self.collection==1)
+        aggregate = np.count_nonzero(self.collection==2)
+        total = (empty+mastic+aggregate)
+
+        QtGui.QMessageBox.information(self,
+                    "Total elements counted in pixels:",
+                    "Sample has= "+str(total)+" pixels: \n"
+                    "Empty pixels= "+str(empty)+"\t"+str((empty*100)/total)+"%.\n" 
+                    "Mastic pixels= "+str(mastic)+"\t"+str((mastic*100)/total)+"%.\n"
+                    "Aggregate pixels= "+str(aggregate)+"\t"+str((aggregate*100)/total)+"%.")
+
+
+    def menu_buttons_state(self, state=False):
+        """Enable/Disable menu options except the Count element option
+        the count method requires samples to be segmented"""
+        self.action_sample_count.setEnabled(False)
+
+        self.action_animation_pause.setEnabled(state)
+        self.action_animation_resume.setEnabled(state)
+        self.action_animation_start.setEnabled(state)
+        self.action_sample_3d.setEnabled(state)
+        self.action_sample_segment.setEnabled(state)
+
 
     def fileQuit(self):
         self.pause_animation()
@@ -137,7 +161,7 @@ MatPlotLib figures created from DICOM files
         Santiago Puerto""")
     
     def get_collection(self):
-        return np.array(self.collection)
+        return self.collection
         
     def set_collection(self, collection):
         self.collection = collection
@@ -172,7 +196,7 @@ class MyDynamicMplCanvas(Canvas):
         if type(self.collection) == int:
             self.collection = aw.get_collection()
         if self.index != len(self.collection) : #Conditional to restart the loop
-            self.axes.imshow(self.collection[self.index], cmap='seismic')
+            self.axes.imshow(self.collection[self.index], cmap='seismic', interpolation='nearest')
             status_text = "Sample: "+str(self.index)
             aw.update_staus(status_text) #Show in status bar the current index
             self.index += 1
