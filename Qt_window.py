@@ -77,11 +77,12 @@ class ApplicationWindow(QtGui.QMainWindow):
                                                     QtGui.QFileDialog.ShowDirsOnly)
         
         path = str(chosen_path+"/") #QString to Python string
-        self.collection = FileLoader().load_path(path) #Load Files
-        total_loaded = str(len(self.collection))+" DICOM files loaded"
-        self.folder_path.setText(path)
-        self.update_staus(total_loaded)
-        self.menu_buttons_state(True)
+        if path != "/": #Prevents the execution of load_path if the user don't select a folder
+            self.collection = FileLoader().load_path(path) #Load Files
+            total_loaded = str(len(self.collection))+" DICOM files loaded"
+            self.folder_path.setText(path)
+            self.update_staus(total_loaded)
+            self.menu_buttons_state(True)
 
 
     def start_animation(self):
