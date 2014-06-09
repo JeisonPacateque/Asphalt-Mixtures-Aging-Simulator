@@ -106,15 +106,16 @@ class ApplicationWindow(QtGui.QMainWindow):
         del self.collection
         self.collection = reduced
         self.update_staus("Reduction complete")
+        self.action_sample_3d.setEnabled(True)  #Enables the 3D Model viewer
         self.action_sample_count.setEnabled(True) #Enables the count method
+
 
     def show_3d_sample(self):
         print "Running 3D Modeling..."
         self.update_staus("Running 3D Modeling...")
         from ToyModel3d import ToyModel3d
-        segmented = self.segmentation.reduction(self.collection)
-        reduced = self.segmentation.segment_all_samples(segmented)
-        ToyModel3d(reduced)
+        ToyModel3d(self.collection)
+        self.action_sample_count.setEnabled(True) #Enables the count method
     
     def count_element_values(self):
         """Shows the total count of detected elements after the segmentation"""
@@ -135,11 +136,11 @@ class ApplicationWindow(QtGui.QMainWindow):
         """Enable/Disable menu options except the Count element option
         the count method requires samples to be segmented"""
         self.action_sample_count.setEnabled(False)
+        self.action_sample_3d.setEnabled(False)
 
         self.action_animation_pause.setEnabled(state)
         self.action_animation_resume.setEnabled(state)
         self.action_animation_start.setEnabled(state)
-        self.action_sample_3d.setEnabled(state)
         self.action_sample_segment.setEnabled(state)
 
 
