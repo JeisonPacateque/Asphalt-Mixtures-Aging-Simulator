@@ -11,6 +11,7 @@ import time
 from scipy import ndimage
 from sklearn import cluster
 from file_loader import FileLoader
+from slice_mask import sector_mask
 
 class Segmentation(object):
 
@@ -63,8 +64,7 @@ class Segmentation(object):
         # convert the image to a linear array
         X = img.reshape((-1, 1))  # We need an (n_sample, n_feature) array
 
-        k_means = cluster.KMeans(n_clusters=n_clusters,
-                                 n_init=4)  # create the object kmeans
+        k_means = cluster.KMeans(n_clusters=n_clusters, n_init=4)  # create the object kmeans
         k_means.fit(X)  # execute kmeans over the image
 
         # extract the valyes (centroids)
@@ -104,13 +104,26 @@ class Segmentation(object):
 
         for i in xrange(col_length):
             segmented[i] = self.clasify(segmented[i])
+            
+        masked = self.sample_mask(segmented) #Mask irelevant data
 
         end_time = time.time()  # Get the time when method ends
         print "Segmentation finished with",str(col_length),"samples in", str(end_time - start_time), "seconds."
-
-        return segmented
-
-
+                
+        return masked
+        
+    def sample_mask(self, sample):
+        """Applies a mask to fit the form of the toy model"""
+        for i in range(len(sample)):
+            mask = sector_mask(sample[i].shape, (50,50), 50, (0,360))
+            sample[i][~mask] = -1
+            
+        return sample
+        
+    def get_sample_empty_pixels(self):
+        return self.mask_empty_pixels
+        
+    
 #----------------------------------------------------------------------------------
 
 if __name__ == '__main__':
