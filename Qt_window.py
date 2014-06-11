@@ -129,9 +129,9 @@ class ApplicationWindow(QtGui.QMainWindow):
         QtGui.QMessageBox.information(self,
                     "Total elements counted in pixels:",
                     "Sample has= "+str(total)+" pixels: \n"
-                    "Empty pixels= "+str(empty)+"\t"+str((empty*100)/total)+"%.\n" 
-                    "Mastic pixels= "+str(mastic)+"\t"+str((mastic*100)/total)+"%.\n"
-                    "Aggregate pixels= "+str(aggregate)+"\t"+str((aggregate*100)/total)+"%.")
+                    "Empty pixels= "+str(empty)+"\t"+str((empty*100.)/total)+"%.\n" 
+                    "Mastic pixels= "+str(mastic)+"\t"+str((mastic*100.)/total)+"%.\n"
+                    "Aggregate pixels= "+str(aggregate)+"\t"+str((aggregate*100.)/total)+"%.")
 
 
     def menu_buttons_state(self, state=False):
