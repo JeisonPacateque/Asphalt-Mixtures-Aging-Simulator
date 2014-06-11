@@ -109,6 +109,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.update_staus("Reduction complete")
         self.action_sample_3d.setEnabled(True)  #Enables the 3D Model viewer
         self.action_sample_count.setEnabled(True) #Enables the count method
+        self.action_sample_segment.setEnabled(False) #Disables de segmentation action
 
 
     def show_3d_sample(self):
