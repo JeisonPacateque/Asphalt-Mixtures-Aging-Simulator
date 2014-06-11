@@ -58,6 +58,7 @@ class FileLoader(object):
     
     def get_collection(self):
             return self.coleccion_imagenes
+            
 
 class FileLoaderNPY(FileLoader):
     """The aim of this class is to provide to the user the
@@ -65,7 +66,6 @@ class FileLoaderNPY(FileLoader):
 
     def __init__(self):
         self.coleccion_imagenes = []
-#        self.load_path(path)
 
     def load_path(self, path):
         archives_list = glob.glob(path + "*.npy")
