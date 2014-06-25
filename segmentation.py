@@ -44,7 +44,7 @@ class Segmentation(object):
 #        pyplot.colorbar()
 
         f.add_subplot(1, 3, 2)  # Segmented image  by K-means
-        pyplot.imshow(segmented, cmap=cmap, norm=norm)
+        pyplot.imshow(segmented, interpolation='nearest', cmap=cmap, norm=norm)
 
         f.add_subplot(1, 3, 3)  # Reduced image
         pyplot.imshow(reduced, interpolation='nearest',
