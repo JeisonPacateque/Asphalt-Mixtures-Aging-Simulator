@@ -20,6 +20,7 @@ class ApplicationWindow(QtGui.QMainWindow):
     def __init__(self):
         
         self.collection = []
+        self.segmented_collection = []
         self.segmentation = Segmentation()
 
         QtGui.QMainWindow.__init__(self)
@@ -70,6 +71,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.menu_buttons_state()
         
     def open_path(self):
+        self.pause_animation();
         self.update_staus("Loading files from path...")
         chosen_path = QtGui.QFileDialog.getExistingDirectory(None, 
                                                          'Open working directory', 
@@ -105,7 +107,8 @@ class ApplicationWindow(QtGui.QMainWindow):
         segmented = self.segmentation.reduction(self.collection)
         reduced = self.segmentation.segment_all_samples(segmented)
         del self.collection
-        self.collection = reduced
+        self.segmented_collection = reduced
+        self.collection = self.segmented_collection
         self.update_staus("Reduction complete")
         self.action_sample_3d.setEnabled(True)  #Enables the 3D Model viewer
         self.action_sample_count.setEnabled(True) #Enables the count method
@@ -192,14 +195,14 @@ class MyDynamicMplCanvas(Canvas):
     def __init__(self, main_widget, width=5, height=4, dpi=100):
         super(MyDynamicMplCanvas, self).__init__(main_widget, width=5, height=4, dpi=100)
         self.index = 0
-        self.collection = 0
+        self.collection = "Empty"
 
     def update_figure(self):
         #Read and plot all the images stored in the image list
-        if type(self.collection) == int:
+        if type(self.collection) == str:
             self.collection = aw.get_collection()
         if self.index != len(self.collection) : #Conditional to restart the loop
-            self.axes.imshow(self.collection[self.index], cmap='seismic', interpolation='nearest')
+            self.axes.imshow(self.collection[self.index], cmap='seismic')
             status_text = "Sample: "+str(self.index)
             aw.update_staus(status_text) #Show in status bar the current index
             self.index += 1
@@ -209,6 +212,7 @@ class MyDynamicMplCanvas(Canvas):
 
     def reset_index(self):
         self.index = 0
+        self.collection = "Empty"
 
 #------------------------------------------------------------------------
 
