@@ -129,7 +129,7 @@ class Segmentation(object):
 if __name__ == '__main__':
  
     ruta1 = '/home/sjdps/MUESTRA/66719/6/00490278'
-    ruta2 = '/home/santiago/Proyecto-de-Grado-Codes/samples/6/sample_33.dcm'
+    ruta2 = '/home/santiago/Proyecto-de-Grado-Codes/samples/6/sample_40.dcm'
  
     segmentation = Segmentation()
     img_org = segmentation.loader.single_dicom_read(ruta2)
