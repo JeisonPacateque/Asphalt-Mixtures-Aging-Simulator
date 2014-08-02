@@ -7,9 +7,8 @@ Created on Tue May 27 09:10:49 2014
 
 from mayavi import mlab
 
-
 def ToyModel3d(sample):
-    src = mlab.pipeline.scalar_field(sample)  
+    src = mlab.pipeline.scalar_field(sample)
     inverse_lut = False
     colors = 5
     
