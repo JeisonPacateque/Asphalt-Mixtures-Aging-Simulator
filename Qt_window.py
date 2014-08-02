@@ -27,10 +27,8 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
         self.file_menu = QtGui.QMenu('&File', self)
-        self.file_menu.addAction('&Choose path', self.open_path,
-                                 QtCore.Qt.CTRL + QtCore.Qt.Key_O)
-        self.file_menu.addAction('&Exit', self.fileQuit,
-                                 QtCore.Qt.CTRL + QtCore.Qt.Key_Q)
+        self.file_menu.addAction('&Choose path', self.open_path, QtCore.Qt.CTRL + QtCore.Qt.Key_O)
+        self.file_menu.addAction('&Exit', self.fileQuit, QtCore.Qt.CTRL + QtCore.Qt.Key_Q)
         self.menuBar().addMenu(self.file_menu)
         
         self.animation_menu = QtGui.QMenu('&Animation', self)
@@ -43,6 +41,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.action_sample_segment = self.sample_menu.addAction('Segment sample', self.segment_sample)
         self.action_sample_3d = self.sample_menu.addAction('Show 3D model', self.show_3d_sample)
         self.action_sample_count = self.sample_menu.addAction('Count segmented elements', self.count_element_values)
+        self.action_sample_write = self.sample_menu.addAction('Write VTK file', self.write_vtk_file)
         self.menuBar().addMenu(self.sample_menu)
 
         self.help_menu = QtGui.QMenu('&Help', self)
@@ -81,10 +80,11 @@ class ApplicationWindow(QtGui.QMainWindow):
         path = str(chosen_path+"/") #QString to Python string
         if path != "/": #Prevents the execution of load_path if the user don't select a folder
             self.collection = FileLoader().load_path(path) #Load Files
-            total_loaded = str(len(self.collection))+" DICOM files loaded"
+            total_loaded = str(len(self.collection))+" DICOM files loaded."
             self.folder_path.setText(path)
             self.update_staus(total_loaded)
             self.menu_buttons_state(True)
+            QtGui.QMessageBox.about(self, "Information:", total_loaded+" DICOM files loaded.")
 
 
     def start_animation(self):
@@ -110,8 +110,10 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.segmented_collection = reduced
         self.collection = self.segmented_collection
         self.update_staus("Reduction complete")
+        self.count_element_values()
         self.action_sample_3d.setEnabled(True)  #Enables the 3D Model viewer
         self.action_sample_count.setEnabled(True) #Enables the count method
+        self.action_sample_write.setEnabled(True) #Enables the VTK writer
         self.action_sample_segment.setEnabled(False) #Disables de segmentation action
 
 
@@ -121,6 +123,12 @@ class ApplicationWindow(QtGui.QMainWindow):
         from ToyModel3d import ToyModel3d
         ToyModel3d(self.collection)
         self.action_sample_count.setEnabled(True) #Enables the count method
+        
+    def write_vtk_file(self):
+        print "Writting VTK file from loaded model..."
+        from fem import VectorWriter
+        vectorizer = VectorWriter()
+        vectorizer.toymodel_to_vtk(self.collection)
     
     def count_element_values(self):
         """Shows the total count of detected elements after the segmentation"""
@@ -130,7 +138,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         total = (empty+mastic+aggregate)
 
         QtGui.QMessageBox.information(self,
-                    "Total elements counted in pixels:",
+                    "Interpolation and Segmentation done",
                     "Sample has= "+str(total)+" pixels: \n"
                     "Empty pixels= "+str(empty)+"\t"+str((empty*100.)/total)+"%.\n" 
                     "Mastic pixels= "+str(mastic)+"\t"+str((mastic*100.)/total)+"%.\n"
@@ -142,6 +150,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         the count method requires samples to be segmented"""
         self.action_sample_count.setEnabled(False)
         self.action_sample_3d.setEnabled(False)
+        self.action_sample_write.setEnabled(False)
 
         self.action_animation_pause.setEnabled(state)
         self.action_animation_resume.setEnabled(state)
