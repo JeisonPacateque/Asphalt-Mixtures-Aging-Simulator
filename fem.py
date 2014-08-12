@@ -14,23 +14,22 @@ class VectorWriter(object):
     def __init__(self):
         pass
     
-    def toymodel_to_vtk(self, toymodel):
+    def toymodel_to_vtk(self, toymodel, filename):
         """This method transform a segmented Toy Model object (collection) into a
         VTK manipulable file"""
 
         start_time = time.time()  # Measures file execution time
         
-        collection = np.array(toymodel)
+        collection = np.array(toymodel) 
         size=collection.shape
         vector_file = tvtk.ImageData(spacing=(size), origin=(0, 0, 0))
         vector_file.point_data.scalars = collection.ravel(order='F')
         vector_file.point_data.scalars.name = 'scalars'
         vector_file.dimensions = collection.shape
         
-        write_data(vector_file, '/home/santiago/test.vtk')
-                
+        write_data(vector_file, filename)
+        print filename
+
         end_time = time.time()  # Get the time when method ends
         
-        print "Done writting VTK file at /home/santiago/test.vtk in", str(end_time - start_time), " seconds."
-        
-        return vector_file
+        print "Done writting VTK file at", filename, str(end_time - start_time), " seconds."
