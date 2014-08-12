@@ -28,6 +28,7 @@ class ApplicationWindow(QtGui.QMainWindow):
 
         self.file_menu = QtGui.QMenu('&File', self)
         self.file_menu.addAction('&Choose path', self.open_path, QtCore.Qt.CTRL + QtCore.Qt.Key_O)
+        self.action_file_writevtk = self.file_menu.addAction('Write VTK file', self.write_vtk_file)
         self.file_menu.addAction('&Exit', self.fileQuit, QtCore.Qt.CTRL + QtCore.Qt.Key_Q)
         self.menuBar().addMenu(self.file_menu)
         
@@ -41,7 +42,6 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.action_sample_segment = self.sample_menu.addAction('Segment sample', self.segment_sample)
         self.action_sample_3d = self.sample_menu.addAction('Show 3D model', self.show_3d_sample)
         self.action_sample_count = self.sample_menu.addAction('Count segmented elements', self.count_element_values)
-        self.action_sample_write = self.sample_menu.addAction('Write VTK file', self.write_vtk_file)
         self.menuBar().addMenu(self.sample_menu)
 
         self.help_menu = QtGui.QMenu('&Help', self)
@@ -113,7 +113,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.count_element_values()
         self.action_sample_3d.setEnabled(True)  #Enables the 3D Model viewer
         self.action_sample_count.setEnabled(True) #Enables the count method
-        self.action_sample_write.setEnabled(True) #Enables the VTK writer
+        self.action_file_writevtk.setEnabled(True) #Enables the VTK writer
         self.action_sample_segment.setEnabled(False) #Disables de segmentation action
 
 
@@ -127,8 +127,10 @@ class ApplicationWindow(QtGui.QMainWindow):
     def write_vtk_file(self):
         print "Writting VTK file from loaded model..."
         from fem import VectorWriter
+        filename = QtGui.QFileDialog.getSaveFileName(self, 'Save File', 'ToyModel.vtk')
         vectorizer = VectorWriter()
-        vectorizer.toymodel_to_vtk(self.collection)
+        vectorizer.toymodel_to_vtk(self.collection, filename)
+        QtGui.QMessageBox.about(self, "Alert","File saved at "+filename)
     
     def count_element_values(self):
         """Shows the total count of detected elements after the segmentation"""
@@ -150,7 +152,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         the count method requires samples to be segmented"""
         self.action_sample_count.setEnabled(False)
         self.action_sample_3d.setEnabled(False)
-        self.action_sample_write.setEnabled(False)
+        self.action_file_writevtk.setEnabled(False)
 
         self.action_animation_pause.setEnabled(state)
         self.action_animation_resume.setEnabled(state)
@@ -182,7 +184,7 @@ MatPlotLib figures created from DICOM files
         self.collection = collection
         
 class Canvas(FigureCanvas):
-#Set the graphical elements to show in a Qt Window
+    """Set the graphical elements to show in a Qt Window"""
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
@@ -207,7 +209,7 @@ class MyDynamicMplCanvas(Canvas):
         self.collection = "Empty"
 
     def update_figure(self):
-        #Read and plot all the images stored in the image list
+        """Read and plot all the images stored in the image list"""
         if type(self.collection) == str:
             self.collection = aw.get_collection()
         if self.index != len(self.collection) : #Conditional to restart the loop
