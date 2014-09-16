@@ -12,7 +12,7 @@ import numpy as np
 #dicom_image = dicom.read_file('/home/santiago/Proyecto-de-Grado-Codes/samples/6/sample_120.dcm')
 #matrix = dicom_image.pixel_array[35:485, 35:485]
 
-def sector_mask(shape,centre,radius,angle_range):
+def sector_mask(shape, centre=(50, 50), radius=50, angle_range=(0, 360)):
     """
     Return a boolean mask for a circular sector. The start/stop angles in  
     `angle_range` should be given in clockwise order.
