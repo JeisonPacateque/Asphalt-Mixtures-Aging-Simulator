@@ -28,7 +28,7 @@ class ApplicationWindow(QtGui.QMainWindow):
 
         self.file_menu = QtGui.QMenu('&File', self)
         self.file_menu.addAction('&Choose path', self.open_path, QtCore.Qt.CTRL + QtCore.Qt.Key_O)
-        self.action_file_writevtk = self.file_menu.addAction('Write VTK file', self.write_vtk_file)
+        self.action_file_writevtk = self.file_menu.addAction('Write VTK file', self.write_vtk_file, QtCore.Qt.CTRL + QtCore.Qt.Key_W)
         self.file_menu.addAction('&Exit', self.fileQuit, QtCore.Qt.CTRL + QtCore.Qt.Key_Q)
         self.menuBar().addMenu(self.file_menu)
         
@@ -39,7 +39,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.menuBar().addMenu(self.animation_menu)
 
         self.sample_menu = QtGui.QMenu('&Sample', self)
-        self.action_sample_segment = self.sample_menu.addAction('Segment sample', self.segment_sample)
+        self.action_sample_segment = self.sample_menu.addAction('Segment sample', self.segment_sample, QtCore.Qt.CTRL + QtCore.Qt.Key_S)
         self.action_sample_3d = self.sample_menu.addAction('Show 3D model', self.show_3d_sample)
         self.action_sample_count = self.sample_menu.addAction('Count segmented elements', self.count_element_values)
         self.menuBar().addMenu(self.sample_menu)
@@ -74,7 +74,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.update_staus("Loading files from path...")
         chosen_path = QtGui.QFileDialog.getExistingDirectory(None, 
                                                          'Open working directory', 
-                                                                     'samples/6/', 
+                                                                     '/home/santiago/Proyecto-de-Grado-Codes/samples/4', 
                                                     QtGui.QFileDialog.ShowDirsOnly)
         
         path = str(chosen_path+"/") #QString to Python string
@@ -84,13 +84,13 @@ class ApplicationWindow(QtGui.QMainWindow):
             self.folder_path.setText(path)
             self.update_staus(total_loaded)
             self.menu_buttons_state(True)
-            QtGui.QMessageBox.about(self, "Information:", total_loaded+" DICOM files loaded.")
+            QtGui.QMessageBox.about(self, "Information:", total_loaded)
 
 
     def start_animation(self):
         self.dc.reset_index()
         QtCore.QObject.connect(self.__class__.timer, QtCore.SIGNAL("timeout()"), self.dc.update_figure)
-        self.__class__.timer.start(200)                #Set the update time
+        self.__class__.timer.start(300)                #Set the update time
 
     def pause_animation(self):
         self.__class__.timer.stop()
@@ -129,7 +129,8 @@ class ApplicationWindow(QtGui.QMainWindow):
         from fem import VectorWriter
         filename = QtGui.QFileDialog.getSaveFileName(self, 'Save File', 'ToyModel.vtk')
         vectorizer = VectorWriter()
-        vectorizer.toymodel_to_vtk(self.collection, filename)
+        vectorizer.save_vtk(self.collection, filename)
+        #vectorizer.create_test_slice(self.collection)     #One Slice for mechanical test
         QtGui.QMessageBox.about(self, "Alert","File saved at "+filename)
     
     def count_element_values(self):
@@ -170,12 +171,14 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def about(self):
         QtGui.QMessageBox.about(self, "About",
-        """First attempt to inplement a Qt enviroment rendering 
-MatPlotLib figures created from DICOM files
+        """Asphalt Mixtures Aging Simulator
 
         Developed by:
         Jeison Pacateque
-        Santiago Puerto""")
+        Santiago Puerto
+        
+        Universidad Distrital Francisco Jose de Caldas        
+        """)
     
     def get_collection(self):
         return self.collection
@@ -213,7 +216,7 @@ class MyDynamicMplCanvas(Canvas):
         if type(self.collection) == str:
             self.collection = aw.get_collection()
         if self.index != len(self.collection) : #Conditional to restart the loop
-            self.axes.imshow(self.collection[self.index], cmap='seismic')
+            self.axes.imshow(self.collection[self.index], cmap='seismic', interpolation='nearest')
             status_text = "Sample: "+str(self.index)
             aw.update_staus(status_text) #Show in status bar the current index
             self.index += 1
@@ -229,7 +232,7 @@ class MyDynamicMplCanvas(Canvas):
 
 qApp = QtGui.QApplication(sys.argv)
 aw = ApplicationWindow()
-aw.setWindowTitle("DICOM Samples Viewer")
+aw.setWindowTitle("Asphalt Mixtures Aging Simulator")
 aw.show()
 sys.exit(qApp.exec_())
 #qApp.exec_()
