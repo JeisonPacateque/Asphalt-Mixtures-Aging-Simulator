@@ -36,20 +36,23 @@ class Segmentation(object):
 
         f = pyplot.figure()
         levels = [0, 1, 2]
-        colores = ['red', 'white', 'gray', 'black']
+        colores = ['red', 'white', 'blue', 'red']
         cmap, norm = colors.from_levels_and_colors(levels, colores, extend='both')
+        
+       # org = self.sample_mask(original) #Mask irelevant data
 
         f.add_subplot(1, 3, 1)  # Original image
-        pyplot.imshow(original, cmap='seismic')
-#        pyplot.colorbar()
+        pyplot.imshow(original, cmap='binary', interpolation='nearest')
+        pyplot.colorbar()
 
         f.add_subplot(1, 3, 2)  # Segmented image  by K-means
         pyplot.imshow(segmented, interpolation='nearest', cmap=cmap, norm=norm)
+        pyplot.colorbar()
 
         f.add_subplot(1, 3, 3)  # Reduced image
         pyplot.imshow(reduced, interpolation='nearest',
                       origin='lower', cmap = cmap, norm = norm)
-#        pyplot.colorbar()
+        pyplot.colorbar()
         pyplot.show()
 
     def histograma(self, img_red):
@@ -115,8 +118,8 @@ class Segmentation(object):
     def sample_mask(self, sample):
         """Applies a mask to fit the form of the toy model"""
         for i in range(len(sample)):
-            mask = sector_mask(sample[i].shape, (50,50), 50, (0,360))
-            sample[i][~mask] = -1
+            mask = sector_mask(sample[i].shape)
+            sample[i][~mask] = 3
             
         return sample
         
@@ -129,7 +132,7 @@ class Segmentation(object):
 if __name__ == '__main__':
  
     ruta1 = '/home/sjdps/MUESTRA/66719/6/00490278'
-    ruta2 = '/home/santiago/Proyecto-de-Grado-Codes/samples/6/sample_40.dcm'
+    ruta2 = '/home/santiago/Proyecto-de-Grado-Codes/samples/6/sample_200.dcm'
  
     segmentation = Segmentation()
     img_org = segmentation.loader.single_dicom_read(ruta2)
