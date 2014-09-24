@@ -130,7 +130,6 @@ class ApplicationWindow(QtGui.QMainWindow):
         filename = QtGui.QFileDialog.getSaveFileName(self, 'Save File', 'ToyModel.vtk')
         vectorizer = VectorWriter()
         vectorizer.save_vtk(self.collection, filename)
-        #vectorizer.create_test_slice(self.collection)     #One Slice for mechanical test
         QtGui.QMessageBox.about(self, "Alert","File saved at "+filename)
     
     def count_element_values(self):
