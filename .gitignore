@@ -10,3 +10,4 @@
 /fem.pyc
 /Qt_window.pyc
 *.vtk
+*.py
