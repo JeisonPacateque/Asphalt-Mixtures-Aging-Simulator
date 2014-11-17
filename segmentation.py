@@ -119,7 +119,7 @@ class Segmentation(object):
         """Applies a mask to fit the form of the toy model"""
         for i in range(len(sample)):
             mask = sector_mask(sample[i].shape)
-            sample[i][~mask] = 3
+            sample[i][~mask] = -1
             
         return sample
         
