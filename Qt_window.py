@@ -48,7 +48,9 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.menuBar().addSeparator()
         self.menuBar().addMenu(self.help_menu)
 
+        self.help_menu.addAction('&Help', self.help_dialog)        
         self.help_menu.addAction('&About...', self.about)
+        
 
         open_button = QtGui.QPushButton('Choose work path', self)
         open_button.clicked[bool].connect(self.open_path) #Button listener
@@ -90,13 +92,13 @@ class ApplicationWindow(QtGui.QMainWindow):
     def start_animation(self):
         self.dc.reset_index()
         QtCore.QObject.connect(self.__class__.timer, QtCore.SIGNAL("timeout()"), self.dc.update_figure)
-        self.__class__.timer.start(300)                #Set the update time
+        self.__class__.timer.start(150)                #Set the update time
 
     def pause_animation(self):
         self.__class__.timer.stop()
 
     def resume_animation(self):
-        self.__class__.timer.start(200)
+        self.__class__.timer.start(150)
 
     def update_staus(self, message):
         self.statusBar().showMessage(message)
@@ -175,6 +177,15 @@ class ApplicationWindow(QtGui.QMainWindow):
         Developed by:
         Jeison Pacateque
         Santiago Puerto
+        
+        Universidad Distrital Francisco Jose de Caldas        
+        """)
+        
+    def help_dialog(self):
+        QtGui.QMessageBox.about(self, "Help",
+        """Asphalt Mixtures Aging Simulator
+
+        The help should be here:
         
         Universidad Distrital Francisco Jose de Caldas        
         """)
