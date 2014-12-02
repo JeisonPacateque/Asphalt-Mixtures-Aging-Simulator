@@ -32,17 +32,20 @@ def difusion(unsigned int maxiter, unsigned int n):
     #F = np.zeros((n,n))
     cdef np.ndarray[double, ndim=2] F = np.zeros((n, n))
 
+    U[:,-1] = 1   #Calor en la tapa de arriba
+    
+#    for it1 in xrange(n):
+#        if X[it1] <= 0.3 or X[it1]>= 0.7:
+#            U[it1, n-1]=0
+#        else:
+#            U[it1, n-1]=1
+    U[-1, :] = 1 #Calor en la tapa de la derecha
 
-    for it1 in xrange(n):
-        if X[it1] <= 0.3 or X[it1]>= 0.7:
-            U[it1, n-1]=0
-        else:
-            U[it1, n-1]=1
+#        if Y[it1] <= 0.3 or Y[it1] >= 0.7:
+#            U[n-1, it1] = 0
+#        else:
+#            U[n-1, it1] = 1
 
-        if Y[it1] <= 0.3 or Y[it1] >= 0.7:
-            U[n-1, it1] = 0
-        else:
-            U[n-1, it1] = 1
 
     for it2 in xrange(maxiter):
         for i in xrange(n):
