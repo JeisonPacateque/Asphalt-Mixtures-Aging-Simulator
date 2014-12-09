@@ -11,6 +11,7 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from file_loader import FileLoader
 from segmentation import Segmentation
+from fem_mechanics import FEMMechanics
 
 
 class ApplicationWindow(QtGui.QMainWindow):
@@ -39,10 +40,15 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.menuBar().addMenu(self.animation_menu)
 
         self.sample_menu = QtGui.QMenu('&Sample', self)
-        self.action_sample_segment = self.sample_menu.addAction('Segment sample', self.segment_sample, QtCore.Qt.CTRL + QtCore.Qt.Key_S)
-        self.action_sample_3d = self.sample_menu.addAction('Show 3D model', self.show_3d_sample)
-        self.action_sample_count = self.sample_menu.addAction('Count segmented elements', self.count_element_values)
+        self.action_sample_segment = self.sample_menu.addAction('&Segment sample', self.segment_sample, QtCore.Qt.CTRL + QtCore.Qt.Key_S)
+        self.action_sample_3d = self.sample_menu.addAction('&Show 3D model', self.show_3d_sample)
+        self.action_sample_count = self.sample_menu.addAction('&Count segmented elements', self.count_element_values)
         self.menuBar().addMenu(self.sample_menu)
+        
+        self.simulation_menu = QtGui.QMenu('&Simulation', self)
+        self.simulation_setup = self.simulation_menu.addAction('&Set up simulation...', self.mechanics_simulation)
+        self.simulation_run = self.simulation_menu.addAction('&Run simulation...', self.run_simulation)
+        self.menuBar().addMenu(self.simulation_menu)
 
         self.help_menu = QtGui.QMenu('&Help', self)
         self.menuBar().addSeparator()
@@ -155,11 +161,14 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.action_sample_count.setEnabled(False)
         self.action_sample_3d.setEnabled(False)
         self.action_file_writevtk.setEnabled(False)
+        self.simulation_setup.setEnabled(False)
+        self.simulation_run.setEnabled(False)
 
         self.action_animation_pause.setEnabled(state)
         self.action_animation_resume.setEnabled(state)
         self.action_animation_start.setEnabled(state)
         self.action_sample_segment.setEnabled(state)
+        self.simulation_setup.setEnabled(state)
 
 
     def fileQuit(self):
@@ -195,6 +204,13 @@ class ApplicationWindow(QtGui.QMainWindow):
         
     def set_collection(self, collection):
         self.collection = collection
+        
+    def mechanics_simulation(self):
+        FEMMechanics(self.segmented_collection)
+        
+    def run_simulation(self):
+        print "Run simulation"
+        
         
 class Canvas(FigureCanvas):
     """Set the graphical elements to show in a Qt Window"""
