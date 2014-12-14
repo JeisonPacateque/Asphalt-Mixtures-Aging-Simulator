@@ -11,7 +11,7 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from file_loader import FileLoader
 from segmentation import Segmentation
-from fem_mechanics import FEMMechanics
+from fem_material import FEMMaterial
 
 
 class ApplicationWindow(QtGui.QMainWindow):
@@ -206,7 +206,8 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.collection = collection
         
     def mechanics_simulation(self):
-        FEMMechanics(self.segmented_collection)
+        #FEMMechanics(self.segmented_collection)
+        FEMMaterial(self.segmented_collection)
         
     def run_simulation(self):
         print "Run simulation"
