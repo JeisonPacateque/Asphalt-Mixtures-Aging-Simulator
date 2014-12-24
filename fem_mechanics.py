@@ -7,13 +7,12 @@ Created on Tue Nov 25 09:31:31 2014
 
 import numpy as np
 import time
-from Conectivity import ConectivityMatrix
 
 class FEMMechanics(object):
     
-    def __init__(self, collection):
+    def __init__(self, Material):
         """This class supports the Mechanic FEM Simulation"""
-        self.collection = collection  # Imported sample
+        self.material = Material  # Imported sample
         self.E2 = 21000000 #Agregado
         self.E1 = 10000000 #Masctic
         self.E0 = 100      #Aire
@@ -21,7 +20,6 @@ class FEMMechanics(object):
         self.A = 1. #Area transversal del elemento finito
         self.ki = np.zeros((1)) #Inicializa el arreglo vacio
         self.K = np.zeros((1))
-        self.conectivity = ConectivityMatrix()
         
         self.runSimulation() #Ejecuta la simulacion
        
@@ -42,16 +40,15 @@ class FEMMechanics(object):
         start_time = time.time()  # Measures Stiffness Assemble matrix time
         
         #Carga del Slice-----------------------------------------------
-        sample = self.loadVerticalSlice()
+        sample = self.material.loadVerticalSlice()
         slice_size = sample.shape
-                
-        self.assignMaterialProperties(sample)
-        self.generalStiffnessMatrixAssemble(slice_size)
-       
-        
+                      
         #Obtencion de los nodos superiores e inferiores--------------------
-        top_nodes = self.conectivity.getTopElementNodes()
-        bottom_nodes = self.conectivity.getBottomElementNodes()
+        top_nodes = self.material.conectivity.getTopElementNodes()
+        bottom_nodes = self.material.conectivity.getBottomElementNodes()
+        
+        self.ki = self.material.ki
+        self.K = self.material.K
         
         mask = np.ones(self.K.shape[0], dtype=bool)
         mask[bottom_nodes] = False
@@ -59,14 +56,19 @@ class FEMMechanics(object):
         k_sub = k_sub[:, mask]
         
         #Aplicar fuerzas sobre el modelo------------------------------------
-        force = 200
+        force = 80000
         Fuerzas = force*np.ones(k_sub.shape[0])
         
         #Calcular desplazamientos-------------------------------------------
         U = np.linalg.solve(k_sub, Fuerzas)
         
+        #Guardar desplazamientos--------------------------------------------
+        np.set_printoptions(threshold=np.inf, linewidth=np.inf)  # turn off summarization, line-wrapping
+        with open('matriz_u', 'w') as f:
+            f.write(np.array2string(U, precision=3))
+
         end_time = time.time()  # Get the time when method ends
-        print "Displacements done in", str(end_time - start_time), "seconds."        
+        print "Displacements done and saved in", str(end_time - start_time), "seconds."        
                 
         print "Top nodes:", len(top_nodes)
         print "Bottom nodes:", len(bottom_nodes)
