@@ -20,7 +20,7 @@ class ApplicationWindow(QtGui.QMainWindow):
     timer = QtCore.QTimer()     #Timer intended to update the image
 
     def __init__(self):
-        
+
         self.collection = []
         self.segmented_collection = []
         self.segmentation = Segmentation()
@@ -33,7 +33,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.action_file_writevtk = self.file_menu.addAction('Write VTK file', self.write_vtk_file, QtCore.Qt.CTRL + QtCore.Qt.Key_W)
         self.file_menu.addAction('&Exit', self.fileQuit, QtCore.Qt.CTRL + QtCore.Qt.Key_Q)
         self.menuBar().addMenu(self.file_menu)
-        
+
         self.animation_menu = QtGui.QMenu('&Animation', self)
         self.action_animation_start = self.animation_menu.addAction('&Start', self.start_animation, QtCore.Qt.Key_S)
         self.action_animation_resume = self.animation_menu.addAction('&Resume', self.resume_animation, QtCore.Qt.Key_Return)
@@ -45,7 +45,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.action_sample_3d = self.sample_menu.addAction('&Show 3D model', self.show_3d_sample)
         self.action_sample_count = self.sample_menu.addAction('&Count segmented elements', self.count_element_values)
         self.menuBar().addMenu(self.sample_menu)
-        
+
         self.simulation_menu = QtGui.QMenu('&Simulation', self)
         self.simulation_setup = self.simulation_menu.addAction('&Set up simulation...', self.mechanics_simulation)
         self.simulation_run = self.simulation_menu.addAction('&Run simulation...', self.run_simulation)
@@ -55,9 +55,9 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.menuBar().addSeparator()
         self.menuBar().addMenu(self.help_menu)
 
-        self.help_menu.addAction('&Help', self.help_dialog)        
+        self.help_menu.addAction('&Help', self.help_dialog)
         self.help_menu.addAction('&About...', self.about)
-        
+
 
         open_button = QtGui.QPushButton('Choose work path', self)
         open_button.clicked[bool].connect(self.open_path) #Button listener
@@ -66,7 +66,7 @@ class ApplicationWindow(QtGui.QMainWindow):
 
         l = QtGui.QGridLayout(self.main_widget)
         self.dc = MyDynamicMplCanvas(self.main_widget, width=5, height=4, dpi=100)
-        
+
         self.folder_path = QtGui.QLineEdit(self)
         self.folder_path.setReadOnly(True) #The only way to edit path should be by using the button
 
@@ -77,15 +77,15 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.main_widget.setFocus()
         self.setCentralWidget(self.main_widget)
         self.menu_buttons_state()
-        
+
     def open_path(self):
         self.pause_animation();
         self.update_staus("Loading files from path...")
-        chosen_path = QtGui.QFileDialog.getExistingDirectory(None, 
-                                                         'Open working directory', 
-                                                                     '/home/santiago/Proyecto-de-Grado-Codes/samples/4', 
+        chosen_path = QtGui.QFileDialog.getExistingDirectory(None,
+                                                         'Open working directory',
+                                                                     '/samples/4',
                                                     QtGui.QFileDialog.ShowDirsOnly)
-        
+
         path = str(chosen_path+"/") #QString to Python string
         if path != "/": #Prevents the execution of load_path if the user don't select a folder
             self.collection = FileLoader().load_path(path) #Load Files
@@ -132,7 +132,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         from ToyModel3d import ToyModel3d
         ToyModel3d(self.collection)
         self.action_sample_count.setEnabled(True) #Enables the count method
-        
+
     def write_vtk_file(self):
         print "Writting VTK file from loaded model..."
         from fem import VectorWriter
@@ -140,7 +140,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         vectorizer = VectorWriter()
         vectorizer.save_vtk(self.collection, filename)
         QtGui.QMessageBox.about(self, "Alert","File saved at "+filename)
-    
+
     def count_element_values(self):
         """Shows the total count of detected elements after the segmentation"""
         empty = np.count_nonzero(self.collection==0)
@@ -151,7 +151,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         QtGui.QMessageBox.information(self,
                     "Interpolation and Segmentation done",
                     "Sample has= "+str(total)+" pixels: \n"
-                    "Empty pixels= "+str(empty)+"\t"+str((empty*100.)/total)+"%.\n" 
+                    "Empty pixels= "+str(empty)+"\t"+str((empty*100.)/total)+"%.\n"
                     "Mastic pixels= "+str(mastic)+"\t"+str((mastic*100.)/total)+"%.\n"
                     "Aggregate pixels= "+str(aggregate)+"\t"+str((aggregate*100.)/total)+"%.")
 
@@ -187,34 +187,34 @@ class ApplicationWindow(QtGui.QMainWindow):
         Developed by:
         Jeison Pacateque
         Santiago Puerto
-        
-        Universidad Distrital Francisco Jose de Caldas        
+
+        Universidad Distrital Francisco Jose de Caldas
         """)
-        
+
     def help_dialog(self):
         QtGui.QMessageBox.about(self, "Help",
         """Asphalt Mixtures Aging Simulator
 
         The help should be here:
-        
-        Universidad Distrital Francisco Jose de Caldas        
+
+        Universidad Distrital Francisco Jose de Caldas
         """)
-    
+
     def get_collection(self):
         return self.collection
-        
+
     def set_collection(self, collection):
         self.collection = collection
-        
+
     def mechanics_simulation(self):
         #FEMMechanics(self.segmented_collection)
         material = FEMMaterial(self.segmented_collection)
         mechanics = FEMMechanics(material)
-        
+
     def run_simulation(self):
         print "Run simulation"
-        
-        
+
+
 class Canvas(FigureCanvas):
     """Set the graphical elements to show in a Qt Window"""
     def __init__(self, parent=None, width=5, height=4, dpi=100):

@@ -10,3 +10,7 @@
 /fem.pyc
 /Qt_window.pyc
 *.vtk
+*.xml
+.idea/.name
+.idea/Proyecto-de-Grado-Codes.iml
+*.pyc
