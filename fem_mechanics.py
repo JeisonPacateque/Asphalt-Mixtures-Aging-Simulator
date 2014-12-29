@@ -62,7 +62,7 @@ class FEMMechanics(object):
 
         #Calcular desplazamientos-------------------------------------------
         U = np.linalg.solve(k_sub, Fuerzas)
-        img = U.reshape(slice_size)
+        img = U.reshape(slice_size).transpose()
 
 
         #Guardar desplazamientos--------------------------------------------
