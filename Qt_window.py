@@ -83,7 +83,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.update_staus("Loading files from path...")
         chosen_path = QtGui.QFileDialog.getExistingDirectory(None,
                                                          'Open working directory',
-                                                                     '/samples/4',
+                               '/home/santiago/Proyecto-de-Grado-Codes/samples/4',
                                                     QtGui.QFileDialog.ShowDirsOnly)
 
         path = str(chosen_path+"/") #QString to Python string
