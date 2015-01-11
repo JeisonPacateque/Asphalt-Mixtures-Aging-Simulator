@@ -7,6 +7,7 @@ Created on Tue Nov 25 09:31:31 2014
 
 import numpy as np
 import time
+import math
 from matplotlib import pyplot, colors
 
 
@@ -57,13 +58,13 @@ class FEMMechanics(object):
         k_sub = k_sub[:, mask]
 
         #Aplicar fuerzas sobre el modelo------------------------------------
-        force = 80000
+        force = 800
         Fuerzas = force * np.ones(k_sub.shape[0])
 
         #Calcular desplazamientos-------------------------------------------
         U = np.linalg.solve(k_sub, Fuerzas)
-        img = U.reshape(slice_size)
-
+        #np.set_printoptions(suppress=True)
+        img = U.reshape(slice_size).transpose()     
 
         #Guardar desplazamientos--------------------------------------------
         np.set_printoptions(threshold=np.inf, linewidth=np.inf)  # turn off summarization, line-wrapping
@@ -75,6 +76,11 @@ class FEMMechanics(object):
         f.add_subplot(111)
         pyplot.title('Displacements Map')
         pyplot.imshow(img)
+        pyplot.colorbar()
+        
+        f.add_subplot(121)
+        pyplot.title('Original Slice')
+        pyplot.imshow(sample.transpose())
         pyplot.colorbar()
         pyplot.show()
 
