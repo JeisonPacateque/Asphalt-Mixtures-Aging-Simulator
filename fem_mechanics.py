@@ -63,8 +63,13 @@ class FEMMechanics(object):
 
         #Calcular desplazamientos-------------------------------------------
         U = np.linalg.solve(k_sub, Fuerzas)
+<<<<<<< HEAD
         #np.set_printoptions(suppress=True)
         img = U.reshape(slice_size).transpose()     
+=======
+        img = U.reshape(slice_size).transpose()
+
+>>>>>>> origin/master
 
         #Guardar desplazamientos--------------------------------------------
         np.set_printoptions(threshold=np.inf, linewidth=np.inf)  # turn off summarization, line-wrapping
