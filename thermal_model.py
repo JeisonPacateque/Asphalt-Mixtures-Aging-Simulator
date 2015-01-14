@@ -8,11 +8,11 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
-from PyQt4 import QtGui
-from PyQt4 import QtCore 
+from PyQt4 import QtGui, QtCore
+from pylab import cm 
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt4agg import NavigationToolbar2QTAgg as NavigationToolbar
-import random
+
 
 class ThermalModel(QtGui.QDialog):
     def __init__(self, sample, const, ui, u, parent=None):
@@ -53,24 +53,7 @@ class ThermalModel(QtGui.QDialog):
         layout.addWidget(self.button)
         layout.addWidget(self.pbutton)
         self.setLayout(layout)
-
-    def plot(self):
-        ''' plot some random stuff '''
         
-        # random data
-        data = [random.random() for i in range(10)]
-
-        # create an axis
-        ax = self.figure.add_subplot(111)
-
-        # discards the old graph
-        ax.hold(False)
-
-        # plot data
-        ax.plot(data, '*-')
-
-        # refresh canvas
-        self.canvas.draw()
     
     @staticmethod
     def loadSample():
@@ -91,7 +74,7 @@ class ThermalModel(QtGui.QDialog):
         return sample
         
     def empieza(self):
-        self.timer.start(100)
+        self.timer.start(150)
         QtCore.QObject.connect(self.timer,QtCore.SIGNAL("timeout()"), self.updatefig)
    
     def para(self):
@@ -112,34 +95,34 @@ class ThermalModel(QtGui.QDialog):
                 uyy = ( ui[i,j+1] - 2*ui[i,j] + ui[i, j-1] )/dy2
                 a = self.get_a(i, j)
                 u[i,j] = ui[i,j]+dt*a*(uxx+uyy)
-        
-        print "done evolve"
         return ui
                 
     def updatefig(self):
-        fig = self.canvas
-        img = fig.add_subplot(111)
-        #img.hold(False) #We want the axes cleared every time plot() is called
-        im=img.imshow(self.ui, cmap='seismic', interpolation='nearest')
-        im.set_array(self.ui)
+
+        f=self.figure
+        f.clf()
+        f.add_subplot(111)
+        plt.hold(False)
+        plt.imshow(self.ui, cmap=cm.hot , interpolation='nearest', origin='lower')
+        plt.colorbar()
+        
+        f.add_subplot(121)
+        plt.imshow(self.sample, cmap=cm.seismic , interpolation='nearest', origin='lower')
+        plt.colorbar()
+
+        self.canvas.draw()
+        
         self.ui = self.evolve_ts(self.u, self.ui)
-    #    u[1:-1, 1:-1] = ui[1:-1, 1:-1] + a*dt*(
-    #        (ui[2:, 1:-1] - 2*ui[1:-1, 1:-1] + ui[:-2, 1:-1])/dx2
-    #        + (ui[1:-1, 2:] - 2*ui[1:-1, 1:-1] + ui[1:-1, :-2])/dy2 )
+        
         self.ui = sp.copy(self.u)
         self.iteration+=1
         print "Computing and rendering u for m =", self.iteration
+        
         if self.iteration >= timesteps:
             return False
-        return True
+        return True        
 
-        im.show()
-        im.draw()
-        fig.show()
-
-        fig.colorbar( im ) # Show the colorbar along the side
-        
-
+#-----------------------------------------------------------------------------.
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
 
@@ -147,7 +130,7 @@ if __name__ == '__main__':
     const = np.empty((sample.shape)) # matriz de constantes de conductividad
     ui = np.zeros((sample.shape)) # matriz inicial de temp   
     u = np.zeros((sample.shape)) # matriz inicial de temp
-
+    
     main = ThermalModel(sample, const, ui, u)
     main.show()
     
@@ -178,11 +161,12 @@ if __name__ == '__main__':
     
     #nx = 
     #ny = int(1/dy)
-    dx = 1/main.sample.shape[0]
-    dy = 1/main.sample.shape[1]
+    dx = 1./sample.shape[0]
+    dy = 1./sample.shape[1]
     dx2=dx**2 # To save CPU cycles, we'll compute Delta x^2
     dy2=dy**2 # and Delta y^2 only once and store them.
-    print dx2, dy2
+    print "dx2=", dx2
+    print "dy2=", dy2
     
     # For stability, this is the largest interval possible
     # for the size of the time-step:
