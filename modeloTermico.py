@@ -39,7 +39,7 @@ def loadSample():
     scaled = Seg.reduction(collection)
     toymodel = Seg.segment_all_samples(scaled)
     
-    tajada = toymodel[:, :, 50]
+    tajada = toymodel[:, :, 50].transpose()
     return tajada
     
 tajada = loadSample()
