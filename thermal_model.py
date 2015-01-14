@@ -40,10 +40,10 @@ class ThermalModel(QtGui.QDialog):
         self.toolbar = NavigationToolbar(self.canvas, self)
 
         # Just some button connected to `plot` method
-        self.button = QtGui.QPushButton('Plot')
+        self.button = QtGui.QPushButton('Start')
         self.button.clicked.connect(self.empieza)
         
-        self.pbutton = QtGui.QPushButton('Pausa')
+        self.pbutton = QtGui.QPushButton('Pause')
         self.pbutton.clicked.connect(self.para)
 
         # set the layout
@@ -98,15 +98,13 @@ class ThermalModel(QtGui.QDialog):
         return ui
                 
     def updatefig(self):
-
-        f=self.figure
-        f.clf()
-        f.add_subplot(111)
+        self.figure.clf()
+        self.figure.add_subplot(111)
         plt.hold(False)
         plt.imshow(self.ui, cmap=cm.hot , interpolation='nearest', origin='lower')
         plt.colorbar()
         
-        f.add_subplot(121)
+        self.figure.add_subplot(121)
         plt.imshow(self.sample, cmap=cm.seismic , interpolation='nearest', origin='lower')
         plt.colorbar()
 
@@ -116,11 +114,7 @@ class ThermalModel(QtGui.QDialog):
         
         self.ui = sp.copy(self.u)
         self.iteration+=1
-        print "Computing and rendering u for m =", self.iteration
-        
-        if self.iteration >= timesteps:
-            return False
-        return True        
+        print "Computing and rendering thermal diffussion step", self.iteration
 
 #-----------------------------------------------------------------------------.
 if __name__ == '__main__':
@@ -156,8 +150,6 @@ if __name__ == '__main__':
     #dx=0.01        # Interval size in x-direction.
     #dy=0.01        # Interval size in y-direction.
     #a=0.5          # Diffusion constant.
-    
-    timesteps=500  # Number of time-steps to evolve system.
     
     #nx = 
     #ny = int(1/dy)
