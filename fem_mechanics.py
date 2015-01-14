@@ -63,13 +63,9 @@ class FEMMechanics(object):
 
         #Calcular desplazamientos-------------------------------------------
         U = np.linalg.solve(k_sub, Fuerzas)
-<<<<<<< HEAD
-        #np.set_printoptions(suppress=True)
-        img = U.reshape(slice_size).transpose()     
-=======
-        img = U.reshape(slice_size).transpose()
 
->>>>>>> origin/master
+        #np.set_printoptions(suppress=True)
+        img = U.reshape(slice_size).transpose()
 
         #Guardar desplazamientos--------------------------------------------
         np.set_printoptions(threshold=np.inf, linewidth=np.inf)  # turn off summarization, line-wrapping
@@ -80,12 +76,12 @@ class FEMMechanics(object):
         f = pyplot.figure()
         f.add_subplot(111)
         pyplot.title('Displacements Map')
-        pyplot.imshow(img)
+        pyplot.imshow(img, interpolation='nearest')
         pyplot.colorbar()
         
         f.add_subplot(121)
         pyplot.title('Original Slice')
-        pyplot.imshow(sample.transpose())
+        pyplot.imshow(sample.transpose(), interpolation='nearest')
         pyplot.colorbar()
         pyplot.show()
 
