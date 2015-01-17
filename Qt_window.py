@@ -11,8 +11,9 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from file_loader import FileLoader
 from segmentation import Segmentation
-from material import FEMMaterial
+from material import Material
 from fem_mechanics import FEMMechanics
+from thermal_model import ThermalModel
 
 
 class ApplicationWindow(QtGui.QMainWindow):
@@ -47,7 +48,8 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.menuBar().addMenu(self.sample_menu)
 
         self.simulation_menu = QtGui.QMenu('&Simulation', self)
-        self.simulation_setup = self.simulation_menu.addAction('&Set up simulation...', self.mechanics_simulation)
+        self.simulation_mechanical = self.simulation_menu.addAction('&Mechanical simulation...', self.mechanics_simulation)
+        self.simulation_thermical = self.simulation_menu.addAction('&Thermical simulation...', self.thermical_simulation)
         self.simulation_run = self.simulation_menu.addAction('&Run simulation...', self.run_simulation)
         self.menuBar().addMenu(self.simulation_menu)
 
@@ -162,14 +164,16 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.action_sample_count.setEnabled(False)
         self.action_sample_3d.setEnabled(False)
         self.action_file_writevtk.setEnabled(False)
-        self.simulation_setup.setEnabled(False)
+        self.simulation_mechanical.setEnabled(False)
+        self.simulation_thermical.setEnabled(False)
         self.simulation_run.setEnabled(False)
 
         self.action_animation_pause.setEnabled(state)
         self.action_animation_resume.setEnabled(state)
         self.action_animation_start.setEnabled(state)
         self.action_sample_segment.setEnabled(state)
-        self.simulation_setup.setEnabled(state)
+        self.simulation_mechanical.setEnabled(state)
+        self.simulation_thermical.setEnabled(state)
 
 
     def fileQuit(self):
@@ -208,8 +212,13 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def mechanics_simulation(self):
         #FEMMechanics(self.segmented_collection)
-        material = FEMMaterial(self.segmented_collection)
+        material = Material(self.segmented_collection)
         mechanics = FEMMechanics(material)
+
+    def thermical_simulation(self):
+        material = Material(self.segmented_collection)
+        thermical = ThermalModel(material)
+        thermical.show()
 
     def run_simulation(self):
         print "Run simulation"

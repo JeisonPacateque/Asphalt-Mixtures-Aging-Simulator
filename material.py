@@ -8,23 +8,28 @@ import numpy as np
 import time
 from Conectivity import ConectivityMatrix
 
-class FEMMaterial(object):
+class Material(object):
 
     def __init__(self, collection):
         """This class handle the material to be simulated by FEM"""
         self.collection = collection  # Imported sample
-        self.vertical_slice = np.zeros((1))
+        self.vertical_slice = self.loadVerticalSlice()
         self.E2 = 21000000 #Aggregate Young's modulus
         self.E1 = 10000000 #Masctic Young's modulus
         self.E0 = 100      #Air Young's modulus
+        self.conductAsphalt = 0.75  #Thermal conductivity units are W/(m K) in the SI 
+        self.conductAir = 0.026 #Thermal conductivity units are W/(m K) in the SI 
+        self.conductRock = 7.8 #Thermal conductivity units are W/(m K) in the SI 
         self.L = 1. #Finite Element length
         self.A = 1. #Finite Element transversal area
         self.ki = np.zeros((1)) #Discrete Stiffness Matrix
         self.K = np.zeros((1)) #General Stifness Matrix
         self.conectivity = ConectivityMatrix() #General conectivity matrix
-        self.loadVerticalSlice()
-        self.assignMaterialProperties(self.vertical_slice)
+        self.thermicalConstantsMatrix = self.assignThermicalProperties(self.vertical_slice)
+        self.assignMechanicalProperties(self.vertical_slice)
         self.generalStiffnessMatrixAssemble(self.vertical_slice.shape)
+
+
         
     def LinearBarElementStiffness(self, E, A, L):
         """ This function returns the element stiffness matrix for a linear bar with
@@ -44,12 +49,10 @@ class FEMMaterial(object):
    
     def loadVerticalSlice(self):
         """Cut the central slice of the sample for FEM mechanics simulation"""
-        segmented = self.collection
-        vertical_slice = segmented[:, :, 50]
-        self.vertical_slice = vertical_slice
-        return vertical_slice
+        vertical = self.collection[:, :, 50]
+        return vertical
         
-    def assignMaterialProperties(self, sample):
+    def assignMechanicalProperties(self, sample):
         """Load the sample and assing the material modulus for each pixel detected"""
         start_time = time.time()  # Measures Stiffness Assemble matrix time
         self.ki = np.empty(sample.size, dtype=object)#Creacion de la matriz de rigidez vacia
@@ -69,6 +72,22 @@ class FEMMaterial(object):
             
         end_time = time.time()  # Get the time when method ends
         print "Material assignements done in", str(end_time - start_time), "seconds."
+        
+    def assignThermicalProperties(self, sample):
+        """Assign the material thermical constants for each pixel detected"""
+        start_time = time.time()  # Measures Stiffness Assemble matrix time
+        thermicalConstantsMatrix = np.zeros(sample.shape)
+        for (x,y), value in np.ndenumerate(sample):
+            if sample[x, y] == 2:
+                thermicalConstantsMatrix[x, y] = self.conductRock
+            elif sample[x, y] == 1: 
+                thermicalConstantsMatrix[x, y] = self.conductAsphalt
+            else:
+                thermicalConstantsMatrix[x, y] = self.conductAir
+        
+        end_time = time.time()  # Get the time when method ends
+        print "Thermal constants assignements done in", str(end_time - start_time), "seconds."
+        return thermicalConstantsMatrix
         
     def generalStiffnessMatrixAssemble(self, slice_size):
         """Assembles an n x n Stiffness Matrix"""
