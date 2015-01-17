@@ -14,6 +14,7 @@ from segmentation import Segmentation
 from material import Material
 from fem_mechanics import FEMMechanics
 from thermal_model import ThermalModel
+from simulation_engine import SimulationEngine
 
 
 class ApplicationWindow(QtGui.QMainWindow):
@@ -48,8 +49,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.menuBar().addMenu(self.sample_menu)
 
         self.simulation_menu = QtGui.QMenu('&Simulation', self)
-        self.simulation_mechanical = self.simulation_menu.addAction('&Mechanical simulation...', self.mechanics_simulation)
-        self.simulation_thermical = self.simulation_menu.addAction('&Thermical simulation...', self.thermical_simulation)
+        self.simulation_setup = self.simulation_menu.addAction('&Set up simulation...', self.setup_simulation)
         self.simulation_run = self.simulation_menu.addAction('&Run simulation...', self.run_simulation)
         self.menuBar().addMenu(self.simulation_menu)
 
@@ -125,6 +125,9 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.action_sample_3d.setEnabled(True)  #Enables the 3D Model viewer
         self.action_sample_count.setEnabled(True) #Enables the count method
         self.action_file_writevtk.setEnabled(True) #Enables the VTK writer
+        self.simulation_setup.setEnabled(True) #Enables the simulation setup
+        self.simulation_run.setEnabled(True) #Enables the simulation setup
+
         self.action_sample_segment.setEnabled(False) #Disables de segmentation action
 
 
@@ -164,16 +167,13 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.action_sample_count.setEnabled(False)
         self.action_sample_3d.setEnabled(False)
         self.action_file_writevtk.setEnabled(False)
-        self.simulation_mechanical.setEnabled(False)
-        self.simulation_thermical.setEnabled(False)
+        self.simulation_setup.setEnabled(False)
         self.simulation_run.setEnabled(False)
 
         self.action_animation_pause.setEnabled(state)
         self.action_animation_resume.setEnabled(state)
         self.action_animation_start.setEnabled(state)
         self.action_sample_segment.setEnabled(state)
-        self.simulation_mechanical.setEnabled(state)
-        self.simulation_thermical.setEnabled(state)
 
 
     def fileQuit(self):
@@ -210,15 +210,21 @@ class ApplicationWindow(QtGui.QMainWindow):
     def set_collection(self, collection):
         self.collection = collection
 
-    def mechanics_simulation(self):
-        #FEMMechanics(self.segmented_collection)
-        material = Material(self.segmented_collection)
-        mechanics = FEMMechanics(material)
+#    def mechanics_simulation(self):
+#        FEMMechanics(self.segmented_collection)
+#        material = Material(self.segmented_collection)
+#        mechanics = FEMMechanics(material)
 
-    def thermical_simulation(self):
-        material = Material(self.segmented_collection)
-        thermical = ThermalModel(material)
-        thermical.show()
+#    def thermical_simulation(self):
+#        material = Material(self.segmented_collection)
+#        thermical = ThermalModel(material)
+#        thermical.show()
+
+
+    def setup_simulation(self):
+        material = Material(self.collection)
+        engine = SimulationEngine(material)
+
 
     def run_simulation(self):
         print "Run simulation"
@@ -273,4 +279,4 @@ aw = ApplicationWindow()
 aw.setWindowTitle("Asphalt Mixtures Aging Simulator")
 aw.show()
 sys.exit(qApp.exec_())
-#qApp.exec_()
+qApp.exec_()
