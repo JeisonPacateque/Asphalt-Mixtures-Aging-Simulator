@@ -4,7 +4,7 @@ Created on Mon Jan 12 00:01:43 2015
 
 @author: santiago
 """
-import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sp
@@ -23,7 +23,7 @@ class ThermalModel(QtGui.QDialog):
         self.thermicalConstantsMatrix = self.material.thermicalConstantsMatrix.transpose() # matriz de thermicalConstantsMatrixantes de conductividad
         self.ui = np.zeros((self.sample.shape)) # matriz inicial de temp
         self.u = np.zeros((self.sample.shape)) # matriz inicial de temp
-#        self._want_to_close = False #Qt variable for detect close event
+
 
     def runSimulation(self):
         print "Running thermical simulation..."
@@ -59,6 +59,7 @@ class ThermalModel(QtGui.QDialog):
         layout.addWidget(self.pbutton)
         self.setLayout(layout)
 
+
         #Calculate dx, dy
         self.dx = 1./self.sample.shape[0]
         self.dy = 1./self.sample.shape[1]
@@ -71,6 +72,8 @@ class ThermalModel(QtGui.QDialog):
         # for the size of the time-step:
         self.dt = self.dx2*self.dy2/(self.material.conductRock**(self.dx2+self.dy2) )
         self.show()
+        self.exec_()
+
 
     def applySimulationConditions(self, ambient=20, applied=100):
         """"Set the temperatures for the simulation """
