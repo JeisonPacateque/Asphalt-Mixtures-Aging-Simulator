@@ -17,6 +17,7 @@ from thermal_model import ThermalModel
 from simulation_engine import SimulationEngine
 
 
+
 class ApplicationWindow(QtGui.QMainWindow):
     """This Class contains the main window of the DICOM sample viewer """
     timer = QtCore.QTimer()     #Timer intended to update the image
@@ -209,17 +210,6 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def set_collection(self, collection):
         self.collection = collection
-
-#    def mechanics_simulation(self):
-#        FEMMechanics(self.segmented_collection)
-#        material = Material(self.segmented_collection)
-#        mechanics = FEMMechanics(material)
-
-#    def thermical_simulation(self):
-#        material = Material(self.segmented_collection)
-#        thermical = ThermalModel(material)
-#        thermical.show()
-
 
     def setup_simulation(self):
         material = Material(self.collection)
