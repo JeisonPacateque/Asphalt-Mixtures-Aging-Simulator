@@ -12,9 +12,7 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from file_loader import FileLoader
 from segmentation import Segmentation
-from material import Material
 from simulation_engine import SimulationEngine
-
 
 
 class ApplicationWindow(QtGui.QMainWindow):
@@ -87,8 +85,8 @@ class ApplicationWindow(QtGui.QMainWindow):
         print current_path
         chosen_path = QtGui.QFileDialog.getExistingDirectory(None,
                                                          'Open working directory',
-                                current_path,
-                                                    QtGui.QFileDialog.ShowDirsOnly)
+                                                                     current_path,
+                                                   QtGui.QFileDialog.ShowDirsOnly)
 
         path = str(chosen_path+"/") #QString to Python string
         if path != "/": #Prevents the execution of load_path if the user don't select a folder
@@ -116,6 +114,7 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def segment_sample(self):
         print "Running segmentation..."
+        self.update_staus("Running segmentation...")
         self.dc.reset_index()
         segmented = self.segmentation.reduction(self.collection)
         reduced = self.segmentation.segment_all_samples(segmented)
@@ -213,12 +212,12 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.collection = collection
 
     def setup_simulation(self):
-        material = Material(self.collection)
-        engine = SimulationEngine(material)
-
+        config_dialog = ConfigureSimulationDialog()
+        config_dialog.exec_() #Prevents the dialog to disappear
 
     def run_simulation(self):
         print "Run simulation"
+        engine = SimulationEngine()
 
 
 class Canvas(FigureCanvas):
@@ -264,6 +263,122 @@ class MyDynamicMplCanvas(Canvas):
         self.collection = "Empty"
 
 #------------------------------------------------------------------------
+class ConfigureSimulationDialog(QtGui.QDialog):
+
+    def __init__(self):
+        super(ConfigureSimulationDialog, self).__init__()
+
+        self.title = QtGui.QLabel('Configure the physical constants')
+
+        self.mechanicsLabel = QtGui.QLabel("Young's modulus")
+        self.modulusAggregateLabel = QtGui.QLabel("Aggregate:")
+        self.modulusMasticLabel = QtGui.QLabel("Mastic:")
+        self.modulusAirLabel = QtGui.QLabel("Air voids:")
+
+        self.aggregate_YM = QtGui.QLineEdit()
+        self.mastic_YM = QtGui.QLineEdit()
+        self.air_YM = QtGui.QLineEdit()
+
+        self.thermalLabel = QtGui.QLabel("Thermal conductivity")
+        self.thermalAggregateLabel = QtGui.QLabel("Aggregate:")
+        self.thermalMasticLabel = QtGui.QLabel("Mastic:")
+        self.thermalAirLabel = QtGui.QLabel("Air voids:")
+
+        self.aggregate_TC = QtGui.QLineEdit()
+        self.mastic_TC = QtGui.QLineEdit()
+        self.air_TC = QtGui.QLineEdit()
+
+        self.chemicalLabel = QtGui.QLabel("Chemical constants")
+        self.chemicalAggregateLabel = QtGui.QLabel("Chemical value1:")
+        self.chemicalMasticLabel = QtGui.QLabel("Chemical value2:")
+        self.chemicalAirLabel = QtGui.QLabel("Chemical value3:")
+
+        self.aggregate_CH = QtGui.QLineEdit()
+        self.mastic_CH = QtGui.QLineEdit()
+        self.air_CH = QtGui.QLineEdit()
+
+        self.runSimulationButton = QtGui.QPushButton('Run simulation', self)
+        self.runSimulationButton.clicked[bool].connect(self.runSimulation) #Listener
+
+        self.cancelButton =  QtGui.QPushButton('Cancel', self)
+        self.cancelButton.clicked[bool].connect(self.closeWindow)
+
+        self.grid = QtGui.QGridLayout()
+        self.grid.setSpacing(1)
+
+        self.grid.addWidget(self.title, 1, 0)
+
+        self.grid.addWidget(self.mechanicsLabel, 2, 0)
+        self.grid.addWidget(self.modulusAggregateLabel, 3, 0)
+        self.grid.addWidget(self.aggregate_YM, 3, 1)
+        self.grid.addWidget(self.modulusMasticLabel, 4, 0)
+        self.grid.addWidget(self.mastic_YM, 4, 1)
+        self.grid.addWidget(self.modulusAirLabel, 5, 0)
+        self.grid.addWidget(self.air_YM, 5, 1)
+
+        self.grid.addWidget(self.thermalLabel, 6, 0)
+        self.grid.addWidget(self.thermalAggregateLabel, 7, 0)
+        self.grid.addWidget(self.aggregate_TC, 7, 1)
+        self.grid.addWidget(self.thermalMasticLabel, 8, 0)
+        self.grid.addWidget(self.mastic_TC, 8, 1)
+        self.grid.addWidget(self.thermalAirLabel, 9, 0)
+        self.grid.addWidget(self.air_TC, 9, 1)
+
+        self.grid.addWidget(self.chemicalLabel, 10, 0)
+        self.grid.addWidget(self.chemicalAggregateLabel, 11, 0)
+        self.grid.addWidget(self.aggregate_CH, 11, 1)
+        self.grid.addWidget(self.chemicalMasticLabel, 12, 0)
+        self.grid.addWidget(self.mastic_CH, 12, 1)
+        self.grid.addWidget(self.chemicalAirLabel, 13, 0)
+        self.grid.addWidget(self.air_CH, 13, 1)
+
+        self.grid.addWidget(self.runSimulationButton, 14, 1)
+        self.grid.addWidget(self.cancelButton, 14, 2)
+
+
+        self.setLayout(self.grid)
+
+        self.setGeometry(300, 300, 350, 300)
+        self.setWindowTitle('Configure Simulation')
+        self.setDefaultValues()
+        self.show()
+
+
+    def setDefaultValues(self, E2=21000000, E1=10000000, E0=100, conductAsphalt=0.75, 
+                         conductRock=0.026, conductAir=7.8):
+        self.aggregate_YM.setText(str(E2))
+        self.mastic_YM.setText(str(E1))
+        self.air_YM.setText(str(E0))
+        self.aggregate_TC.setText(str(conductRock))
+        self.mastic_TC.setText(str(conductAsphalt))
+        self.air_TC.setText(str(conductAir))
+        self.aggregate_CH.setText('Chem Aggregate')
+        self.mastic_CH.setText('Chem Mastic')
+        self.air_CH.setText('Chem Air')
+
+    def runSimulation(self):
+        aggregate_parameters, mastic_parameters, air_parameters = [], [], []
+        
+        aggregate_parameters.append(self.aggregate_YM.text())
+        aggregate_parameters.append(self.aggregate_TC.text())
+        aggregate_parameters.append(self.aggregate_CH.text())
+        
+        mastic_parameters.append(self.mastic_YM.text())
+        mastic_parameters.append(self.mastic_TC.text())
+        mastic_parameters.append(self.mastic_CH.text())
+        
+        air_parameters.append(self.air_YM.text())
+        air_parameters.append(self.air_TC.text())
+        air_parameters.append(self.air_CH.text())
+        
+        engine = SimulationEngine(aggregate_parameters, mastic_parameters, 
+                                  air_parameters, aw.collection)
+
+        
+    def closeWindow(self):
+        self.close()
+        
+#-----------------------------------------------------------------------------
 
 qApp = QtGui.QApplication(sys.argv)
 aw = ApplicationWindow()
