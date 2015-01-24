@@ -109,8 +109,17 @@ class ThermalModel(QtGui.QDialog):
                 u[i,j] = ui[i,j]+self.dt*a*(uxx+uyy)
         return ui
 
-    def updatefig(self):
+    def updatefig(self, animated):
         """"Show the evolution of the thermical simulation"""
+        if animated:
+            self.ui = self.evolve_ts(self.u, self.ui)
+    
+            self.ui = sp.copy(self.u)
+            self.iteration+=1
+            self.showfig()
+            print "Computing and rendering thermal diffussion step", self.iteration
+        
+    def showfig(self):
         self.figure.clf()
         self.figure.add_subplot(111)
         plt.hold(False)
@@ -122,12 +131,6 @@ class ThermalModel(QtGui.QDialog):
         plt.colorbar()
 
         self.canvas.draw()
-
-        self.ui = self.evolve_ts(self.u, self.ui)
-
-        self.ui = sp.copy(self.u)
-        self.iteration+=1
-        print "Computing and rendering thermal diffussion step", self.iteration
 
     def closeEvent(self, evnt):
         """Interrupt the execution of the simulation when the dialog is closed"""

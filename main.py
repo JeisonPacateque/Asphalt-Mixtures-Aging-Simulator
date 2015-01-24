@@ -6,6 +6,7 @@ Created on 2/05/2014
 import sys
 import matplotlib.image as mpimg
 import numpy as np
+import os
 from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -82,9 +83,11 @@ class ApplicationWindow(QtGui.QMainWindow):
     def open_path(self):
         self.pause_animation();
         self.update_staus("Loading files from path...")
+        current_path = os.path.dirname(os.path.abspath(__file__))+'/samples/4/'
+        print current_path
         chosen_path = QtGui.QFileDialog.getExistingDirectory(None,
                                                          'Open working directory',
-                                '/home/santiago/Proyecto-de-Grado-Codes/samples/4',
+                                current_path,
                                                     QtGui.QFileDialog.ShowDirsOnly)
 
         path = str(chosen_path+"/") #QString to Python string
