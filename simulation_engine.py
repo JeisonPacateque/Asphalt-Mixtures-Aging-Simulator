@@ -4,127 +4,73 @@ Created on Fri Jan 16 20:33:56 2015
 
 @author: Santiago
 """
-import sys
-from PyQt4 import QtGui
+
 from thermal_model import ThermalModel
 from fem_mechanics import FEMMechanics
+import numpy as np
+from material import Material
 
 class SimulationEngine(object):
-    def __init__(self, Material):
-        self.Material = Material
-        self.configureWindow = ConfigureSimulationDialog()
-        self.configureWindow.setDefaultValues(
-            self.Material.E2,
-            self.Material.E1,
-            self.Material.E0,
-            self.Material.conductAsphalt,
-            self.Material.conductRock,
-            self.Material.conductAir
-        )
-        self.configureWindow.exec_() #Prevents the dialog to disappear
-        self.Thermal = ThermalModel(self.Material)
-        self.Mechanics = FEMMechanics(self.Material)
+    def __init__(self, aggregate_parameters, mastic_parameters, 
+                                  air_parameters, collection, slice_id=50):
+        
+        self.mastic = Material(mastic_parameters[0], mastic_parameters[1],
+                               mastic_parameters[2])
+        self.aggregate = Material(aggregate_parameters[0], aggregate_parameters[1],
+                                   aggregate_parameters[2])
+        self.airvoid = Material(air_parameters[0], air_parameters[1], 
+                                air_parameters[2])
 
+        vertical_slice = self.loadVerticalSlice(collection, slice_id=50)
 
-class ConfigureSimulationDialog(QtGui.QDialog):
+        self.matrix_materials = self.getMatrixMaterials(vertical_slice)        
+     
 
-    def __init__(self):
-        super(ConfigureSimulationDialog, self).__init__()
+        self.thermal = ThermalModel(vertical_slice)
+        self.thermal.runSimulationAnimated()
+#        self.techanics = FEMMechanics(self.material)
+        
+#        self.thermicalConstantsMatrix = self.assignThermicalProperties(self.vertical_slice)
+#        self.assignMechanicalProperties(self.vertical_slice)
+#        self.generalStiffnessMatrixAssemble(self.vertical_slice.shape)
+        
+        
+    def loadVerticalSlice(self, collection, slice_id):
+        """Cut the central slice of the sample for FEM mechanics simulation"""
+        vertical = collection[:, :, slice_id]
+        return vertical
+    
+    def getMatrixMaterials(self, vertical_slice):
+        material_matrix = np.empty(vertical_slice.shape, dtype=object)
+        for (x,y), value in np.ndenumerate(vertical_slice):
+            if vertical_slice[x, y] == 2:
+                material_matrix[x, y] = self.aggregate
+            elif vertical_slice[x, y] == 1: 
+                material_matrix[x, y] = self.mastic
+            else:
+                material_matrix[x, y] = self.airvoid
+        
+        return material_matrix
+            
+    
+        
+    def assignMechanicalProperties(self, sample):
+        """Load the sample and assing the material modulus for each pixel detected"""
+        start_time = time.time()  # Measures Stiffness Assemble matrix time
+        self.ki = np.empty(sample.size, dtype=object)#Creacion de la matriz de rigidez vacia
+#        print "Loaded slice shape:", sample.shape
+        cont=0
+        
+        for x in np.nditer(sample):
+        #    print x
+            if x==2:
+                self.ki[cont] = self.LinearBarElementStiffness(self.aggregate_YM, self.A, self.L)
+            elif x==1:
+                self.ki[cont] = self.LinearBarElementStiffness(self.mastic_YM, self.A, self.L)
+            else:
+                self.ki[cont] = self.LinearBarElementStiffness(self.air_YM, self.A, self.L)
+            
+            cont=cont+1
 
-        self.title = QtGui.QLabel('Configure the physical constants')
+        return thermicalConstantsMatrix
 
-        self.mechanicsLabel = QtGui.QLabel("Young's modulus")
-        self.modulusAggregateLabel = QtGui.QLabel("Aggregate:")
-        self.modulusMasticLabel = QtGui.QLabel("Mastic:")
-        self.modulusAirLabel = QtGui.QLabel("Air voids:")
-
-        self.modulusAggregateEdit = QtGui.QLineEdit()
-        self.modulusMasticEdit = QtGui.QLineEdit()
-        self.modulusAirEdit = QtGui.QLineEdit()
-
-        self.thermalLabel = QtGui.QLabel("Thermal conductivity")
-        self.thermalAggregateLabel = QtGui.QLabel("Aggregate:")
-        self.thermalMasticLabel = QtGui.QLabel("Mastic:")
-        self.thermalAirLabel = QtGui.QLabel("Air voids:")
-
-        self.thermalAggregateEdit = QtGui.QLineEdit()
-        self.thermalMasticEdit = QtGui.QLineEdit()
-        self.thermalAirEdit = QtGui.QLineEdit()
-
-        self.chemicalLabel = QtGui.QLabel("Chemical constants")
-        self.chemicalAggregateLabel = QtGui.QLabel("Chemical value1:")
-        self.chemicalMasticLabel = QtGui.QLabel("Chemical value2:")
-        self.chemicalAirLabel = QtGui.QLabel("Chemical value3:")
-
-        self.chemicalAggregateEdit = QtGui.QLineEdit()
-        self.chemicalMasticEdit = QtGui.QLineEdit()
-        self.chemicalAirEdit = QtGui.QLineEdit()
-
-        self.runSimulationButton = QtGui.QPushButton('Run simulation', self)
-        self.runSimulationButton.clicked[bool].connect(self.runSimulation) #Listener
-
-        self.cancelButton =  QtGui.QPushButton('Cancel', self)
-        self.cancelButton.clicked[bool].connect(self.closeWindow)
-
-        self.grid = QtGui.QGridLayout()
-        self.grid.setSpacing(1)
-
-        self.grid.addWidget(self.title, 1, 0)
-
-        self.grid.addWidget(self.mechanicsLabel, 2, 0)
-        self.grid.addWidget(self.modulusAggregateLabel, 3, 0)
-        self.grid.addWidget(self.modulusAggregateEdit, 3, 1)
-        self.grid.addWidget(self.modulusMasticLabel, 4, 0)
-        self.grid.addWidget(self.modulusMasticEdit, 4, 1)
-        self.grid.addWidget(self.modulusAirLabel, 5, 0)
-        self.grid.addWidget(self.modulusAirEdit, 5, 1)
-
-        self.grid.addWidget(self.thermalLabel, 6, 0)
-        self.grid.addWidget(self.thermalAggregateLabel, 7, 0)
-        self.grid.addWidget(self.thermalAggregateEdit, 7, 1)
-        self.grid.addWidget(self.thermalMasticLabel, 8, 0)
-        self.grid.addWidget(self.thermalMasticEdit, 8, 1)
-        self.grid.addWidget(self.thermalAirLabel, 9, 0)
-        self.grid.addWidget(self.thermalAirEdit, 9, 1)
-
-        self.grid.addWidget(self.chemicalLabel, 10, 0)
-        self.grid.addWidget(self.chemicalAggregateLabel, 11, 0)
-        self.grid.addWidget(self.chemicalAggregateEdit, 11, 1)
-        self.grid.addWidget(self.chemicalMasticLabel, 12, 0)
-        self.grid.addWidget(self.chemicalMasticEdit, 12, 1)
-        self.grid.addWidget(self.chemicalAirLabel, 13, 0)
-        self.grid.addWidget(self.chemicalAirEdit, 13, 1)
-
-        self.grid.addWidget(self.runSimulationButton, 14, 1)
-        self.grid.addWidget(self.cancelButton, 14, 2)
-
-
-        self.setLayout(self.grid)
-
-        self.setGeometry(300, 300, 350, 300)
-        self.setWindowTitle('Configure Simulation')
-        self.show()
-
-
-    def setDefaultValues(self, E2, E1, E0, conductAsphalt, conductRock, conductAir):
-        self.modulusAggregateEdit.setText(str(E2))
-        self.modulusMasticEdit.setText(str(E1))
-        self.modulusAirEdit.setText(str(E0))
-        self.thermalAggregateEdit.setText(str(conductRock))
-        self.thermalMasticEdit.setText(str(conductAsphalt))
-        self.thermalAirEdit.setText(str(conductAir))
-        self.chemicalAggregateEdit.setText('Chem Aggregate')
-        self.chemicalMasticEdit.setText('Chem Mastic')
-        self.chemicalAirEdit.setText('Chem Air')
-
-    def runSimulation(self):
-        print "Running simulation..."
-        SimulationEngine.Thermal.runSimulation()
-    def closeWindow(self):
-        self.close()
-
-#------------------------------------------------------------------------------
-if __name__ == '__main__':
-    app = QtGui.QApplication(sys.argv)
-    ex = ConfigureSimulationDialog()
-    sys.exit(app.exec_())
