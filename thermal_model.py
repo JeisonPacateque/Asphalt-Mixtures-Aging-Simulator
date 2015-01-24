@@ -25,7 +25,7 @@ class ThermalModel(QtGui.QDialog):
         self.u = np.zeros((self.sample.shape)) # matriz inicial de temp
 
 
-    def runSimulation(self):
+    def runSimulationAnimated(self):
         print "Running thermical simulation..."
         self.applySimulationConditions()
         self.iteration = 0
