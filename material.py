@@ -6,7 +6,7 @@ Created on Tue Dec  9 13:25:11 2014
 """
 import numpy as np
 import time
-from Conectivity import ConectivityMatrix
+from conectivity import ConectivityMatrix
 
 class Material(object):
 
