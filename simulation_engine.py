@@ -26,8 +26,8 @@ class SimulationEngine(object):
         self.matrix_materials = self.getMatrixMaterials(vertical_slice)        
      
 
-        self.thermal = ThermalModel(vertical_slice)
-        self.thermal.runSimulationAnimated()
+        self.thermal = ThermalModel(self.matrix_materials)
+        self.thermal.simulate()
 #        self.techanics = FEMMechanics(self.material)
         
 #        self.thermicalConstantsMatrix = self.assignThermicalProperties(self.vertical_slice)
