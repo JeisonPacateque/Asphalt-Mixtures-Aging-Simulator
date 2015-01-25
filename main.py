@@ -13,6 +13,7 @@ from matplotlib.figure import Figure
 from file_loader import FileLoader
 from segmentation import Segmentation
 from simulation_engine import SimulationEngine
+from results import Result
 
 
 class ApplicationWindow(QtGui.QMainWindow):
@@ -373,7 +374,10 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
         engine = SimulationEngine(aggregate_parameters, mastic_parameters,
                                   air_parameters, aw.collection)
-        engine.simulationCicle()
+        materials = engine.simulationCicle()
+
+        output_results = Result(materials)
+        output_results.thermalResults()
 
 
     def closeWindow(self):
