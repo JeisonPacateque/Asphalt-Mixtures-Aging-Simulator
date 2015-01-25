@@ -17,6 +17,11 @@ class FEMMechanics(object):
         self.material = Material  # Imported sample
         self.ki = np.zeros((1))  # Inicializa el arreglo vacio
         self.K = np.zeros((1))
+        self.length_FE = 1. #Finite Element length
+        self.trans_area_FE = 1. #Finite Element transversal area
+        self.element_stiffness_matrix = np.zeros((1)) #Discrete Stiffness Matrix
+        self.general_stiffness_matrix = np.zeros((1)) #General Stifness Matrix
+        self.conectivity_matrix = ConectivityMatrix() #General conectivity matrix
 
 #        self.runSimulation()  # Ejecuta la simulacion
 
@@ -85,3 +90,80 @@ class FEMMechanics(object):
 
         print "Top nodes:", len(top_nodes)
         print "Bottom nodes:", len(bottom_nodes)
+        
+    def LinearBarElementStiffness(self, E, A, L):
+        """ This function returns the element stiffness"""
+        #Mostrar desplazamientos--------------------------------------------
+        f = pyplot.figure()
+        f.add_subplot(111)
+        pyplot.title('Displacements Map')
+        pyplot.imshow(img, interpolation='nearest')
+        pyplot.colorbar()
+
+        f.add_subplot(121)
+        pyplot.title('Original Slice')
+        pyplot.imshow(sample.transpose(), interpolation='nearest')
+        pyplot.colorbar()
+        pyplot.show()
+        return np.array([[E*(A/L), -E*(A/L)], [-E*(A/L) ,E*(A/L)]])
+        
+    def generalStiffnessMatrixAssemble(self, slice_size):
+        """Assembles an n x n Stiffness Matrix"""
+        start_time = time.time()  # Measures Stiffness Assemble matrix time
+        #Creacion de la matriz de conectividad------------------------
+        
+        con_mtrx = self.conectivity.ElementConectivityMatrix(slice_size[0], slice_size[1])
+        self.K = np.zeros((4600, 4600))
+        
+        cont = 0
+        for y in con_mtrx: 
+            self.K = self.LinearBarAssemble(self.K, self.ki[cont], y[0], y[1])
+            cont = cont+1
+         
+#        print "General Stiffness Matriz shape:", self.K.shape
+        
+        end_time = time.time()  # Get the time when method ends
+        print "General Stiffness Matriz done in", str(end_time - start_time), "seconds."
+        return self.K
+        
+    def LinearBarAssemble(self, K, k, i, j):
+        """This function assembles the element stiffness matrix k of the linear bar 
+        with nodes i and j into the global stiffness matrix K.This function returns 
+        the global stiffness matrix K after the element stiffness matrix k is assembled."""
+        K[i][i] = K [i][i] + k[0][0]
+        K[i][j] = K [i][j] + k[0][1]
+        K[j][i] = K [j][i] + k[1][0]
+        K[j][j] = K [j][j] + k[1][1]    
+        return K
+    
+
+class ConectivityMatrix(object):
+        def __init__(self):
+            """Class intended to create the conectivity matrix for all LinearBar element nodes"""
+            self.elements_nodes = []  # Tupla de nodos de cada elemento
+            self.elements_top = [] # Indice Elemento superior
+            self.elements_bottom = [] #Indice Elemento inferior
+                
+        def ElementConectivityMatrix(self, width, height):
+            """Create the nodes and set positions for all elements on a stiffness matrix"""
+            start_time = time.time()  # Measures file loading time
+            a = 0
+            b = 1
+            for i in range(width):
+                self.elements_top.append(a)
+                for j in range(height):
+                    self.elements_nodes.append((a, b))
+                    a=a+1
+                    b=b+1
+                self.elements_bottom.append(b-1)   
+                a=a+1
+                b=b+1
+            end_time = time.time()  # Get the time when method ends
+            print "Conectivity matrix done in", str(end_time - start_time), "seconds."
+            return self.elements_nodes
+            
+        def getTopElementNodes(self):
+            return self.elements_top
+        
+        def getBottomElementNodes(self):
+            return self.elements_bottom
