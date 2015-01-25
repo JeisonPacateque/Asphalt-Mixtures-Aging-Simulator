@@ -13,6 +13,26 @@ from matplotlib import pyplot, colors
 
 class FEMMechanics(object):
     def __init__(self, Material):
+        
+    def assignMechanicalProperties(self, sample):
+        """Load the sample and assing the material modulus for each pixel detected"""
+        start_time = time.time()  # Measures Stiffness Assemble matrix time
+        self.ki = np.empty(sample.size, dtype=object)#Creacion de la matriz de rigidez vacia
+#        print "Loaded slice shape:", sample.shape
+        cont=0
+        
+        for x in np.nditer(sample):
+        #    print x
+            if x==2:
+                self.ki[cont] = self.LinearBarElementStiffness(self.aggregate_YM, self.A, self.L)
+            elif x==1:
+                self.ki[cont] = self.LinearBarElementStiffness(self.mastic_YM, self.A, self.L)
+            else:
+                self.ki[cont] = self.LinearBarElementStiffness(self.air_YM, self.A, self.L)
+            
+            cont=cont+1
+
+        return thermicalConstantsMatrix
         """This class supports the Mechanic FEM Simulation"""
         self.material = Material  # Imported sample
         self.ki = np.zeros((1))  # Inicializa el arreglo vacio
