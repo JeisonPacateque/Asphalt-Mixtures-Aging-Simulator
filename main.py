@@ -379,10 +379,10 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.close()
         
 #-----------------------------------------------------------------------------
-
-qApp = QtGui.QApplication(sys.argv)
-aw = ApplicationWindow()
-aw.setWindowTitle("Asphalt Mixtures Aging Simulator")
-aw.show()
-sys.exit(qApp.exec_())
-qApp.exec_()
+if __name__ == '__main__':
+    qApp = QtGui.QApplication(sys.argv)
+    aw = ApplicationWindow()
+    aw.setWindowTitle("Asphalt Mixtures Aging Simulator")
+    aw.show()
+    sys.exit(qApp.exec_())
+    qApp.exec_()
