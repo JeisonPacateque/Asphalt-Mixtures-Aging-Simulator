@@ -43,9 +43,6 @@ class SimulationEngine(object):
         return vertical_slice
 
     def getMatrixMaterials(self, vertical_slice):
-        plt.imshow(vertical_slice)
-        plt.set_cmap('hot')
-        plt.show()
         """Create the matrix material from a vertical slice"""
         material_matrix = np.empty(vertical_slice.shape, dtype=object)
 
@@ -71,6 +68,8 @@ class SimulationEngine(object):
         self.thermal = ThermalModel(self.matrix_materials, max_TC)
         self.thermal.applySimulationConditions(temp_ambient)
         self.thermal.simulate(no_thermal_iter)
+
+        return self.matrix_materials
 
     def getTempAmbient(self):
         temp_ambient = 30
