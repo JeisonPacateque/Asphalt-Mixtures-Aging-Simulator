@@ -5,65 +5,84 @@ Created on Mon Jan 12 00:01:43 2015
 @author: santiago
 """
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
-import scipy as sp
-from PyQt4 import QtGui, QtCore
-from pylab import cm
 
+class ThermalModel(object):
+    def __init__(self, MM_i, max_TC=7.8):
+#        MM_i.transpose()
+        self.MM_i = MM_i
+        self.MM = self.MM_i.copy() #ciudado con esta operacion
 
-class ThermalModel(QtGui.QDialog):
-    def __init__(self, materials, parent=None):
-        super(ThermalModel, self).__init__(parent)
-               
-        
-        self.ui = np.zeros((materials.shape)) # matriz inicial de temp
-        self.u = np.zeros((materials.shape)) # matriz inicial de temp
-        self.applySimulationConditions() 
-        
-                  #Calculate dx, dy
-        self.dx = 1./materials.shape[0]
-        self.dy = 1./materials.shape[1]
-        self.dx2=self.dx**2 # To save CPU cycles, we'll compute Delta x^2
-        self.dy2=self.dy**2 # and Delta y^2 only once and store them.
+        print type(MM_i)
+        print MM_i[0,0].temperature
+        MM_i[0,0].temperature = 41456465
+
+        # Calculate dx, dy
+        self.lengthX = self.MM_i.shape[0]
+        self.lengthY = self.MM_i.shape[1]
+        dx = 1./self.lengthX
+        dy = 1./self.lengthY
+        self.dx2 = dx**2 # To save CPU cycles, we'll compute Delta x^2
+        self.dy2 = dy**2 # and Delta y^2 only once and store them.
         print "dx2=", self.dx2
         print "dy2=", self.dy2
+
         # For stability, this is the largest interval possible
         # for the size of the time-step:
-        self.dt = self.dx2*self.dy2/(7.8**(self.dx2+self.dy2) )
+        self.dt = self.dx2*self.dy2/(float(max_TC)*(self.dx2 + self.dy2))
 
     def applySimulationConditions(self, ambient=20, applied=100):
         """"Set the temperatures for the simulation """
-        self.ui.fill(ambient)    #temperatura ambiente
-        self.ui[-10:, :] = applied #temperatura aplicada
-        print "Applied temperature over asphalt:", applied
+        print self.MM_i.shape
+#        for (i,j), _ in np.nditer(self.MM_i, flags=['refs_ok']):
+#            self.MM_i[i, j].material = ambient
+
+        for i in range(self.MM_i.shape[0]):
+            for j in range(self.MM_i.shape[1]):
+                self.MM_i[i, j].material = ambient
+
+        for i in range(4):
+            for j in range(3):
+                self.MM_i[i, j].material = applied
+
+        print "Applied temperature over asphalt mixture:", applied
         print "Ambient temperature:", ambient
 
-    def get_a(self, i, j):
-        """Method to get an specific index of the thermal coeficients"""
-        return 0.75
+    def _getThermalConductivity(self, i, j):
+        """Obtain the thermal conducitvity from element i,j"""
+        return self.MM[i,j].thermal_conductivity
 
-    def evolve_ts(self, u, ui):
+    def _evolve_ts(self):
         """
         This function uses two plain Python loops to
         evaluate the derivatives in the Laplacian, and
         calculates u[i,j] based on ui[i,j].
         """
-        for i in range(1,u.shape[0]-1):
-            for j in range(1,u.shape[1]-1):
-                uxx = ( ui[i+1,j] - 2*ui[i,j] + ui[i-1, j] )/self.dx2
-                uyy = ( ui[i,j+1] - 2*ui[i,j] + ui[i, j-1] )/self.dy2
-                a = self.get_a(i, j)
-                u[i,j] = ui[i,j]+self.dt*a*(uxx+uyy)
-        return ui
+#        for (i,j), _ in np.nditer(self.MM_i, flags=['refs_ok']):
+        for i in range(self.MM_i.shape[0]-1):
+            for j in range(self.MM_i.shape[1]-1):
+                uxx = (self.MM_i[i+1,j].temperature -
+                2*self.MM_i[i,j].temperature +
+                self.MM_i[i-1,j].material)/self.dx2
+
+                uyy = (self.MM_i[i,j+1].material -
+                2*self.MM_i[i,j].material +
+                self.MM_i[i,j-1].material)/self.dy2
+
+                TC = self._getThermalConductivity(i,j)
+
+                self.MM[i,j].material = self.MM_i[i,j].material
+                + self.dt*float(TC)*(uxx+uyy)
 
     def simulate(self, steps=500):
         """"Show the evolution of the thermical simulation"""
-        for x in range(0, steps):
-            self.ui = self.evolve_ts(self.u, self.ui)
-    
-            self.ui = sp.copy(self.u)
+        a = np.arange(steps)
+        for x in np.nditer(a):
+            self._evolve_ts()
+            for i in range(self.MM_i.shape[0]-1):
+                for j in range(self.MM_i.shape[1]-1):
+                    self.MM_i[i, j].material = self.MM[i, j].material
+
+
         print "Done!"
-        plt.imshow(self.u)
-        plt.set_cmap('hot')
-        plt.show()
