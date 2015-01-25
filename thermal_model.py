@@ -14,10 +14,6 @@ class ThermalModel(object):
         self.MM_i = MM_i
         self.MM = self.MM_i.copy() #ciudado con esta operacion
 
-        print type(MM_i)
-        print MM_i[0,0].temperature
-        MM_i[0,0].temperature = 41456465
-
         # Calculate dx, dy
         self.lengthX = self.MM_i.shape[0]
         self.lengthY = self.MM_i.shape[1]
@@ -40,11 +36,11 @@ class ThermalModel(object):
 
         for i in range(self.MM_i.shape[0]):
             for j in range(self.MM_i.shape[1]):
-                self.MM_i[i, j].material = ambient
+                self.MM_i[i, j].temperature = ambient
 
         for i in range(4):
             for j in range(3):
-                self.MM_i[i, j].material = applied
+                self.MM_i[i, j].temperature = applied
 
         print "Applied temperature over asphalt mixture:", applied
         print "Ambient temperature:", ambient
@@ -64,15 +60,15 @@ class ThermalModel(object):
             for j in range(self.MM_i.shape[1]-1):
                 uxx = (self.MM_i[i+1,j].temperature -
                 2*self.MM_i[i,j].temperature +
-                self.MM_i[i-1,j].material)/self.dx2
+                self.MM_i[i-1,j].temperature)/self.dx2
 
-                uyy = (self.MM_i[i,j+1].material -
-                2*self.MM_i[i,j].material +
-                self.MM_i[i,j-1].material)/self.dy2
+                uyy = (self.MM_i[i,j+1].temperature -
+                2*self.MM_i[i,j].temperature +
+                self.MM_i[i,j-1].temperature)/self.dy2
 
                 TC = self._getThermalConductivity(i,j)
 
-                self.MM[i,j].material = self.MM_i[i,j].material
+                self.MM[i,j].temperature = self.MM_i[i,j].temperature
                 + self.dt*float(TC)*(uxx+uyy)
 
     def simulate(self, steps=500):
@@ -80,9 +76,9 @@ class ThermalModel(object):
         a = np.arange(steps)
         for x in np.nditer(a):
             self._evolve_ts()
-            for i in range(self.MM_i.shape[0]-1):
-                for j in range(self.MM_i.shape[1]-1):
-                    self.MM_i[i, j].material = self.MM[i, j].material
+            for i in range(self.MM_i.shape[0]):
+                for j in range(self.MM_i.shape[1]):
+                    self.MM_i[i, j].temperature = self.MM[i, j].temperature
 
 
         print "Done!"
