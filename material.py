@@ -15,6 +15,8 @@ class Material(object):
         self.chemical_value = chemical_value
 
         self.temperature = 0
+        self.AreaFE = 1
+        self.LengthFE = 1
 
     @property
     def young_modulus(self):

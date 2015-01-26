@@ -5,14 +5,21 @@ Created on Mon Jan 12 00:01:43 2015
 @author: santiago
 """
 
-#import matplotlib.pyplot as plt
 import numpy as np
 
 class ThermalModel(object):
     def __init__(self, MM_i, max_TC=7.8):
-#        MM_i.transpose()
-        self.MM_i = MM_i
-        self.MM = self.MM_i.copy() #ciudado con esta operacion
+        """MM_i = initial matrix materials
+        maxTC = max transfer coefficient, important to define stability
+        of dt in the model"""
+
+        self.MM_i = MM_i #initial matrix
+        self.MM = np.empty(self.MM_i.shape, dtype=object) #next step matrix
+
+        # copy all the temperature values in the matrix materials
+        for i in range(self.MM_i.shape[0]):
+                for j in range(self.MM_i.shape[1]):
+                    self.MM_i[i,j].temperature = self.MM[i,j].temperature
 
         # Calculate dx, dy
         self.lengthX = self.MM_i.shape[0]
@@ -30,9 +37,6 @@ class ThermalModel(object):
 
     def applySimulationConditions(self, ambient=20, applied=100):
         """"Set the temperatures for the simulation """
-        print self.MM_i.shape
-#        for (i,j), _ in np.nditer(self.MM_i, flags=['refs_ok']):
-#            self.MM_i[i, j].material = ambient
 
         for i in range(self.MM_i.shape[0]):
             for j in range(self.MM_i.shape[1]):
@@ -51,11 +55,10 @@ class ThermalModel(object):
 
     def _evolve_ts(self):
         """
-        This function uses two plain Python loops to
-        evaluate the derivatives in the Laplacian, and
-        calculates u[i,j] based on ui[i,j].
+        This function evaluate the derivatives in the Laplacian, and
+        calculates MM[i,j] based on MM_i[i,j].
         """
-#        for (i,j), _ in np.nditer(self.MM_i, flags=['refs_ok']):
+
         for i in range(self.MM_i.shape[0]-1):
             for j in range(self.MM_i.shape[1]-1):
                 uxx = (self.MM_i[i+1,j].temperature -
@@ -71,14 +74,12 @@ class ThermalModel(object):
                 self.MM[i,j].temperature = self.MM_i[i,j].temperature
                 + self.dt*float(TC)*(uxx+uyy)
 
-    def simulate(self, steps=500):
-        """"Show the evolution of the thermical simulation"""
-        a = np.arange(steps)
-        for x in np.nditer(a):
+    def simulate(self, n_steps=500):
+        """"This function executes the model in number steps (n_steps)"""
+        steps = np.arange(n_steps)
+        for step in np.nditer(steps):
             self._evolve_ts()
             for i in range(self.MM_i.shape[0]):
                 for j in range(self.MM_i.shape[1]):
                     self.MM_i[i, j].temperature = self.MM[i, j].temperature
-
-
-        print "Done!"
+            print step

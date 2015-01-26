@@ -9,7 +9,6 @@ from thermal_model import ThermalModel
 #from fem_mechanics import FEMMechanics
 import numpy as np
 from material import Material
-import matplotlib.pyplot as plt
 
 class SimulationEngine(object):
     def __init__(self, aggregate_parameters, mastic_parameters,
@@ -40,7 +39,7 @@ class SimulationEngine(object):
     def loadVerticalSlice(self, collection, slice_id):
         """Cut the slice of the collection in the position id"""
         vertical_slice = collection[:, :, slice_id]
-        return vertical_slice
+        return vertical_slice.transpose()
 
     def getMatrixMaterials(self, vertical_slice):
         """Create the matrix material from a vertical slice"""
