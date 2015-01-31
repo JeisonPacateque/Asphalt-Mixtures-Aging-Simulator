@@ -18,15 +18,15 @@ class ThermalModel(object):
 
         # reference of the matrix materials used only
         # to get transfer coeefficient amd  object construction
-        self.MM  = matrix_materials
+        self.MM  = matrix_materials.copy()
 
         #initial temperature field
-        self.ui = np.zeros(matrix_materials.shape)
+        self.ui = np.zeros(self.MM.shape)
 
         # copy all the temperature values from the matrix materials
-        for i in range(self.MM.shape[0]):
-                for j in range(self.MM.shape[1]):
-                    self.ui[i,j] = self.MM[i,j].temperature
+#        for i in range(self.MM.shape[0]):
+#                for j in range(self.MM.shape[1]):
+#                    self.ui[i,j] = self.MM[i,j].temperature
 
         self.u = self.ui.copy() # next step temperature field
 
@@ -48,7 +48,7 @@ class ThermalModel(object):
     def applySimulationConditions(self, ambient=40, internal=10):
         """"Set the temperatures for the simulation"""
 
-        self.ui.fill(internal)    # internal temeperature in asphalt
+        self.ui.fill(internal)    # internal temperature in asphalt
         self.ui[-10:,:] = ambient # applied temperature from environment
 
         print "Applied internal temperature in the asphalt:", internal
@@ -82,33 +82,9 @@ class ThermalModel(object):
             self.ui = self.u.copy()
             print step
 
-#        salida =self.ui.copy()
-#
-#        plt.imshow(salida)
-##        plt.imshow(salida, cmap=cm.jet, interpolation='nearest', origin='lower')
-#        plt.colorbar()
-#        plt.show()
-#        np.set_printoptions(threshold=np.inf, linewidth=np.inf)
-#        with open('mapa_termico.txt', 'w') as f:
-#            f.write(np.array2string(salida, separator=', '))
-
         # copy the field temperature into the matrix materials
         for i in range(self.MM.shape[0]):
             for j in range(self.MM.shape[1]):
                 self.MM[i,j].temperature = self.u[i,j]
-
-
-
-#        heatmap = np.zeros(self.MM.shape)
-#
-#        for i in range(self.MM.shape[0]):
-#            for j in range(self.MM.shape[1]):
-#                heatmap[i,j] = self.MM[i,j].temperature
-
-        plt.imshow(self.u)
-#        plt.imshow(heatmap, cmap=cm.jet, interpolation='nearest', origin='lower')
-#        plt.axis([heatmap.min(), heatmap.max(), heatmap.min(), heatmap.max()])
-        plt.colorbar()
-        plt.show()
 
         return self.MM
