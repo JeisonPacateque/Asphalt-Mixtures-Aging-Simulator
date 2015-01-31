@@ -346,7 +346,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
 
     def setDefaultValues(self, E2=21000000, E1=10000000, E0=100, conductAsphalt=0.75,
-                         conductRock=0.026, conductAir=7.8):
+                         conductRock=7.8, conductAir=0.026):
         self.aggregate_YM.setText(str(E2))
         self.mastic_YM.setText(str(E1))
         self.air_YM.setText(str(E0))
@@ -376,8 +376,8 @@ class ConfigureSimulationDialog(QtGui.QDialog):
                                   air_parameters, aw.collection)
         materials = engine.simulationCicle()
 
-        output_results = Result(materials)
-        output_results.thermalResults()
+#        output_results = Result(materials)
+#        output_results.thermalResults()
 
 
     def closeWindow(self):
