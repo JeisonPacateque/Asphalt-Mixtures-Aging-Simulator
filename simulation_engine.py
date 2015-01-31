@@ -10,6 +10,7 @@ from thermal_model import ThermalModel
 import matplotlib.pyplot as plt
 import numpy as np
 from material import Material
+import copy
 
 class SimulationEngine(object):
     def __init__(self, aggregate_parameters, mastic_parameters,
@@ -58,11 +59,11 @@ class SimulationEngine(object):
 
         for (x,y), _ in np.ndenumerate(vertical_slice):
             if vertical_slice[x, y] == 2:
-                material_matrix[x,y] = self.aggregate
+                material_matrix[x,y] = copy.deepcopy(self.aggregate)
             elif vertical_slice[x,y] == 1:
-                material_matrix[x,y] = self.mastic
+                material_matrix[x,y] = copy.deepcopy(self.mastic)
             elif vertical_slice[x,y] == 0:
-                material_matrix[x,y] = self.airvoid
+                material_matrix[x,y] = copy.deepcopy(self.airvoid)
 
         print "matriz de materiales creada de tamano", material_matrix.shape
         return material_matrix
@@ -78,7 +79,7 @@ class SimulationEngine(object):
         self.thermal = ThermalModel(self.matrix_materials, max_TC)
         self.thermal.applySimulationConditions()
         self.matrix_materials = self.thermal.simulate()
-        print type(self.matrix_materials)
+
         return self.matrix_materials
 
     def getTempAmbient(self):
