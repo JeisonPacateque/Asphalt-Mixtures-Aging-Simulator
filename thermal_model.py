@@ -8,18 +8,20 @@ Created on Mon Jan 12 00:01:43 2015
 import numpy as np
 
 class ThermalModel(object):
-    def __init__(self, MM_i, max_TC=7.8):
+    def __init__(self, matrix_materials, max_TC=7.8):
         """MM_i = initial matrix materials
+        (numpy objetc array, array of class Material)
         maxTC = max transfer coefficient, important to define stability
         of dt in the model"""
 
-        self.MM_i = MM_i #initial matrix
-        self.MM = np.empty(self.MM_i.shape, dtype=object) #next step matrix
+        self.MM_i = np.empty(matrix_materials.shape, dtype=float)
 
         # copy all the temperature values in the matrix materials
         for i in range(self.MM_i.shape[0]):
                 for j in range(self.MM_i.shape[1]):
-                    self.MM_i[i,j].temperature = self.MM[i,j].temperature
+                    self.MM_i[i,j] = matrix_materials[i,j].temperature
+
+        self.MM = self.MM_i.copy() #next step matrix
 
         # Calculate dx, dy
         self.lengthX = self.MM_i.shape[0]
