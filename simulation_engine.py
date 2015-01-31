@@ -7,6 +7,7 @@ Created on Fri Jan 16 20:33:56 2015
 
 from thermal_model import ThermalModel
 #from fem_mechanics import FEMMechanics
+import matplotlib.pyplot as plt
 import numpy as np
 from material import Material
 
@@ -45,15 +46,25 @@ class SimulationEngine(object):
         """Create the matrix material from a vertical slice"""
         material_matrix = np.empty(vertical_slice.shape, dtype=object)
 
-        for (x,y), value in np.ndenumerate(vertical_slice):
+#        salida = vertical_slice
+#
+#        plt.imshow(salida)
+##        plt.imshow(salida, cmap=cm.jet, interpolation='nearest', origin='lower')
+#        plt.colorbar()
+#        plt.show()
+#        np.set_printoptions(threshold=np.inf, linewidth=np.inf)
+#        with open('mapa_termico.txt', 'w') as f:
+#            f.write(np.array2string(salida, separator=', '))
+
+        for (x,y), _ in np.ndenumerate(vertical_slice):
             if vertical_slice[x, y] == 2:
                 material_matrix[x,y] = self.aggregate
             elif vertical_slice[x,y] == 1:
                 material_matrix[x,y] = self.mastic
-            else:
+            elif vertical_slice[x,y] == 0:
                 material_matrix[x,y] = self.airvoid
 
-        print "matriz de materiales creada"
+        print "matriz de materiales creada de tamano", material_matrix.shape
         return material_matrix
 
     def simulationCicle(self, no_mech_iter=1, no_thermal_iter=200,
@@ -65,11 +76,11 @@ class SimulationEngine(object):
         temp_ambient = self.getTempAmbient()
 
         self.thermal = ThermalModel(self.matrix_materials, max_TC)
-        self.thermal.applySimulationConditions(temp_ambient)
-        self.thermal.simulate(no_thermal_iter)
-
+        self.thermal.applySimulationConditions()
+        self.matrix_materials = self.thermal.simulate()
+        print type(self.matrix_materials)
         return self.matrix_materials
 
     def getTempAmbient(self):
-        temp_ambient = 30
+        temp_ambient = 50
         return temp_ambient

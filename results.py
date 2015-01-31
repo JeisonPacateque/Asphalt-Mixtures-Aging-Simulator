@@ -14,13 +14,14 @@ class Result(object):
         print "results"
 
     def thermalResults(self):
-        heatmap = np.empty(self.materials.shape, dtype=float)
+        heatmap = np.zeros(self.materials.shape)
 
         for i in range(self.materials.shape[0]):
             for j in range(self.materials.shape[1]):
                 heatmap[i,j] = self.materials[i,j].temperature
 
-        plt.imshow(heatmap, cmap=cm.jet, interpolation='nearest', origin='lower')
-        plt.axis([heatmap.min(), heatmap.max(), heatmap.min(), heatmap.max()])
+        plt.imshow(heatmap)
+#        plt.imshow(heatmap, cmap=cm.jet, interpolation='nearest', origin='lower')
+#        plt.axis([heatmap.min(), heatmap.max(), heatmap.min(), heatmap.max()])
         plt.colorbar()
         plt.show()
