@@ -376,8 +376,8 @@ class ConfigureSimulationDialog(QtGui.QDialog):
                                   air_parameters, aw.collection)
         materials = engine.simulationCicle()
 
-#        output_results = Result(materials)
-#        output_results.thermalResults()
+        output_results = Result(materials)
+        output_results.thermalResults()
 
 
     def closeWindow(self):

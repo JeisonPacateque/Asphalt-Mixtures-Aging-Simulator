@@ -11,7 +11,6 @@ import numpy as np
 class Result(object):
     def __init__(self, matrix_materials):
         self.materials = matrix_materials
-        print "results"
 
     def thermalResults(self):
         heatmap = np.zeros(self.materials.shape)
