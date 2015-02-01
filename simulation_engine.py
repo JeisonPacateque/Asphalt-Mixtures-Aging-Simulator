@@ -7,7 +7,6 @@ Created on Fri Jan 16 20:33:56 2015
 
 from thermal_model import ThermalModel
 #from fem_mechanics import FEMMechanics
-import matplotlib.pyplot as plt
 import numpy as np
 from material import Material
 import copy

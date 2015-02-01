@@ -156,7 +156,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         total = (empty+mastic+aggregate)
 
         QtGui.QMessageBox.information(self,
-                    "Interpolation and Segmentation done",
+                    "Segmentation and reduction done",
                     "Sample has= "+str(total)+" pixels: \n"
                     "Empty pixels= "+str(empty)+"\t"+str((empty*100.)/total)+"%.\n"
                     "Mastic pixels= "+str(mastic)+"\t"+str((mastic*100.)/total)+"%.\n"
