@@ -13,6 +13,7 @@ from matplotlib.figure import Figure
 from file_loader import FileLoader
 from segmentation import Segmentation
 from simulation_engine import SimulationEngine
+from results import Result
 
 
 class ApplicationWindow(QtGui.QMainWindow):
@@ -344,8 +345,8 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.show()
 
 
-    def setDefaultValues(self, E2=21000000, E1=10000000, E0=100, conductAsphalt=0.75, 
-                         conductRock=0.026, conductAir=7.8):
+    def setDefaultValues(self, E2=21000000, E1=10000000, E0=100, conductAsphalt=0.75,
+                         conductRock=7.8, conductAir=0.026):
         self.aggregate_YM.setText(str(E2))
         self.mastic_YM.setText(str(E1))
         self.air_YM.setText(str(E0))
@@ -358,26 +359,30 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
     def runSimulation(self):
         aggregate_parameters, mastic_parameters, air_parameters = [], [], []
-        
+
         aggregate_parameters.append(self.aggregate_YM.text())
         aggregate_parameters.append(self.aggregate_TC.text())
         aggregate_parameters.append(self.aggregate_CH.text())
-        
+
         mastic_parameters.append(self.mastic_YM.text())
         mastic_parameters.append(self.mastic_TC.text())
         mastic_parameters.append(self.mastic_CH.text())
-        
+
         air_parameters.append(self.air_YM.text())
         air_parameters.append(self.air_TC.text())
         air_parameters.append(self.air_CH.text())
-        
-        engine = SimulationEngine(aggregate_parameters, mastic_parameters, 
-                                  air_parameters, aw.collection)
 
-        
+        engine = SimulationEngine(aggregate_parameters, mastic_parameters,
+                                  air_parameters, aw.collection)
+        materials = engine.simulationCicle()
+
+        output_results = Result(materials)
+        output_results.thermalResults()
+
+
     def closeWindow(self):
         self.close()
-        
+
 #-----------------------------------------------------------------------------
 if __name__ == '__main__':
     qApp = QtGui.QApplication(sys.argv)
