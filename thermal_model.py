@@ -6,8 +6,6 @@ Created on Mon Jan 12 00:01:43 2015
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import cm
 
 class ThermalModel(object):
     def __init__(self, matrix_materials, max_TC=7.8):
