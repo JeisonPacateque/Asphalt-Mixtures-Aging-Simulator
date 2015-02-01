@@ -42,14 +42,14 @@ class ThermalModel(object):
 
         # For stability, this is the largest interval possible
         # for the size of the time-step:
-        self.dt = self.dx2*self.dy2/(float(max_TC)*(self.dx2 + self.dy2))
+        self.dt = self.dx2*self.dy2/(float(max_TC)**(self.dx2 + self.dy2))
         print "dt = ", self.dt
 
     def applySimulationConditions(self, ambient=40, internal=10):
         """"Set the temperatures for the simulation"""
 
         self.ui.fill(internal)    # internal temperature in asphalt
-        self.ui[-10:,:] = ambient # applied temperature from environment
+        self.ui[:10,:] = ambient # applied temperature from environment
 
         print "Applied internal temperature in the asphalt:", internal
         print "applied temperature from environment:", ambient
@@ -70,10 +70,10 @@ class ThermalModel(object):
             for j in xrange(1, self.lengthY-1):
                 uxx = ( self.ui[i+1,j] - 2*self.ui[i,j] + self.ui[i-1, j] )/self.dx2
                 uyy = ( self.ui[i,j+1] - 2*self.ui[i,j] + self.ui[i, j-1] )/self.dy2
-#                TC = self._getThermalConductivity(i,j)
-                self.u[i,j] = self.ui[i,j]+self.dt*0.75*(uxx+uyy)
+                TC = self._getThermalConductivity(i,j)
+                self.u[i,j] = self.ui[i,j]+self.dt*TC*(uxx+uyy)
 
-    def simulate(self, n_steps=100):
+    def simulate(self, n_steps=1000):
         """"This function executes the model in number steps (n_steps)"""
 
         steps = np.arange(n_steps)
