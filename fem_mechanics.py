@@ -19,12 +19,14 @@ class FEMMechanics(object):
 #==============================================================================
 #        Create stiffness matrix
 #==============================================================================
-        self.ki = np.zeros((self.MM.size))
+        self.ki = np.empty(self.MM.size, dtype=object)
         cont = 0
-        for m in np.nditer(self.MM):
-            self.ki[cont] = self.LinearBarElementStiffness(m.young_modulus,\
-            m.areaFE, m.lengthFE)
-            cont += 1
+        for i in xrange(self.MM.shape[0]):
+            for j in xrange(self.MM.shape[1]):
+                self.ki[cont] = self.LinearBarElementStiffness(
+                self.MM[i,j].young_modulus,\
+                self.MM[i,j].areaFE, self.MM[i,j].lengthFE)
+                cont += 1
 
 #==============================================================================
 #       Create conectivity matrix
@@ -69,10 +71,10 @@ class FEMMechanics(object):
         bar with nodes i and j into the global stiffness matrix K.This function
         returns the global stiffness matrix K after the element stiffness
         matrix k is assembled."""
-        K[i][i] = K [i][i] + k[0][0]
-        K[i][j] = K [i][j] + k[0][1]
-        K[j][i] = K [j][i] + k[1][0]
-        K[j][j] = K [j][j] + k[1][1]
+        K[i][i] = K[i][i] + k[0][0]
+        K[i][j] = K[i][j] + k[0][1]
+        K[j][i] = K[j][i] + k[1][0]
+        K[j][j] = K[j][j] + k[1][1]
         return K
 
     def ElementConectivityMatrix(self, width, height):

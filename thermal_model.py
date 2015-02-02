@@ -85,8 +85,8 @@ class ThermalModel(object):
             print step
 
         # copy the field temperature into the matrix materials
-        for i in range(self.MM.shape[0]):
-            for j in range(self.MM.shape[1]):
+        for i in xrange(self.MM.shape[0]):
+            for j in xrange(self.MM.shape[1]):
                 self.MM[i,j].temperature = self.u[i,j]
 
         return self.MM
