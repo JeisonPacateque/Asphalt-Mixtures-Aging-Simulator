@@ -9,10 +9,10 @@ class Material(object):
     def __init__(self, young_modulus, thermal_conductivity, chemical_value):
         """This class handle the material to be simulated"""
 
-        self._young_modulus = young_modulus # Young's modulus
+        self._young_modulus = float(young_modulus) # Young's modulus
         # Thermal conductivity units are W/(m K) in the SI
-        self._thermal_conductivity = thermal_conductivity
-        self._chemical_value = chemical_value
+        self._thermal_conductivity = float(thermal_conductivity)
+#        self._chemical_value = float(chemical_value)
 
         self._temperature = 0
         self._areaFE = 1
@@ -52,7 +52,7 @@ class Material(object):
 
     @property
     def areaFE(self):
-        return self._AreaFE
+        return self._areaFE
 
     @areaFE.setter
     def areFE(self, value):
