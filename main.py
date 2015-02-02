@@ -5,7 +5,6 @@ Created on 2/05/2014
 '''
 import sys
 import matplotlib.image as mpimg
-import numpy as np
 import os
 from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
@@ -17,11 +16,10 @@ from results import Result
 
 
 class ApplicationWindow(QtGui.QMainWindow):
-    """This Class contains the main window of the DICOM sample viewer """
-    timer = QtCore.QTimer()     #Timer intended to update the image
+    """This Class contains the main window of the program"""
 
     def __init__(self):
-
+        self.timer = QtCore.QTimer()     #Timer intended to update the image
         self.collection = []
         self.segmented_collection = []
         self.segmentation = Segmentation()
@@ -90,7 +88,8 @@ class ApplicationWindow(QtGui.QMainWindow):
                                                    QtGui.QFileDialog.ShowDirsOnly)
 
         path = str(chosen_path+"/") #QString to Python string
-        if path != "/": #Prevents the execution of load_path if the user don't select a folder
+        #Prevents the execution of load_path if the user don't select a folder
+        if path != "/":
             self.collection = FileLoader().load_path(path) #Load Files
             total_loaded = str(len(self.collection))+" DICOM files loaded."
             self.folder_path.setText(path)
@@ -101,14 +100,14 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def start_animation(self):
         self.dc.reset_index()
-        QtCore.QObject.connect(self.__class__.timer, QtCore.SIGNAL("timeout()"), self.dc.update_figure)
-        self.__class__.timer.start(150)                #Set the update time
+        QtCore.QObject.connect(self.timer, QtCore.SIGNAL("timeout()"), self.dc.update_figure)
+        self.timer.start(150)                #Set the update time
 
     def pause_animation(self):
-        self.__class__.timer.stop()
+        self.timer.stop()
 
     def resume_animation(self):
-        self.__class__.timer.start(150)
+        self.timer.start(150)
 
     def update_staus(self, message):
         self.statusBar().showMessage(message)
@@ -116,7 +115,9 @@ class ApplicationWindow(QtGui.QMainWindow):
     def segment_sample(self):
         print "Running segmentation..."
         self.update_staus("Running segmentation...")
+
         self.dc.reset_index()
+
         segmented = self.segmentation.reduction(self.collection)
         reduced = self.segmentation.segment_all_samples(segmented)
         del self.collection
@@ -124,6 +125,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.collection = self.segmented_collection
         self.update_staus("Reduction complete")
         self.count_element_values()
+
         self.action_sample_3d.setEnabled(True)  #Enables the 3D Model viewer
         self.action_sample_count.setEnabled(True) #Enables the count method
         self.action_file_writevtk.setEnabled(True) #Enables the VTK writer
@@ -149,6 +151,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         QtGui.QMessageBox.about(self, "Alert","File saved at "+filename)
 
     def count_element_values(self):
+        import numpy as np
         """Shows the total count of detected elements after the segmentation"""
         empty = np.count_nonzero(self.collection==0)
         mastic = np.count_nonzero(self.collection==1)
