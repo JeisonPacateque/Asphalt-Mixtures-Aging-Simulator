@@ -12,15 +12,28 @@ class Result(object):
     def __init__(self, matrix_materials):
         self.materials = matrix_materials
 
+        f = plt.figure()
+        f.add_subplot(111)
+        plt.title('Heat Map')
+        heatmap = self.thermalResults()
+        plt.imshow(heatmap, interpolation='nearest')
+        plt.colorbar()
+
+        f.add_subplot(121)
+        plt.title('Displacements field')
+        displacements = self.mechanicalResults()
+        plt.imshow(displacements, interpolation='nearest')
+        plt.colorbar()
+        plt.show()
+
     def thermalResults(self):
         heatmap = np.zeros(self.materials.shape)
 
-        for i in range(self.materials.shape[0]):
-            for j in range(self.materials.shape[1]):
+        for i in xrange(self.materials.shape[0]):
+            for j in xrange(self.materials.shape[1]):
                 heatmap[i,j] = self.materials[i,j].temperature
 
-        plt.imshow(heatmap)
-#        plt.imshow(heatmap, cmap=cm.jet, interpolation='nearest', origin='lower')
-#        plt.axis([heatmap.min(), heatmap.max(), heatmap.min(), heatmap.max()])
-        plt.colorbar()
-        plt.show()
+        return heatmap
+
+    def mechanicalResults(self):
+        return np.loadtxt('matriz_u.txt', delimiter=',')
