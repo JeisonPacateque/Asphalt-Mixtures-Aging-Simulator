@@ -9,8 +9,12 @@ import numpy as np
 
 class ThermalModel(object):
     def __init__(self, matrix_materials, max_TC=7.8):
-        """initial matrix materials
+        """
+        This class supports the thermal model thourgh difussion (laplacian)
+
+        matrix_materials = initial matrix materials
         (numpy objetc array, array of class Material)
+
         maxTC = max transfer coefficient, important to define stability
         of dt in the model"""
 
