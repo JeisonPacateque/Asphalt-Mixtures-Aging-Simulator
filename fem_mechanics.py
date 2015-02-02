@@ -37,10 +37,10 @@ class FEMMechanics(object):
         self.conectivity_matrix = self.ElementConectivityMatrix(self.MM.shape[0],
                                                            self.MM.shape[1])
 
-        self.K = np.zeros((4600, 4600)) # estos valores hay que cambiarlos, calcularlos dependiendo
+        self.K = np.zeros((4700, 4700)) # estos valores hay que cambiarlos, calcularlos dependiendo
         self.generalStiffnessMatrixAssemble()
 
-        self.force = 0  #applied force over asphalt mixture
+        self.force = 800  #applied force over asphalt mixture
 
     def LinearBarElementForces(self, k, u):
         """This function returns the element nodalforce vector given the
@@ -57,7 +57,7 @@ class FEMMechanics(object):
 
     def LinearBarElementStiffness(self, E, A, L):
         """ This function returns the element stiffness"""
-        return np.array([[E*(A/L), -E*(A/L)], [-E*(A/L) ,E*(A/L)]])
+        return np.array([[E*(A/L), -E*(A/L)], [-E*(A/L), E*(A/L)]])
 
     def generalStiffnessMatrixAssemble(self):
         """Assembles an n x n Stiffness Matrix"""
@@ -94,22 +94,13 @@ class FEMMechanics(object):
 
         return self.elements_nodes
 
-    def getTopElementNodes(self):
-        return self.elements_top
-
-    def getBottomElementNodes(self):
-        return self.elements_bottom
-
     def applySimulationConditions(self, force=800):
-        self.force = 800
+        self.force = force
 
     def simulate(self):
-        # Obtencion de los nodos superiores e inferiores
-        top_nodes = self.getTopElementNodes()
-        bottom_nodes = self.getBottomElementNodes()
-
         mask = np.ones(self.K.shape[0], dtype=bool)
-        mask[bottom_nodes] = False
+        print self.elements_bottom
+        mask[self.elements_bottom] = False
         k_sub = self.K[mask]
         k_sub = k_sub[:, mask]
 

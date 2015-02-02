@@ -75,7 +75,7 @@ class ThermalModel(object):
                 TC = self._getThermalConductivity(i,j)
                 self.u[i,j] = self.ui[i,j]+self.dt*TC*(uxx+uyy)
 
-    def simulate(self, n_steps=1000):
+    def simulate(self, n_steps=100):
         """"This function executes the model in number steps (n_steps)"""
 
         steps = np.arange(n_steps)
