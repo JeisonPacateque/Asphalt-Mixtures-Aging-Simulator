@@ -151,11 +151,11 @@ class ApplicationWindow(QtGui.QMainWindow):
         QtGui.QMessageBox.about(self, "Alert","File saved at "+filename)
 
     def count_element_values(self):
-        import numpy as np
+        from numpy import count_nonzero
         """Shows the total count of detected elements after the segmentation"""
-        empty = np.count_nonzero(self.collection==0)
-        mastic = np.count_nonzero(self.collection==1)
-        aggregate = np.count_nonzero(self.collection==2)
+        empty = count_nonzero(self.collection==0)
+        mastic = count_nonzero(self.collection==1)
+        aggregate = count_nonzero(self.collection==2)
         total = (empty+mastic+aggregate)
 
         QtGui.QMessageBox.information(self,
