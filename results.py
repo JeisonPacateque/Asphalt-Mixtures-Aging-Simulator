@@ -21,12 +21,18 @@ class Result(object):
         plt.colorbar()
         plt.show()
 
+#        plt.figure(2)
+#        plt.clf()
+#        clines = np.linspace(0., 1., 10) # contour line levels
+#        plt.title('Displacements field')
+#        C = plt.contour(displacements, colors='k')
+#        plt.clabel(C, inline=10, fontsize=10)
+#        plt.show()
+
         plt.figure(2)
         plt.clf()
-        clines = np.linspace(0., 1., 10) # contour line levels
-        plt.title('Displacements field')
-        C = plt.contour(displacements, colors='k')
-        plt.clabel(C, inline=10, fontsize=10)
+        plt.imshow(displacements, interpolation='nearest', cmap=cm.coolwarm)
+        plt.colorbar(ticks=[displacements.min(), 0, displacements.max()])
         plt.show()
 
     def thermalResults(self):
