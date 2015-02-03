@@ -15,10 +15,12 @@ class FEMMechanics(object):
         (numpy objetc array, array of class Material)
         """
         self.MM = matrix_materials # local reference of the matrix materials
+        self.createStiffnessMatrix()
+        self.createConectivityMatrix()
 
-#==============================================================================
-#        Create stiffness matrix
-#==============================================================================
+
+    def createStiffnessMatrix(self):
+        """Create stiffness matrix"""
         self.ki = np.empty(self.MM.size, dtype=object)
         cont = 0
         for i in xrange(self.MM.shape[0]):
@@ -28,18 +30,14 @@ class FEMMechanics(object):
                 self.MM[i,j].areaFE, self.MM[i,j].lengthFE)
                 cont += 1
 
-#==============================================================================
-#       Create conectivity matrix
-#==============================================================================
+    def createConectivityMatrix(self):
+        """ Create Conectivity Matrix """
         self.elements_nodes = []  # Tupla de nodos de cada elemento
         self.elements_top = [] # Indice Elemento superior
         self.elements_bottom = [] #Indice Elemento inferior
-        self.conectivity_matrix = self.ElementConectivityMatrix(self.MM.shape[0],
-                                                           self.MM.shape[1])
-
-        self.K = np.zeros((4700, 4700)) # estos valores hay que cambiarlos, calcularlos dependiendo
+        #La matriz de conectividad se debe cargar invertida
+        self.conectivity_matrix = self.ElementConectivityMatrix(self.MM.shape[1], self.MM.shape[0])
         self.generalStiffnessMatrixAssemble()
-
         self.force = 800  #applied force over asphalt mixture
 
     def LinearBarElementForces(self, k, u):
@@ -61,6 +59,7 @@ class FEMMechanics(object):
 
     def generalStiffnessMatrixAssemble(self):
         """Assembles an n x n Stiffness Matrix"""
+        self.K = np.zeros((4600, 4600)) # estos valores hay que cambiarlos, calcularlos dependiendo
         cont = 0
         for (x, y) in self.conectivity_matrix:
             self.K = self.LinearBarAssemble(self.K, self.ki[cont], x, y)
