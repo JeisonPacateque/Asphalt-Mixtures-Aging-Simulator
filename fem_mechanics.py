@@ -6,7 +6,6 @@ Created on Tue Nov 25 09:31:31 2014
 """
 
 import numpy as np
-import time
 
 class FEMMechanics(object):
     def __init__(self, matrix_materials):
@@ -15,57 +14,60 @@ class FEMMechanics(object):
         (numpy objetc array, array of class Material)
         """
         self.MM = matrix_materials # local reference of the matrix materials
-        self.createStiffnessMatrix()
-        self.createConectivityMatrix()
+        self.force = 0  # applied force over asphalt mixture
+
+        self._createStiffnessMatrix()
+        self._createConectivityMatrix()
+        self._generalStiffnessMatrixAssemble()
 
 
-    def createStiffnessMatrix(self):
+    def _createStiffnessMatrix(self):
         """Create stiffness matrix"""
         self.ki = np.empty(self.MM.size, dtype=object)
         cont = 0
         for i in xrange(self.MM.shape[0]):
             for j in xrange(self.MM.shape[1]):
-                self.ki[cont] = self.LinearBarElementStiffness(
+                self.ki[cont] = self._LinearBarElementStiffness(
                 self.MM[i,j].young_modulus,\
                 self.MM[i,j].areaFE, self.MM[i,j].lengthFE)
                 cont += 1
 
-    def createConectivityMatrix(self):
+    def _createConectivityMatrix(self):
         """ Create Conectivity Matrix """
         self.elements_nodes = []  # Tupla de nodos de cada elemento
         self.elements_top = [] # Indice Elemento superior
         self.elements_bottom = [] #Indice Elemento inferior
         #La matriz de conectividad se debe cargar invertida
-        self.conectivity_matrix = self.ElementConectivityMatrix(self.MM.shape[1], self.MM.shape[0])
-        self.generalStiffnessMatrixAssemble()
-        self.force = 800  #applied force over asphalt mixture
+        self.conectivity_matrix = self._ElementConectivityMatrix(
+        self.MM.shape[1], self.MM.shape[0])
 
-    def LinearBarElementForces(self, k, u):
+    def _LinearBarElementForces(self, k, u):
         """This function returns the element nodalforce vector given the
         element stiffness matrix k and the element nodal displacement
         vector u."""
         return np.dot(k, u)
 
-    def LinearBarElementStresses(self, k, u, A):
+    def _LinearBarElementStresses(self, k, u, A):
         """This function returns the element nodal stress vector given the
         element stiffness matrix k, the element nodal displacement vector u,
         and the cross-sectional area A."""
         y = np.dot(k, u)
         return y / A
 
-    def LinearBarElementStiffness(self, E, A, L):
+    def _LinearBarElementStiffness(self, E, A, L):
         """ This function returns the element stiffness"""
         return np.array([[E*(A/L), -E*(A/L)], [-E*(A/L), E*(A/L)]])
 
-    def generalStiffnessMatrixAssemble(self):
+    def _generalStiffnessMatrixAssemble(self):
         """Assembles an n x n Stiffness Matrix"""
-        self.K = np.zeros((4600, 4600)) # estos valores hay que cambiarlos, calcularlos dependiendo
+        ksize = self.MM.shape[1]*(self.MM.shape[0]+1)
+        self.K = np.zeros((ksize, ksize))
         cont = 0
         for (x, y) in self.conectivity_matrix:
-            self.K = self.LinearBarAssemble(self.K, self.ki[cont], x, y)
+            self.K = self._LinearBarAssemble(self.K, self.ki[cont], x, y)
             cont += 1
 
-    def LinearBarAssemble(self, K, k, i, j):
+    def _LinearBarAssemble(self, K, k, i, j):
         """This function assembles the element stiffness matrix k of the linear
         bar with nodes i and j into the global stiffness matrix K.This function
         returns the global stiffness matrix K after the element stiffness
@@ -76,7 +78,7 @@ class FEMMechanics(object):
         K[j][j] = K[j][j] + k[1][1]
         return K
 
-    def ElementConectivityMatrix(self, width, height):
+    def _ElementConectivityMatrix(self, width, height):
         """Create the nodes and set positions for all elements
         on a stiffness matrix"""
         a = 0
@@ -98,7 +100,6 @@ class FEMMechanics(object):
 
     def simulate(self):
         mask = np.ones(self.K.shape[0], dtype=bool)
-        print self.elements_bottom
         mask[self.elements_bottom] = False
         k_sub = self.K[mask]
         k_sub = k_sub[:, mask]
@@ -108,12 +109,10 @@ class FEMMechanics(object):
 
         #calculate displacements-------------------------------------------
         U = np.linalg.solve(k_sub, forces)
+        U = U.reshape(self.MM.shape)
+        print U.shape
 
-        #np.set_printoptions(suppress=True)
-        img = U.reshape(self.MM.shape)
-
-        #Guardar desplazamientos--------------------------------------------
-        # turn off summarization, line-wrapping
-        np.set_printoptions(threshold=np.inf, linewidth=np.inf)
-        with open('matriz_u.txt', 'w') as f:
-            f.write(np.array2string(img, separator=', '))
+        # copy the field temperature into the matrix materials
+        for i in xrange(self.MM.shape[0]):
+            for j in xrange(self.MM.shape[1]):
+                self.MM[i,j].displacement = U[i,j]

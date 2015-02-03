@@ -63,9 +63,11 @@ class SimulationEngine(object):
         self.thermal = ThermalModel(self.matrix_materials, max_TC)
         self.thermal.applySimulationConditions()
         self.matrix_materials = self.thermal.simulate()
-
+#==============================================================================
+#       moechanical mnodel
+#==============================================================================
         self.mechanics = FEMMechanics(self.matrix_materials)
-        self.mechanics.applySimulationConditions()
+        self.mechanics.applySimulationConditions(800)
         self.mechanics.simulate()
 
         return self.matrix_materials

@@ -44,7 +44,7 @@ class ThermalModel(object):
 
         # For stability, this is the largest interval possible
         # for the size of the time-step:
-        self.dt = self.dx2*self.dy2/(float(max_TC)**(self.dx2 + self.dy2))
+        self.dt = self.dx2*self.dy2/(max_TC**(self.dx2 + self.dy2))
         print "dt = ", self.dt
 
     def applySimulationConditions(self, ambient=40, internal=10):
@@ -82,7 +82,6 @@ class ThermalModel(object):
         for step in np.nditer(steps):
             self._evolve_ts() # Laplacian cicle
             self.ui = self.u.copy()
-            print step
 
         # copy the field temperature into the matrix materials
         for i in xrange(self.MM.shape[0]):
