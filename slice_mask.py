@@ -6,15 +6,11 @@ Created on Tue Jun 10 10:03:34 2014
 """
 
 import numpy as np
-#import dicom
-#from matplotlib import pyplot as pp
-#
-#dicom_image = dicom.read_file('/home/santiago/Proyecto-de-Grado-Codes/samples/6/sample_120.dcm')
-#matrix = dicom_image.pixel_array[35:485, 35:485]
+
 
 def sector_mask(shape, centre=(50, 50), radius=50, angle_range=(0, 360)):
     """
-    Return a boolean mask for a circular sector. The start/stop angles in  
+    Return a boolean mask for a circular sector. The start/stop angles in
     `angle_range` should be given in clockwise order.
     """
 
@@ -40,11 +36,3 @@ def sector_mask(shape, centre=(50, 50), radius=50, angle_range=(0, 360)):
     anglemask = theta <= (tmax-tmin)
 
     return circmask*anglemask
-    
-    
-#print matrix.shape    
-#mask = sector_mask(matrix.shape,(225,225),225,(0,360))
-#matrix[~mask] = 555
-#print np.count_nonzero(matrix==555)
-#pp.imshow(matrix)
-#pp.show()
