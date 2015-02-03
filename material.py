@@ -10,13 +10,17 @@ class Material(object):
         """This class handle the material to be simulated"""
 
         self._young_modulus = float(young_modulus) # Young's modulus
+
         # Thermal conductivity units are W/(m K) in the SI
         self._thermal_conductivity = float(thermal_conductivity)
+
 #        self._chemical_value = float(chemical_value)
 
         self._temperature = 0
         self._areaFE = 1
         self._lengthFE = 1
+
+        self._displacement = 0 # local displacement of the element
 
     @property
     def young_modulus(self):
@@ -65,3 +69,11 @@ class Material(object):
     @lengthFE.setter
     def lengthFE(self, value):
         self._lengthFE = value
+
+    @property
+    def displacement(self):
+        return self._displacement
+
+    @displacement.setter
+    def displacement(self, value):
+        self._displacement = value
