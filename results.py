@@ -21,11 +21,11 @@ class Result(object):
 
         f.add_subplot(121)
         clines = np.linspace(0., 1., 10)
-        C = plt.contour(heatmap)
-        plt.clabel(C, inline=10, fontsize=10)
         plt.title('Displacements field')
-#        displacements = self.mechanicalResults()
-#        plt.imshow(displacements, interpolation='nearest')
+        displacements = self.mechanicalResults()
+        C = plt.contour(displacements)
+        plt.clabel(C, inline=10, fontsize=10)
+        plt.imshow(displacements, interpolation='nearest')
 #        plt.colorbar()
         plt.show()
 

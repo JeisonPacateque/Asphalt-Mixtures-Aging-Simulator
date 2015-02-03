@@ -59,10 +59,10 @@ class SimulationEngine(object):
                      self.airvoid.thermal_conductivity,
                      self.aggregate.thermal_conductivity)
 
-#        temp_ambient = self.getTempAmbient()
-#        self.thermal = ThermalModel(self.matrix_materials, max_TC)
-#        self.thermal.applySimulationConditions()
-#        self.matrix_materials = self.thermal.simulate()
+        temp_ambient = self.getTempAmbient()
+        self.thermal = ThermalModel(self.matrix_materials, max_TC)
+        self.thermal.applySimulationConditions()
+        self.matrix_materials = self.thermal.simulate()
 
         self.mechanics = FEMMechanics(self.matrix_materials)
         self.mechanics.applySimulationConditions()
