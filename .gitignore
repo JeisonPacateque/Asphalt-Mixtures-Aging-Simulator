@@ -1,6 +1,7 @@
 *.pyc 
 *.directory
 *.pdf
+*.so
 /samples/
 /file_loader.pyc
 /segmentation.pyc
@@ -13,9 +14,7 @@
 *.xml
 .idea/.name
 .idea/Proyecto-de-Grado-Codes.iml
-*.pyc
 matriz_u.txt
 busy_widget.py
-build/temp.win-amd64-2.7/Release/laplacian.def
-build/temp.win-amd64-2.7/Release/laplacian.o
+/build/
 laplacian.pyd
