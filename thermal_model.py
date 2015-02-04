@@ -7,6 +7,7 @@ Created on Mon Jan 12 00:01:43 2015
 
 import numpy as np
 import time
+import laplacian
 
 class ThermalModel(object):
     def __init__(self, matrix_materials, max_TC=7.8):
@@ -24,14 +25,14 @@ class ThermalModel(object):
         self.MM  = matrix_materials.copy()
 
         #initial temperature field
-        self.ui = np.zeros(self.MM.shape)
-
-        # copy all the temperature values from the matrix materials
-#        for i in range(self.MM.shape[0]):
-#                for j in range(self.MM.shape[1]):
-#                    self.ui[i,j] = self.MM[i,j].temperature
-
+        self.ui = np.zeros(self.MM.shape, dtype=np.float)
         self.u = self.ui.copy() # next step temperature field
+        self.TCs = np.zeros(self.MM.shape, dtype=np.float)
+
+#         copy all the thermal conductivities from the matrix materials
+        for i in xrange(self.MM.shape[0]):
+                for j in xrange(self.MM.shape[1]):
+                    self.TCs[i,j] = self.MM[i,j].thermal_conductivity
 
         # Calculate dx, dy
         self.lengthX = self.MM.shape[0]
@@ -57,42 +58,23 @@ class ThermalModel(object):
         print "Applied internal temperature in the asphalt:", internal
         print "applied temperature from environment:", ambient
 
-    def _getThermalConductivity(self, i, j):
-        """Obtain the thermal conducitvity from element i,j
-        private method"""
-
-        return float(self.MM[i,j].thermal_conductivity)
-
-    def _evolve_ts(self):
-        """
-        This function evaluate the derivatives in the Laplacian, and
-        calculates u[i,j] based on ui[i,j]. Private method
-        """
-
-#        for (i,j), _ in np.ndenumerate(self.u[:-1, :-1]):
-        for i in xrange(1, self.lengthX-1):
-            for j in xrange(1, self.lengthY-1):
-                uxx = ( self.ui[i+1,j] - 2*self.ui[i,j] + self.ui[i-1, j] )/self.dx2
-                uyy = ( self.ui[i,j+1] - 2*self.ui[i,j] + self.ui[i, j-1] )/self.dy2
-                TC = self._getThermalConductivity(i,j)
-                self.u[i,j] = self.ui[i,j]+self.dt*TC*(uxx+uyy)
-            
-        
-    def simulate(self, n_steps=100):
+    def simulate(self, n_steps=10000):
         """"This function executes the model in number steps (n_steps)"""
 
         steps = np.arange(n_steps)
         start_time = time.time()  # Measures file loading time
+
         for step in np.nditer(steps):
             print "Thermal simulation step:", step
-            self._evolve_ts() # Laplacian cicle
+            self. u = laplacian.evolve_ts(self.ui, self.u, self.TCs,
+                                self.dt, self.dx2, self.dy2)
             self.ui = self.u.copy()
 
         # copy the field temperature into the matrix materials
         for i in xrange(self.MM.shape[0]):
             for j in xrange(self.MM.shape[1]):
                 self.MM[i,j].temperature = self.u[i,j]
-                
+
         end_time = time.time()  # Get the time when method ends
         print "Thermal simulation done in ", str(end_time - start_time), " seconds."
         return self.MM

@@ -24,9 +24,13 @@ def ToyModel3d(sample):
     ipw.module_manager.scalar_lut_manager.reverse_lut = inverse_lut
     ipw.module_manager.scalar_lut_manager.number_of_colors = colors
     
-    scp = mlab.pipeline.scalar_cut_plane(src, colormap = 'blue-red')
-    scp.module_manager.scalar_lut_manager.reverse_lut = inverse_lut
-    scp.module_manager.scalar_lut_manager.number_of_colors = colors
+#    scp = mlab.pipeline.scalar_cut_plane(src, colormap = 'blue-red')
+#    scp.module_manager.scalar_lut_manager.reverse_lut = inverse_lut
+#    scp.module_manager.scalar_lut_manager.number_of_colors = colors
+    
+    ipw = mlab.pipeline.image_plane_widget(src, colormap = 'blue-red')
+    ipw.module_manager.scalar_lut_manager.reverse_lut = inverse_lut
+    ipw.module_manager.scalar_lut_manager.number_of_colors = colors
     
     mlab.orientation_axes()
     mlab.show()
