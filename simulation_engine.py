@@ -50,7 +50,7 @@ class SimulationEngine(object):
             elif vertical_slice[x,y] == 0:
                 material_matrix[x,y] = copy.deepcopy(self.airvoid)
 
-        print "matriz de materiales creada de tamano", material_matrix.shape
+        print "Materials matrix created, size:", material_matrix.shape
         return material_matrix
 
     def simulationCicle(self, no_mech_iter=1, no_thermal_iter=200,

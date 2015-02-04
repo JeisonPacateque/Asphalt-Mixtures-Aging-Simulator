@@ -312,30 +312,6 @@ class MyDynamicMplCanvas(Canvas):
         self.index = 0
         self.collection = "Empty"
 
-#-----------------------------------------------------------------------------
-class ProgressBar(QtGui.QWidget):
-
-    def __init__(self, parent=None):
-        super(ProgressBar, self).__init__(parent)
-        layout = QtGui.QVBoxLayout(self)
-
-        # Create a progress bar 
-        self.progressBar = QtGui.QProgressBar(self)
-        self.progressBar.setRange(0,1)
-        layout.addWidget(self.progressBar)
-
-        self.myLongTask = TaskThread()
-#        self.myLongTask.taskFinished.connect(self.onFinished)
-        self.show()
-
-    def onStart(self): 
-        self.progressBar.setRange(0,0)
-        self.myLongTask.start()
-
-    def onFinished(self):
-        # Stop the pulsation
-        self.progressBar.setRange(0,1)
-        self.progressBar.setValue(1)
 
 #------------------------------------------------------------------------
 class ConfigureSimulationDialog(QtGui.QDialog):
@@ -455,6 +431,9 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         air_parameters.append(self.air_YM.text())
         air_parameters.append(self.air_TC.text())
         air_parameters.append(self.air_CH.text())
+        
+        #Close the dialog before the simulation starts
+        self.close()
 
         engine = SimulationEngine(aggregate_parameters, mastic_parameters,
                                   air_parameters, aw.collection)
@@ -463,19 +442,9 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         output_results = Result(materials)
         output_results.thermalResults()
 
-
     def closeWindow(self):
         self.close()
         
-#------------------------------------------------------------------------------
-class TaskThread(QtCore.QThread):
-    def __init__(self):    
-        self.taskFinished = QtCore.pyqtSignal()
-    
-    def run(self):
-        print "run"
-        aw.segment_sample()
-        self.taskFinished.emit() 
 
 #-----------------------------------------------------------------------------
 if __name__ == '__main__':
