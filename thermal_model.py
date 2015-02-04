@@ -58,7 +58,7 @@ class ThermalModel(object):
         print "Applied internal temperature in the asphalt:", internal
         print "applied temperature from environment:", ambient
 
-    def simulate(self, n_steps=100):
+    def simulate(self, n_steps=10000):
         """"This function executes the model in number steps (n_steps)"""
 
         steps = np.arange(n_steps)

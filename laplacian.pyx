@@ -14,6 +14,8 @@ def evolve_ts(np.ndarray[np.float64_t, ndim=2] ui,
               np.ndarray[np.float64_t, ndim=2] TCs, \
               double dt, double dx2, double dy2):
 
+        cdef int i, j
+
         for i in xrange(1, u.shape[0]-1):
             for j in xrange(1, u.shape[1]-1):
                 uxx = (ui[i+1,j] - 2*ui[i,j] + ui[i-1, j] )/dx2
