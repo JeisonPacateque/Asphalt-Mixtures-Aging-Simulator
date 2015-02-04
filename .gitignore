@@ -2,6 +2,7 @@
 *.directory
 *.pdf
 *.so
+*.c
 /samples/
 /file_loader.pyc
 /segmentation.pyc
