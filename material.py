@@ -7,7 +7,11 @@ Created on Tue Dec  9 13:25:11 2014
 
 class Material(object):
     def __init__(self, young_modulus, thermal_conductivity, chemical_value):
-        """This class handle the material to be simulated"""
+        """
+        This class is the representation of the asphalt mixtures materials to 
+        be simulated. Since the specific nature of the intended simulations, 
+        just thermal mechanical and chemical attributes are considered
+        """
 
         self._young_modulus = float(young_modulus) # Young's modulus
 

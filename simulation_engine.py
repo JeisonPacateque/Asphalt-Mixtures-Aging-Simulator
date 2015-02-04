@@ -12,8 +12,11 @@ from material import Material
 import copy
 
 class SimulationEngine(object):
-    def __init__(self, aggregate_parameters, mastic_parameters,
-                                  air_parameters, collection, slice_id=50):
+    """
+    This class configures the sample as a materials array in order to run the 
+    simulations defined in the thermal, mechanical and chemical models.
+    """
+    def __init__(self, aggregate_parameters, mastic_parameters, air_parameters, collection, slice_id=50):
 
         # [0] ---> young modules
         # [1] ---> thermical conductivity
@@ -53,7 +56,7 @@ class SimulationEngine(object):
     def simulationCicle(self, no_mech_iter=1, no_thermal_iter=200,
                         no_chemic_iter=1):
 #==============================================================================
-#         thermal model (la idea es que cada modelo este dentro de un ciclo)
+#       Thermal model implementation (Every model should run on a loop)
 #==============================================================================
         max_TC = max(self.mastic.thermal_conductivity,
                      self.airvoid.thermal_conductivity,
@@ -64,7 +67,7 @@ class SimulationEngine(object):
         self.thermal.applySimulationConditions()
         self.matrix_materials = self.thermal.simulate()
 #==============================================================================
-#       moechanical mnodel
+#       Mechanical model implementation
 #==============================================================================
         self.mechanics = FEMMechanics(self.matrix_materials)
         self.mechanics.applySimulationConditions(800)
@@ -73,5 +76,8 @@ class SimulationEngine(object):
         return self.matrix_materials
 
     def getTempAmbient(self):
+        """
+        Returns the ambient temperature set on the Configure Simulation dialog
+        """
         temp_ambient = 50
         return temp_ambient

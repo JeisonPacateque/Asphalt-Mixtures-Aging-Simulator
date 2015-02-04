@@ -16,9 +16,21 @@ from slice_mask import sector_mask
 class Segmentation(object):
 
     def __init__(self):
+        """
+        This class handle all the methods to reduce and segment the asphalt
+        mixture reconstruction from Dicom images
+        """
         self.loader = FileLoader()
 
     def reduction(self, img, factor=(100. / 450.)):
+        """
+        This method takes the numpy array representation of toyModel (img)
+         and a zoom factor, returning the toymodel scaled for its posterior
+         segmentation.
+             
+             reduction(toymodel, zoomfactor)
+         
+        """
         print "Running reduction..."
         start_time = time.time()  # Measures file loading time
         reduced = ndimage.interpolation.zoom(img, factor, output=np.int16)
@@ -33,7 +45,14 @@ class Segmentation(object):
         return reduced[1:, 1:]  # return and cut "noise"
 
     def view(self, original, segmented, reduced):
-
+        """ 
+        This method is implemented for test purposes, it takes as argument
+        an untreated slice, a segmented slice and a reduced and segmented
+        slice showing its differences on screen using a matplotlib figure
+        
+            view(original, segmented, reduced)
+            
+        """
         f = pyplot.figure()
         levels = [0, 1, 2]
         colores = ['red', 'white', 'blue', 'red']
@@ -55,13 +74,26 @@ class Segmentation(object):
         pyplot.colorbar()
         pyplot.show()
 
-    def histograma(self, img_red):
+    def histogram(self, img_red):
+        """
+        Plots an histogram of the materials distibution over the toy model
+        using matplotlib. It is neccesary to reduce the toy model before
+        plotting the histogram
+        
+            histogram(reduced_toymodel)
+        """
         pyplot.hist(img_red, bins=3, histtype='bar')
         pyplot.show()
 
     def clasify(self, img, normalize=True):
-#        start_time = time.time()  # Measures file loading t
-        
+        """
+        K-means algorithm implementation. Take a raw slice as an input returning
+        it with the same size and proportions replacing all the Houndsfield unit
+        values from X-Ray CT for the detected material id.
+            0: For air-voids.
+            1: For mastic.
+            2: For aggregates.
+        """
         n_clusters = 3  # number of clusters: void, aggregate and mastic
 
         # convert the image to a linear array
@@ -88,13 +120,9 @@ class Segmentation(object):
         else:
             img_segmented = np.choose(labels, values_kmeans)
 
-        img_segmented.shape = img.shape  # reshape with original dimensions
-        
+        img_segmented.shape = img.shape  # reshape with original dimensions    
         convert_matrix = img_segmented.astype(np.int16)
         
-#        end_time = time.time()  # Get the time when method ends
-#        print "Slice segmentation finished in", str(end_time - start_time), "seconds."
-
         return convert_matrix
         
     def segment_all_samples(self, samples):
@@ -103,7 +131,7 @@ class Segmentation(object):
         start_time = time.time()  # Measures file loading t
         segmented = samples
         col_length = len(segmented)
-        print "Running segmentation for", str(col_length), "samples."
+        print "Running segmentation for", str(col_length), "samples..."
 
         for i in xrange(col_length):
             segmented[i] = self.clasify(segmented[i])
@@ -130,19 +158,19 @@ class Segmentation(object):
 #----------------------------------------------------------------------------------
 
 if __name__ == '__main__':
- 
-    ruta1 = '/home/sjdps/MUESTRA/66719/6/00490278'
-    ruta2 = '/home/santiago/Proyecto-de-Grado-Codes/samples/6/sample_200.dcm'
- 
+     
+    import os
+    file_path = os.path.dirname(os.path.abspath(__file__))+'/samples/4/sample_20.dcm'
+    
     segmentation = Segmentation()
-    img_org = segmentation.loader.single_dicom_read(ruta2)
+    img_org = segmentation.loader.single_dicom_read(file_path)
     img_temporal = img_org.copy()  # Copy of the image to process
- 
+     
     img_seg = segmentation.clasify(img_org)  # Segment original image
- 
+     
     # Reduce img_temporal (avoid manipulation of the variable)
     img_red = segmentation.reduction(img_temporal)
- 
+     
     red_seg = segmentation.clasify(img_red)  # Segment reduced image
- 
+     
     segmentation.view(img_org, img_seg, red_seg)  # Show results

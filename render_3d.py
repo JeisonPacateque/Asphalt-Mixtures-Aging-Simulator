@@ -8,6 +8,10 @@ Created on Tue May 27 09:10:49 2014
 from mayavi import mlab
 
 def ToyModel3d(sample):
+    """
+    This script configure the 3D render motor (Mayavi) to show an interactive
+    reconstruction of the asphalt mixture sample
+    """
     src = mlab.pipeline.scalar_field(sample)
     inverse_lut = False
     colors = 5
