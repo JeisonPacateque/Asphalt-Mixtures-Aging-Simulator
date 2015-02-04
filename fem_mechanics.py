@@ -96,9 +96,16 @@ class FEMMechanics(object):
         return self.elements_nodes
 
     def applySimulationConditions(self, force=800):
+        """
+        Set the force parameter to apply over the slice sample
+        """
         self.force = force
 
     def simulate(self):
+        """
+        Run the simulation with all the configured parameters, the output will
+        be a displacements map handled by the results module
+        """
         mask = np.ones(self.K.shape[0], dtype=bool)
         mask[self.elements_bottom] = False
         k_sub = self.K[mask]

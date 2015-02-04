@@ -12,8 +12,14 @@ import numpy as np
 
 
 class FileLoader(object):
+    """
+    This class have all the needed method to load all the Dicom files from the
+    X-Ray CT scan, processing the images and create a reconstruction of the
+    asphalt mixture using numpy data types.
+    """
 
     def __init__(self):
+
         self.coleccion_imagenes = []  # Image list
 
     def human_key(self, key):
@@ -31,6 +37,9 @@ class FileLoader(object):
         return dicom_slice
 
     def load_path(self, path):
+        """
+        Load a whole folder of Dicom files and return a NumPy toyModel
+        """
         try:
             start_time = time.time()  # Measures file loading time
             del self.coleccion_imagenes[:]#Clean collection if previous executions

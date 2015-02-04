@@ -6,6 +6,7 @@ Created on Mon Jan 12 00:01:43 2015
 """
 
 import numpy as np
+import time
 
 class ThermalModel(object):
     def __init__(self, matrix_materials, max_TC=7.8):
@@ -67,6 +68,7 @@ class ThermalModel(object):
         This function evaluate the derivatives in the Laplacian, and
         calculates u[i,j] based on ui[i,j]. Private method
         """
+
 #        for (i,j), _ in np.ndenumerate(self.u[:-1, :-1]):
         for i in xrange(1, self.lengthX-1):
             for j in xrange(1, self.lengthY-1):
@@ -74,12 +76,15 @@ class ThermalModel(object):
                 uyy = ( self.ui[i,j+1] - 2*self.ui[i,j] + self.ui[i, j-1] )/self.dy2
                 TC = self._getThermalConductivity(i,j)
                 self.u[i,j] = self.ui[i,j]+self.dt*TC*(uxx+uyy)
-
+            
+        
     def simulate(self, n_steps=100):
         """"This function executes the model in number steps (n_steps)"""
 
         steps = np.arange(n_steps)
+        start_time = time.time()  # Measures file loading time
         for step in np.nditer(steps):
+            print "Thermal simulation step:", step
             self._evolve_ts() # Laplacian cicle
             self.ui = self.u.copy()
 
@@ -87,5 +92,7 @@ class ThermalModel(object):
         for i in xrange(self.MM.shape[0]):
             for j in xrange(self.MM.shape[1]):
                 self.MM[i,j].temperature = self.u[i,j]
-
+                
+        end_time = time.time()  # Get the time when method ends
+        print "Thermal simulation done in ", str(end_time - start_time), " seconds."
         return self.MM

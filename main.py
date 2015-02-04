@@ -6,6 +6,7 @@ Created on 2/05/2014
 import sys
 import matplotlib.image as mpimg
 import os
+import threading
 from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -19,10 +20,15 @@ class ApplicationWindow(QtGui.QMainWindow):
     """This Class contains the main window of the program"""
 
     def __init__(self):
+        """
+        The contructor build the GUI of the application
+        """
         self.timer = QtCore.QTimer()     #Timer intended to update the image
         self.collection = []
         self.segmented_collection = []
         self.segmentation = Segmentation()
+        
+        self.seg_thread = threading.Thread(target=self.segment_sample)
 
         QtGui.QMainWindow.__init__(self)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
@@ -76,12 +82,15 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.main_widget.setFocus()
         self.setCentralWidget(self.main_widget)
         self.menu_buttons_state()
+        
 
     def open_path(self):
+        """
+        Shows an "open folder dialog" looking for Dicom files to load
+        """
         self.pause_animation();
         self.update_staus("Loading files from path...")
         current_path = os.path.dirname(os.path.abspath(__file__))+'/samples/4/'
-        print current_path
         chosen_path = QtGui.QFileDialog.getExistingDirectory(None,
                                                          'Open working directory',
                                                                      current_path,
@@ -99,21 +108,40 @@ class ApplicationWindow(QtGui.QMainWindow):
 
 
     def start_animation(self):
+        """
+        Run the 2D animation of the X-Ray raw or treated Dicom slices from
+        the asphalt mixture sample
+        """
         self.dc.reset_index()
         QtCore.QObject.connect(self.timer, QtCore.SIGNAL("timeout()"), self.dc.update_figure)
         self.timer.start(150)                #Set the update time
 
     def pause_animation(self):
+        """
+        Pause the 2D animation of the X-Ray raw or treated Dicom slices from
+        the asphalt mixture sample
+        """
         self.timer.stop()
 
     def resume_animation(self):
+        """
+        Resume 2D animation of the X-Ray raw or treated Dicom slices from
+        the asphalt mixture sample
+        """
         self.timer.start(150)
 
     def update_staus(self, message):
+        """
+        Set text over the status bar on the main window of the application 
+        """
         self.statusBar().showMessage(message)
 
     def segment_sample(self):
-        print "Running segmentation..."
+        """
+        Uses the segmentation module reduce and segment the toymodel.
+        This also enable the application window to show the animation of the 
+        treated sample        
+        """
         self.update_staus("Running segmentation...")
 
         self.dc.reset_index()
@@ -136,6 +164,9 @@ class ApplicationWindow(QtGui.QMainWindow):
 
 
     def show_3d_sample(self):
+        """
+        Load the 3D render scrip
+        """
         print "Running 3D Modeling..."
         self.update_staus("Running 3D Modeling...")
         from render_3d import ToyModel3d
@@ -143,16 +174,23 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.action_sample_count.setEnabled(True) #Enables the count method
 
     def write_vtk_file(self):
+        """
+        Deprecated. This method is used for testing
+        """
         print "Writting VTK file from loaded model..."
-        from fem import VectorWriter
-        filename = QtGui.QFileDialog.getSaveFileName(self, 'Save File', 'ToyModel.vtk')
-        vectorizer = VectorWriter()
-        vectorizer.save_vtk(self.collection, filename)
-        QtGui.QMessageBox.about(self, "Alert","File saved at "+filename)
+#        from fem import VectorWriter
+#        filename = QtGui.QFileDialog.getSaveFileName(self, 'Save File', 'ToyModel.vtk')
+#        vectorizer = VectorWriter()
+#        vectorizer.save_vtk(self.collection, filename)
+#        QtGui.QMessageBox.about(self, "Alert","File saved at "+filename)
+        task = ProgressBar()
+        task.myLongTask.start()
+        task.taskFinished.connect(self.onFinished)
+
 
     def count_element_values(self):
-        from numpy import count_nonzero
         """Shows the total count of detected elements after the segmentation"""
+        from numpy import count_nonzero
         empty = count_nonzero(self.collection==0)
         mastic = count_nonzero(self.collection==1)
         aggregate = count_nonzero(self.collection==2)
@@ -171,7 +209,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         the count method requires samples to be segmented"""
         self.action_sample_count.setEnabled(False)
         self.action_sample_3d.setEnabled(False)
-        self.action_file_writevtk.setEnabled(False)
+        self.action_file_writevtk.setEnabled(True)
         self.simulation_setup.setEnabled(False)
         self.simulation_run.setEnabled(False)
 
@@ -182,14 +220,20 @@ class ApplicationWindow(QtGui.QMainWindow):
 
 
     def fileQuit(self):
+        """
+        Pause the animation on the main window and destroy the canvas objects
+        in order to close the application witout errors
+        """
         self.pause_animation()
         self.dc.destroy()
         self.close()
 
     def closeEvent(self, ce):
+        """ Handle the window close event"""
         self.fileQuit()
 
     def about(self):
+        """Shows the about dialog"""
         QtGui.QMessageBox.about(self, "About",
         """Asphalt Mixtures Aging Simulator
 
@@ -216,12 +260,13 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.collection = collection
 
     def setup_simulation(self):
+        """Shows the configure simulation dialog"""
         config_dialog = ConfigureSimulationDialog()
         config_dialog.exec_() #Prevents the dialog to disappear
 
     def run_simulation(self):
         print "Run simulation"
-        engine = SimulationEngine()
+
 
 
 class Canvas(FigureCanvas):
@@ -263,11 +308,17 @@ class MyDynamicMplCanvas(Canvas):
             self.index=0 #When iteration catches the len(self.collection) restart the loop
 
     def reset_index(self):
+        """Reset the slice index to restart the animation"""
         self.index = 0
         self.collection = "Empty"
 
+
 #------------------------------------------------------------------------
 class ConfigureSimulationDialog(QtGui.QDialog):
+    """
+    This dialog enables the user to control the simulation parameters after
+    the simulation runs
+    """
 
     def __init__(self):
         super(ConfigureSimulationDialog, self).__init__()
@@ -350,6 +401,9 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
     def setDefaultValues(self, E2=21000000, E1=10000000, E0=100, conductAsphalt=0.75,
                          conductRock=7.8, conductAir=0.026):
+        """
+        This method writes default test values over the configuration dialog
+        """
         self.aggregate_YM.setText(str(E2))
         self.mastic_YM.setText(str(E1))
         self.air_YM.setText(str(E0))
@@ -361,6 +415,9 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.air_CH.setText('Chem Air')
 
     def runSimulation(self):
+        """
+        This method loads the user input and initialize the simulation engine
+        """
         aggregate_parameters, mastic_parameters, air_parameters = [], [], []
 
         aggregate_parameters.append(self.aggregate_YM.text())
@@ -374,6 +431,9 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         air_parameters.append(self.air_YM.text())
         air_parameters.append(self.air_TC.text())
         air_parameters.append(self.air_CH.text())
+        
+        #Close the dialog before the simulation starts
+        self.close()
 
         engine = SimulationEngine(aggregate_parameters, mastic_parameters,
                                   air_parameters, aw.collection)
@@ -382,9 +442,9 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         output_results = Result(materials)
         output_results.thermalResults()
 
-
     def closeWindow(self):
         self.close()
+        
 
 #-----------------------------------------------------------------------------
 if __name__ == '__main__':
