@@ -9,12 +9,13 @@ cimport numpy as np
 import numpy as np
 import cython
 
+@cython.boundscheck(False) # turn of bounds-checking for entire function
 def evolve_ts(np.ndarray[np.float64_t, ndim=2] ui,
               np.ndarray[np.float64_t, ndim =2] u, \
               np.ndarray[np.float64_t, ndim=2] TCs, \
               double dt, double dx2, double dy2):
 
-        cdef int i, j
+        cdef unsigned i, j
 
         for i in xrange(1, u.shape[0]-1):
             for j in xrange(1, u.shape[1]-1):
