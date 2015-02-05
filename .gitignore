@@ -19,3 +19,4 @@ matriz_u.txt
 busy_widget.py
 /build/
 laplacian.pyd
+*.pyc
