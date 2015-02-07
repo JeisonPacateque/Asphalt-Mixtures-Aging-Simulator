@@ -21,13 +21,13 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def __init__(self):
         """
-        The contructor build the GUI of the application
+        The constructor build the GUI of the application
         """
         self.timer = QtCore.QTimer()     #Timer intended to update the image
         self.collection = []
         self.segmented_collection = []
         self.segmentation = Segmentation()
-        
+
         self.seg_thread = threading.Thread(target=self.segment_sample)
 
         QtGui.QMainWindow.__init__(self)
@@ -82,7 +82,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.main_widget.setFocus()
         self.setCentralWidget(self.main_widget)
         self.menu_buttons_state()
-        
+
 
     def open_path(self):
         """
@@ -132,15 +132,15 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def update_staus(self, message):
         """
-        Set text over the status bar on the main window of the application 
+        Set text over the status bar on the main window of the application
         """
         self.statusBar().showMessage(message)
 
     def segment_sample(self):
         """
         Uses the segmentation module reduce and segment the toymodel.
-        This also enable the application window to show the animation of the 
-        treated sample        
+        This also enable the application window to show the animation of the
+        treated sample
         """
         self.update_staus("Running segmentation...")
 
@@ -431,7 +431,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         air_parameters.append(self.air_YM.text())
         air_parameters.append(self.air_TC.text())
         air_parameters.append(self.air_CH.text())
-        
+
         #Close the dialog before the simulation starts
         self.close()
 
@@ -444,7 +444,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
     def closeWindow(self):
         self.close()
-        
+
 
 #-----------------------------------------------------------------------------
 if __name__ == '__main__':
