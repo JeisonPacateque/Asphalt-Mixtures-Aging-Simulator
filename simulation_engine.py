@@ -13,10 +13,10 @@ import copy
 
 class SimulationEngine(object):
     """
-    This class configures the sample as a materials array in order to run the 
+    This class configures the sample as a materials array in order to run the
     simulations defined in the thermal, mechanical and chemical models.
     """
-    def __init__(self, aggregate_parameters, mastic_parameters, air_parameters, collection, slice_id=50):
+    def __init__(self, aggregate_parameters, mastic_parameters, air_parameters, collection, slice_id=50, steps=10000):
 
         # [0] ---> young modules
         # [1] ---> thermical conductivity
@@ -65,7 +65,7 @@ class SimulationEngine(object):
         temp_ambient = self.getTempAmbient()
         self.thermal = ThermalModel(self.matrix_materials, max_TC)
         self.thermal.applySimulationConditions()
-        self.matrix_materials = self.thermal.simulate()
+        self.matrix_materials = self.thermal.simulate(no_thermal_iter)
 #==============================================================================
 #       Mechanical model implementation
 #==============================================================================

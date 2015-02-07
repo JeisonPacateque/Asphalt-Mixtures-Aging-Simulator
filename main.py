@@ -348,6 +348,9 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.chemicalMasticLabel = QtGui.QLabel("Chemical value2:")
         self.chemicalAirLabel = QtGui.QLabel("Chemical value3:")
 
+        self.thermalStepsLabel = QtGui.QLabel("Steps:")
+        self.thermalSteps = QtGui.QLineEdit()
+
         self.aggregate_CH = QtGui.QLineEdit()
         self.mastic_CH = QtGui.QLineEdit()
         self.air_CH = QtGui.QLineEdit()
@@ -378,6 +381,8 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.grid.addWidget(self.mastic_TC, 8, 1)
         self.grid.addWidget(self.thermalAirLabel, 9, 0)
         self.grid.addWidget(self.air_TC, 9, 1)
+        self.grid.addWidget(self.thermalStepsLabel, 7, 2)
+        self.grid.addWidget(self.thermalSteps, 7, 3)
 
         self.grid.addWidget(self.chemicalLabel, 10, 0)
         self.grid.addWidget(self.chemicalAggregateLabel, 11, 0)
@@ -400,7 +405,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
 
     def setDefaultValues(self, E2=21000000, E1=10000000, E0=100, conductAsphalt=0.75,
-                         conductRock=7.8, conductAir=0.026):
+                         conductRock=7.8, conductAir=0.026, steps=10000):
         """
         This method writes default test values over the configuration dialog
         """
@@ -410,6 +415,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.aggregate_TC.setText(str(conductRock))
         self.mastic_TC.setText(str(conductAsphalt))
         self.air_TC.setText(str(conductAir))
+        self.thermalSteps.setText(str(steps))
         self.aggregate_CH.setText('Chem Aggregate')
         self.mastic_CH.setText('Chem Mastic')
         self.air_CH.setText('Chem Air')
@@ -437,7 +443,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
         engine = SimulationEngine(aggregate_parameters, mastic_parameters,
                                   air_parameters, aw.collection)
-        materials = engine.simulationCicle()
+        materials = engine.simulationCicle(no_thermal_iter=int(self.thermalSteps.text()))
 
         output_results = Result(materials)
         output_results.thermalResults()
