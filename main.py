@@ -5,8 +5,8 @@ Created on 2/05/2014
 '''
 import sys
 import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
 import os
-import threading
 from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -27,8 +27,6 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.collection = []
         self.segmented_collection = []
         self.segmentation = Segmentation()
-
-        self.seg_thread = threading.Thread(target=self.segment_sample)
 
         QtGui.QMainWindow.__init__(self)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
@@ -178,14 +176,6 @@ class ApplicationWindow(QtGui.QMainWindow):
         Deprecated. This method is used for testing
         """
         print "Writting VTK file from loaded model..."
-#        from fem import VectorWriter
-#        filename = QtGui.QFileDialog.getSaveFileName(self, 'Save File', 'ToyModel.vtk')
-#        vectorizer = VectorWriter()
-#        vectorizer.save_vtk(self.collection, filename)
-#        QtGui.QMessageBox.about(self, "Alert","File saved at "+filename)
-        task = ProgressBar()
-        task.myLongTask.start()
-        task.taskFinished.connect(self.onFinished)
 
 
     def count_element_values(self):

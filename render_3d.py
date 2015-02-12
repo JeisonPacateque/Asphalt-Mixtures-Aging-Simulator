@@ -6,6 +6,7 @@ Created on Tue May 27 09:10:49 2014
 """
 
 from mayavi import mlab
+from numpy import array
 
 def ToyModel3d(sample):
     """
@@ -28,5 +29,17 @@ def ToyModel3d(sample):
     scp.module_manager.scalar_lut_manager.reverse_lut = inverse_lut
     scp.module_manager.scalar_lut_manager.number_of_colors = colors
 
+    #Set the Mayavi Colorbar Ranges
+    scp.module_manager.scalar_lut_manager.use_default_range = False
+    scp.module_manager.scalar_lut_manager.scalar_bar.position2 = array([ 0.1,  0.8])
+    scp.module_manager.scalar_lut_manager.scalar_bar.position = array([ 0.01,  0.15])
+    scp.module_manager.scalar_lut_manager.data_range = array([ 0.,  2.])
+    scp.module_manager.scalar_lut_manager.scalar_bar.position2 = array([ 0.1,  0.8])
+    scp.module_manager.scalar_lut_manager.scalar_bar.position = array([ 0.01,  0.15])
+    scp.module_manager.scalar_lut_manager.data_range = array([ 0.,  2.])
+
+
     mlab.orientation_axes()
+    mlab.title("Asphalt Mixture Reconstruction", size=0.25)
+    mlab.colorbar(title='Material', orientation='vertical', nb_labels=3, nb_colors=3)
     mlab.show()

@@ -20,3 +20,4 @@ busy_widget.py
 /build/
 laplacian.pyd
 *.pyc
+laplacian.html
