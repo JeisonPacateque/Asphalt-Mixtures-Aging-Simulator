@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>thermal_model &mdash; Asphalt Mixture Aging Simulator 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Asphalt Mixture Aging Simulator 0.1 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Asphalt Mixture Aging Simulator 0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for thermal_model</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Mon Jan 12 00:01:43 2015</span>
+
+<span class="sd">@author: santiago</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">laplacian</span>
+
+<div class="viewcode-block" id="ThermalModel"><a class="viewcode-back" href="../code.html#thermal_model.ThermalModel">[docs]</a><span class="k">class</span> <span class="nc">ThermalModel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matrix_materials</span><span class="p">,</span> <span class="n">max_TC</span><span class="o">=</span><span class="mf">7.8</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This class supports the thermal model thourgh difussion (laplacian)</span>
+
+<span class="sd">        matrix_materials = initial matrix materials</span>
+<span class="sd">        (numpy objetc array, array of class Material)</span>
+
+<span class="sd">        maxTC = max transfer coefficient, important to define stability</span>
+<span class="sd">        of dt in the model&quot;&quot;&quot;</span>
+
+        <span class="c"># reference of the matrix materials used only</span>
+        <span class="c"># to get transfer coeefficient amd  object construction</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MM</span>  <span class="o">=</span> <span class="n">matrix_materials</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c">#initial temperature field</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MM</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="c"># next step temperature field</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TCs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MM</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+
+<span class="c">#         copy all the thermal conductivities from the matrix materials</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MM</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MM</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">TCs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MM</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">thermal_conductivity</span>
+
+        <span class="c"># Calculate dx, dy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lengthX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MM</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lengthY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MM</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">lengthX</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">lengthY</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dx2</span> <span class="o">=</span> <span class="n">dx</span><span class="o">**</span><span class="mi">2</span> <span class="c"># To save CPU cycles, we&#39;ll compute Delta x^2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dy2</span> <span class="o">=</span> <span class="n">dy</span><span class="o">**</span><span class="mi">2</span> <span class="c"># and Delta y^2 only once and store them.</span>
+        <span class="k">print</span> <span class="s">&quot;dx2=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dx2</span>
+        <span class="k">print</span> <span class="s">&quot;dy2=&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dy2</span>
+
+        <span class="c"># For stability, this is the largest interval possible</span>
+        <span class="c"># for the size of the time-step:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dx2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dy2</span><span class="o">/</span><span class="p">(</span><span class="n">max_TC</span><span class="o">**</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dx2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">dy2</span><span class="p">))</span>
+        <span class="k">print</span> <span class="s">&quot;dt = &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span>
+
+<div class="viewcode-block" id="ThermalModel.applySimulationConditions"><a class="viewcode-back" href="../code.html#thermal_model.ThermalModel.applySimulationConditions">[docs]</a>    <span class="k">def</span> <span class="nf">applySimulationConditions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ambient</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">internal</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;&quot;Set the temperatures for the simulation&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">internal</span><span class="p">)</span>    <span class="c"># internal temperature in asphalt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="p">[:</span><span class="mi">10</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">ambient</span> <span class="c"># applied temperature from environment</span>
+
+        <span class="k">print</span> <span class="s">&quot;Applied internal temperature in the asphalt:&quot;</span><span class="p">,</span> <span class="n">internal</span>
+        <span class="k">print</span> <span class="s">&quot;applied temperature from environment:&quot;</span><span class="p">,</span> <span class="n">ambient</span>
+</div>
+<div class="viewcode-block" id="ThermalModel.simulate"><a class="viewcode-back" href="../code.html#thermal_model.ThermalModel.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_steps</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;&quot;This function executes the model in number steps (n_steps)&quot;&quot;&quot;</span>
+
+        <span class="n">steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_steps</span><span class="p">)</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>  <span class="c"># Measures file loading time</span>
+
+        <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">nditer</span><span class="p">(</span><span class="n">steps</span><span class="p">):</span>
+            <span class="k">print</span> <span class="s">&quot;Thermal simulation step:&quot;</span><span class="p">,</span> <span class="n">step</span>
+            <span class="bp">self</span><span class="o">.</span> <span class="n">u</span> <span class="o">=</span> <span class="n">laplacian</span><span class="o">.</span><span class="n">evolve_ts</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">TCs</span><span class="p">,</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">dt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dx2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dy2</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ui</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c"># copy the field temperature into the matrix materials</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MM</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MM</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">MM</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">]</span>
+
+        <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>  <span class="c"># Get the time when method ends</span>
+        <span class="k">print</span> <span class="s">&quot;Thermal simulation done in &quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">),</span> <span class="s">&quot; seconds.&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">MM</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Asphalt Mixture Aging Simulator 0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Jeison Pacateque y Santiago Puerto.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>
