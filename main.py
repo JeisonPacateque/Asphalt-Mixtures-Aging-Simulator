@@ -1,11 +1,22 @@
 '''
-Created on 2/05/2014
+Copyright (C) 2015 Jeison Pacateque, Santiago Puerto
 
-@author: santiago
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>
 '''
+
 import sys
 import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
 import os
 from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
@@ -290,6 +301,7 @@ class MyDynamicMplCanvas(Canvas):
             self.collection = aw.get_collection()
         if self.index != len(self.collection) : #Conditional to restart the loop
             self.axes.imshow(self.collection[self.index], cmap='seismic', interpolation='nearest')
+
             status_text = "Sample: "+str(self.index)
             aw.update_staus(status_text) #Show in status bar the current index
             self.index += 1

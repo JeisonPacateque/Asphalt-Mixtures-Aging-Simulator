@@ -1,8 +1,20 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jan 25 16:21:14 2015
-@author: sjdps
-"""
+'''
+Copyright (C) 2015 Jeison Pacateque, Santiago Puerto
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>
+'''
+
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import numpy as np
@@ -11,8 +23,8 @@ class Result(object):
     def __init__(self, matrix_materials):
         """
         This class handle shows on screen using matplotlib the material status
-        after the thermal, mechanical and chemical simulation. The thermal 
-        simulation results are showed through a heat map, the mechanical 
+        after the thermal, mechanical and chemical simulation. The thermal
+        simulation results are showed through a heat map, the mechanical
         simulation results through a displacements map and the chemical reusults
         through ...
         """

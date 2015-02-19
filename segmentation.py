@@ -1,9 +1,19 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Apr 14 19:37:32 2014
+'''
+Copyright (C) 2015 Jeison Pacateque, Santiago Puerto
 
-@author: sjdps
-"""
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>
+'''
 
 from matplotlib import pyplot, colors
 import numpy as np
@@ -27,9 +37,9 @@ class Segmentation(object):
         This method takes the numpy array representation of toyModel (img)
          and a zoom factor, returning the toymodel scaled for its posterior
          segmentation.
-             
+
              reduction(toymodel, zoomfactor)
-         
+
         """
         print "Running reduction..."
         start_time = time.time()  # Measures file loading time
@@ -45,19 +55,19 @@ class Segmentation(object):
         return reduced[1:, 1:]  # return and cut "noise"
 
     def view(self, original, segmented, reduced):
-        """ 
+        """
         This method is implemented for test purposes, it takes as argument
         an untreated slice, a segmented slice and a reduced and segmented
         slice showing its differences on screen using a matplotlib figure
-        
+
             view(original, segmented, reduced)
-            
+
         """
         f = pyplot.figure()
         levels = [0, 1, 2]
         colores = ['red', 'white', 'blue', 'red']
         cmap, norm = colors.from_levels_and_colors(levels, colores, extend='both')
-        
+
        # org = self.sample_mask(original) #Mask irelevant data
 
         f.add_subplot(1, 3, 1)  # Original image
@@ -79,7 +89,7 @@ class Segmentation(object):
         Plots an histogram of the materials distibution over the toy model
         using matplotlib. It is neccesary to reduce the toy model before
         plotting the histogram
-        
+
             histogram(reduced_toymodel)
         """
         pyplot.hist(img_red, bins=3, histtype='bar')
@@ -120,11 +130,11 @@ class Segmentation(object):
         else:
             img_segmented = np.choose(labels, values_kmeans)
 
-        img_segmented.shape = img.shape  # reshape with original dimensions    
+        img_segmented.shape = img.shape  # reshape with original dimensions
         convert_matrix = img_segmented.astype(np.int16)
-        
+
         return convert_matrix
-        
+
     def segment_all_samples(self, samples):
         """Take all the samples, uses K-Means algorithm with each sample slice
         and returns the interpolated samples"""
@@ -135,42 +145,42 @@ class Segmentation(object):
 
         for i in xrange(col_length):
             segmented[i] = self.clasify(segmented[i])
-            
+
         masked = self.sample_mask(segmented) #Mask irelevant data
 
         end_time = time.time()  # Get the time when method ends
         print "Segmentation finished with",str(col_length),"samples in", str(end_time - start_time), "seconds."
-                
+
         return masked
-        
+
     def sample_mask(self, sample):
         """Applies a mask to fit the form of the toy model"""
         for i in range(len(sample)):
             mask = sector_mask(sample[i].shape)
             sample[i][~mask] = -1
-            
+
         return sample
-        
+
     def get_sample_empty_pixels(self):
         return self.mask_empty_pixels
-        
-    
+
+
 #----------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-     
+
     import os
     file_path = os.path.dirname(os.path.abspath(__file__))+'/samples/4/sample_20.dcm'
-    
+
     segmentation = Segmentation()
     img_org = segmentation.loader.single_dicom_read(file_path)
     img_temporal = img_org.copy()  # Copy of the image to process
-     
+
     img_seg = segmentation.clasify(img_org)  # Segment original image
-     
+
     # Reduce img_temporal (avoid manipulation of the variable)
     img_red = segmentation.reduction(img_temporal)
-     
+
     red_seg = segmentation.clasify(img_red)  # Segment reduced image
-     
+
     segmentation.view(img_org, img_seg, red_seg)  # Show results
