@@ -197,13 +197,26 @@ class ApplicationWindow(QtGui.QMainWindow):
         aggregate = count_nonzero(self.collection==2)
         total = (empty+mastic+aggregate)
 
-        QtGui.QMessageBox.information(self,
-                    "Segmentation and reduction done",
-                    "Sample has= "+str(total)+" pixels: \n"
-                    "Empty pixels= "+str(empty)+"\t"+str((empty*100.)/total)+"%.\n"
-                    "Mastic pixels= "+str(mastic)+"\t"+str((mastic*100.)/total)+"%.\n"
-                    "Aggregate pixels= "+str(aggregate)+"\t"+str((aggregate*100.)/total)+"%.")
-
+        QtGui.QMessageBox.about(self,
+                    "Element counting",
+                    """
+                    <br>
+                    <table>
+                    <tr><th>The sample has = %s pixels:</th><\tr>
+                    <tr>
+                    <td>Empty pixels = %s</td> <td>%3.2f%%</td>
+                    </tr>
+                    <tr>
+                    <td>Mastic pixels = %s</td> <td>%3.2f%%</td>
+                    </tr>
+                    <tr>
+                    <td>Aggregate pixels = %s</td> <td>%3.2f%%</td>
+                    </tr>
+                    </table>
+                    """
+                    % (total, empty, ((empty*100.)/total), mastic,
+                           ((mastic*100.)/total), aggregate,\
+                           ((aggregate*100.)/total)) )
 
     def menu_buttons_state(self, state=False):
         """Enable/Disable menu options except the Count element option
@@ -235,35 +248,29 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def about(self):
         """Shows the about dialog"""
-        QtGui.QMessageBox.about(self, "About",
-        """Asphalt Mixtures Aging Simulator
 
-    This project perform a 3D reconstruction of a cylindrical asphalt mixture
-    sample from a set images on a Dicom file format. The components of asphalt
-    mixture will be identified through 3-phase segmentation. Additionally, a
-    3D model of the asphalt mixture reconstruction was developed. The project
-    was implemented on the Python programming language using the open-source
-    libraries Numpy, Scipy, Pydicom, Scikit-learn, Matplotlib and Mayavi.
-    A simulation of the asphalt mixtures aging process is implemented using
-    numerical methods on the mechanical, themical and chemical fields.
+        QtGui.QMessageBox.about(self,
+                                ("%s") % "About",\
+                                """
+                                <br><b>Asphalt Mixtures Aging Simulator</b>
+                                <p>Copyright &copy; 2014-2015 Jeison Pacateque, Santiago Puerto
+                                <br>Licensed under the terms of the GNU GPLv3 License
+                                <p>Created by Santiago Puerto and Jeison Pacateque
+                                <p>This project performs a 3D reconstruction of a cylindrical asphalt mixture
+                                sample from a set images on a Dicom file format. The components of asphalt
+                                mixture will be identified through 3-phase segmentation. Additionally, a
+                                3D model of the asphalt mixture reconstruction was developed. The project
+                                was implemented on the Python programming language using the open-source
+                                libraries Numpy, Scipy, Pydicom, Scikit-learn, Matplotlib and Mayavi.
+                                A simulation of the asphalt mixtures aging process is implemented using
+                                numerical methods on the mechanical, themical and chemical fields.
 
-            Copyright (C) 2015 Jeison Pacateque, Santiago Puerto
+                                <p>The source is hosted on
+                                <a href="https://github.com/JeisonPacateque/Asphalt-Mixtures-Aging-Simulator"> Github</a>
 
-            This program is free software: you can redistribute it and/or modify
-            it under the terms of the GNU General Public License as published by
-            the Free Software Foundation, either version 3 of the License, or
-            (at your option) any later version.
-
-            This program is distributed in the hope that it will be useful,
-            but WITHOUT ANY WARRANTY; without even the implied warranty of
-            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-            GNU General Public License for more details.
-
-            You should have received a copy of the GNU General Public License
-            along with this program.  If not, see <http://www.gnu.org/licenses/>
-
-        Universidad Distrital Francisco Jose de Caldas
-        """)
+                                <p>Research Group TOPOVIAL
+                                <br>Distrital University Francisco Jose de Caldas
+                                """)
 
     def help_dialog(self):
         QtGui.QMessageBox.about(self, "Help",
