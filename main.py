@@ -238,9 +238,29 @@ class ApplicationWindow(QtGui.QMainWindow):
         QtGui.QMessageBox.about(self, "About",
         """Asphalt Mixtures Aging Simulator
 
-        Developed by:
-        Jeison Pacateque
-        Santiago Puerto
+    This project perform a 3D reconstruction of a cylindrical asphalt mixture
+    sample from a set images on a Dicom file format. The components of asphalt
+    mixture will be identified through 3-phase segmentation. Additionally, a
+    3D model of the asphalt mixture reconstruction was developed. The project
+    was implemented on the Python programming language using the open-source
+    libraries Numpy, Scipy, Pydicom, Scikit-learn, Matplotlib and Mayavi.
+    A simulation of the asphalt mixtures aging process is implemented using
+    numerical methods on the mechanical, themical and chemical fields.
+
+            Copyright (C) 2015 Jeison Pacateque, Santiago Puerto
+
+            This program is free software: you can redistribute it and/or modify
+            it under the terms of the GNU General Public License as published by
+            the Free Software Foundation, either version 3 of the License, or
+            (at your option) any later version.
+
+            This program is distributed in the hope that it will be useful,
+            but WITHOUT ANY WARRANTY; without even the implied warranty of
+            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+            GNU General Public License for more details.
+
+            You should have received a copy of the GNU General Public License
+            along with this program.  If not, see <http://www.gnu.org/licenses/>
 
         Universidad Distrital Francisco Jose de Caldas
         """)
