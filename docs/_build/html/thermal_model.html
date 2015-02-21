@@ -71,6 +71,11 @@ it is obtained the following discrete function:</p>
 \frac{U_{i+1,j}^{(m)} - 2u_{i,j}^{(m)} + u_{i-1,j}^{(m)}}
 {(\Delta x)^2} + \frac{U_{i,j+1}^{(m)} - 2u_{i,j}^{(m)} +
 u_{i,j-1}^{(m)}}{(\Delta y)^2} \right)"/></p>
+</div><p>To avoid noise in the solution, it is necessary to ensure the following
+stability criteria:</p>
+<div class="math">
+<p><img src="_images/math/e61867776ebb051cbf259881a0f130bf847528f9.png" alt="\Delta t \leq \frac{1}{2a} \frac{(\Delta x \Delta y)^2}
+{(\Delta x)^2 + (\Delta x)^2}"/></p>
 </div><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -103,7 +108,7 @@ of dt in the model</p>
 
 <dl class="attribute">
 <dt id="thermal_model.ThermalModel.__dict__">
-<tt class="descname">__dict__</tt><em class="property"> = dict_proxy({'__module__': 'thermal_model', 'applySimulationConditions': &lt;function applySimulationConditions at 0x7fd3cdc6eed8&gt;, 'simulate': &lt;function simulate at 0x7fd3cdc6ef50&gt;, '__dict__': &lt;attribute '__dict__' of 'ThermalModel' objects&gt;, '__weakref__': &lt;attribute '__weakref__' of 'ThermalModel' objects&gt;, '__doc__': None, '__init__': &lt;function __init__ at 0x7fd3cdc6ee60&gt;})</em><a class="headerlink" href="#thermal_model.ThermalModel.__dict__" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">__dict__</tt><em class="property"> = dict_proxy({'__module__': 'thermal_model', 'applySimulationConditions': &lt;function applySimulationConditions at 0x7f39f11282a8&gt;, 'simulate': &lt;function simulate at 0x7f39f1128320&gt;, '__dict__': &lt;attribute '__dict__' of 'ThermalModel' objects&gt;, '__weakref__': &lt;attribute '__weakref__' of 'ThermalModel' objects&gt;, '__doc__': None, '__init__': &lt;function __init__ at 0x7f39f1128230&gt;})</em><a class="headerlink" href="#thermal_model.ThermalModel.__dict__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">

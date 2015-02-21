@@ -83,6 +83,13 @@
 <span class="sd">            \frac{U_{i+1,j}^{(m)} - 2u_{i,j}^{(m)} + u_{i-1,j}^{(m)}}</span>
 <span class="sd">            {(\Delta x)^2} + \frac{U_{i,j+1}^{(m)} - 2u_{i,j}^{(m)} +</span>
 <span class="sd">            u_{i,j-1}^{(m)}}{(\Delta y)^2} \right)</span>
+<span class="sd">        </span>
+<span class="sd">        To avoid noise in the solution, it is necessary to ensure the following</span>
+<span class="sd">        stability criteria:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \Delta t \leq \frac{1}{2a} \frac{(\Delta x \Delta y)^2}</span>
+<span class="sd">            {(\Delta x)^2 + (\Delta x)^2}</span>
 
 <span class="sd">        :Arguments:</span>
 <span class="sd">            - matrix_materials</span>
