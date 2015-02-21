@@ -12,7 +12,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
    
-   code
+   thermal_model
 
 
 

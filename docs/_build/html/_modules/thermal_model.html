@@ -8,7 +8,7 @@
     
     <title>thermal_model &mdash; Asphalt Mixture Aging Simulator 0.1 documentation</title>
     
-    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -27,47 +27,73 @@
     <link rel="up" title="Module code" href="index.html" /> 
   </head>
   <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../index.html">Asphalt Mixture Aging Simulator 0.1 documentation</a> &raquo;</li>
-          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
-      </ul>
-    </div>  
+      <div class="header"><h1 class="heading"><a href="../index.html">
+          <span>Asphalt Mixture Aging Simulator 0.1 documentation</span></a></h1>
+        <h2 class="heading"><span>thermal_model</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        <a class="uplink" href="../index.html">Contents</a>
+        </p>
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
-            
+      </div>
+      <div class="content">
+        
+        
   <h1>Source code for thermal_model</h1><div class="highlight"><pre>
-<span class="c"># -*- coding: utf-8 -*-</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Created on Mon Jan 12 00:01:43 2015</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">..  Copyright (C) 2015 Jeison Pacateque, Santiago Puerto</span>
 
-<span class="sd">@author: santiago</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This program is free software: you can redistribute it and/or modify</span>
+<span class="sd">    it under the terms of the GNU General Public License as published by</span>
+<span class="sd">    the Free Software Foundation, either version 3 of the License, or</span>
+<span class="sd">    (at your option) any later version.</span>
+
+<span class="sd">    This program is distributed in the hope that it will be useful,</span>
+<span class="sd">    but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="sd">    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="sd">    GNU General Public License for more details.</span>
+
+<span class="sd">    You should have received a copy of the GNU General Public License</span>
+<span class="sd">    along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;</span>
+<span class="sd">&#39;&#39;&#39;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">laplacian</span>
 
-<div class="viewcode-block" id="ThermalModel"><a class="viewcode-back" href="../code.html#thermal_model.ThermalModel">[docs]</a><span class="k">class</span> <span class="nc">ThermalModel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matrix_materials</span><span class="p">,</span> <span class="n">max_TC</span><span class="o">=</span><span class="mf">7.8</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This class supports the thermal model thourgh difussion (laplacian)</span>
+<div class="viewcode-block" id="ThermalModel"><a class="viewcode-back" href="../thermal_model.html#thermal_model.ThermalModel">[docs]</a><span class="k">class</span> <span class="nc">ThermalModel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="ThermalModel.__init__"><a class="viewcode-back" href="../thermal_model.html#thermal_model.ThermalModel.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matrix_materials</span><span class="p">,</span> <span class="n">max_TC</span><span class="o">=</span><span class="mf">7.8</span><span class="p">):</span>
+        <span class="sd">r&quot;&quot;&quot;</span>
+<span class="sd">        Provides the thermal model through  two-dimensional</span>
+<span class="sd">        difussion:</span>
+
+<span class="sd">        :Definition:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            \frac{\partial u}{\partial t} = a \left ( \frac{\partial^2 u}</span>
+<span class="sd">            {\partial^2 x^2} + \frac{\partial^2 u}{\partial^2 y^2} \right )</span>
+
+<span class="sd">        Applying a finite forward difference approximations to the derivatives,</span>
+<span class="sd">        it is obtained the following discrete function:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            U^{(m+1)}_{i,j} = U_{i,j}^{(m)} + a\Delta t \left(</span>
+<span class="sd">            \frac{U_{i+1,j}^{(m)} - 2u_{i,j}^{(m)} + u_{i-1,j}^{(m)}}</span>
+<span class="sd">            {(\Delta x)^2} + \frac{U_{i,j+1}^{(m)} - 2u_{i,j}^{(m)} +</span>
+<span class="sd">            u_{i,j-1}^{(m)}}{(\Delta y)^2} \right)</span>
+
+<span class="sd">        :Arguments:</span>
+<span class="sd">            - matrix_materials</span>
+<span class="sd">            - maxTC</span>
 
 <span class="sd">        matrix_materials = initial matrix materials</span>
 <span class="sd">        (numpy objetc array, array of class Material)</span>
 
 <span class="sd">        maxTC = max transfer coefficient, important to define stability</span>
-<span class="sd">        of dt in the model&quot;&quot;&quot;</span>
+<span class="sd">        of dt in the model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c"># reference of the matrix materials used only</span>
         <span class="c"># to get transfer coeefficient amd  object construction</span>
@@ -97,8 +123,8 @@
         <span class="c"># for the size of the time-step:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dx2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dy2</span><span class="o">/</span><span class="p">(</span><span class="n">max_TC</span><span class="o">**</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dx2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">dy2</span><span class="p">))</span>
         <span class="k">print</span> <span class="s">&quot;dt = &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt</span>
-
-<div class="viewcode-block" id="ThermalModel.applySimulationConditions"><a class="viewcode-back" href="../code.html#thermal_model.ThermalModel.applySimulationConditions">[docs]</a>    <span class="k">def</span> <span class="nf">applySimulationConditions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ambient</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">internal</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="ThermalModel.applySimulationConditions"><a class="viewcode-back" href="../thermal_model.html#thermal_model.ThermalModel.applySimulationConditions">[docs]</a>    <span class="k">def</span> <span class="nf">applySimulationConditions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ambient</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">internal</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;&quot;Set the temperatures for the simulation&quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">internal</span><span class="p">)</span>    <span class="c"># internal temperature in asphalt</span>
@@ -107,7 +133,7 @@
         <span class="k">print</span> <span class="s">&quot;Applied internal temperature in the asphalt:&quot;</span><span class="p">,</span> <span class="n">internal</span>
         <span class="k">print</span> <span class="s">&quot;applied temperature from environment:&quot;</span><span class="p">,</span> <span class="n">ambient</span>
 </div>
-<div class="viewcode-block" id="ThermalModel.simulate"><a class="viewcode-back" href="../code.html#thermal_model.ThermalModel.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_steps</span><span class="p">):</span>
+<div class="viewcode-block" id="ThermalModel.simulate"><a class="viewcode-back" href="../thermal_model.html#thermal_model.ThermalModel.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_steps</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;&quot;This function executes the model in number steps (n_steps)&quot;&quot;&quot;</span>
 
         <span class="n">steps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_steps</span><span class="p">)</span>
@@ -129,41 +155,15 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">MM</span></div></div>
 </pre></div>
 
-          </div>
-        </div>
       </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
+      <div class="bottomnav">
+      
+        <p>
+        <a class="uplink" href="../index.html">Contents</a>
+        </p>
+
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../index.html">Asphalt Mixture Aging Simulator 0.1 documentation</a> &raquo;</li>
-          <li><a href="index.html" >Module code</a> &raquo;</li> 
-      </ul>
-    </div>
+
     <div class="footer">
         &copy; Copyright 2015, Jeison Pacateque y Santiago Puerto.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
