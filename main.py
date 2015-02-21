@@ -21,10 +21,10 @@ import os
 from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from file_loader import FileLoader
-from segmentation import Segmentation
-from simulation_engine import SimulationEngine
-from results import Result
+from integration.file_loader import  FileLoader
+from imgprocessing.segmentation import Segmentation
+from simulation.simulation_engine import SimulationEngine
+from output.results import Result
 
 
 class ApplicationWindow(QtGui.QMainWindow):
@@ -176,11 +176,15 @@ class ApplicationWindow(QtGui.QMainWindow):
         """
         Load the 3D render scrip
         """
-        print "Running 3D Modeling..."
-        self.update_staus("Running 3D Modeling...")
-        from render_3d import ToyModel3d
-        ToyModel3d(self.collection)
-        self.action_sample_count.setEnabled(True) #Enables the count method
+        try:
+            from output.render_3d import ToyModel3d
+            print "Running 3D Modeling..."
+            self.update_staus("Running 3D Modeling...")
+            ToyModel3d(self.collection)
+        except:
+            print "Please check Mayavi installation"
+            QtGui.QMessageBox.information(self, "Error",
+                                    "Please check Mayavi installation")
 
     def write_vtk_file(self):
         """
