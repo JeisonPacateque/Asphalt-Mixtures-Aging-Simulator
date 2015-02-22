@@ -12,7 +12,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
    
-   thermal_model
+   simulation
+   imgprocessing
 
 
 
@@ -22,4 +23,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

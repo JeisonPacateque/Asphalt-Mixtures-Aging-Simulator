@@ -18,7 +18,7 @@ import os
 import mock
 
 MOCK_MODULES = ['numpy', 'scipy', 'matplotlib', 'matplotlib.pyplot',
-                'scipy.interpolate','cython', 'laplacian']
+                'scipy.interpolate','cython', 'simulation.laplacian', 'numpy.dtype']
 for mod_name in MOCK_MODULES:
     sys.modules[mod_name] = mock.Mock()
 
@@ -27,7 +27,7 @@ for mod_name in MOCK_MODULES:
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
 #sys.path.append(os.path.abspath('../Proyecto-de-Grado-Codes'))
-sys.path.insert(0, os.path.abspath('../'))
+sys.path.insert(0, os.path.abspath('/home/sjdps/Documentos/Proyecto-de-Grado-Codes/'))
 
 # -- General configuration ------------------------------------------------
 
