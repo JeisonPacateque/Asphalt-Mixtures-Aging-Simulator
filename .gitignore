@@ -4,6 +4,7 @@
 *.so
 *.c
 /samples/
+/docs/_build/
 /file_loader.pyc
 /segmentation.pyc
 /ToyModel3d.pyc
