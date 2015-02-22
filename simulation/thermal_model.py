@@ -39,7 +39,7 @@ class ThermalModel(object):
             \frac{U_{i+1,j}^{(m)} - 2u_{i,j}^{(m)} + u_{i-1,j}^{(m)}}
             {(\Delta x)^2} + \frac{U_{i,j+1}^{(m)} - 2u_{i,j}^{(m)} +
             u_{i,j-1}^{(m)}}{(\Delta y)^2} \right)
-        
+
         To avoid noise in the solution, it is necessary to ensure the following
         stability criteria:
 
@@ -47,15 +47,17 @@ class ThermalModel(object):
             \Delta t \leq \frac{1}{2a} \frac{(\Delta x \Delta y)^2}
             {(\Delta x)^2 + (\Delta x)^2}
 
-        :Arguments:
-            - matrix_materials
-            - maxTC
+        :param numpy.object matrix_materials: numpy array object which represents
+            the whole toy model
+        :param float maxTC: maximum transfer coefficient among the different
+            materials, used to define stability of dt in the scheme
 
-        matrix_materials = initial matrix materials
-        (numpy objetc array, array of class Material)
+        .. note::
+            Part of the code in this class is based on the `examples`_ developed by
+            Tomothy A.V. Teatro licensed under `Creative Commons`_
 
-        maxTC = max transfer coefficient, important to define stability
-        of dt in the model
+        .. _examples: http://www.timteatro.net/2010/10/29/performance-python-solving-the-2d-diffusion-equation-with-numpy/
+        .. _Creative Commons: http://creativecommons.org/licenses/by-sa/2.0/
         """
 
         # reference of the matrix materials used only
@@ -87,17 +89,29 @@ class ThermalModel(object):
         self.dt = self.dx2*self.dy2/(max_TC**(self.dx2 + self.dy2))
         print "dt = ", self.dt
 
-    def applySimulationConditions(self, ambient=40, internal=10):
-        """"Set the temperatures for the simulation"""
+    def applySimulationConditions(self, env_temp=40, internal_temp=10):
+        r"""
+        Set the temperatures in the matrix materials, that is, the environmental
+        temperature (boundary condition) and the initial internal tewmperature
+        in the toy model
 
-        self.ui.fill(internal)    # internal temperature in asphalt
-        self.ui[:10,:] = ambient # applied temperature from environment
+        :param float env_temp: the environmental temperature
+        :param float internal_temp: the initial internal temperature to apply in
+            the toy model
+        """
+
+        self.ui.fill(internal_temp)    # internal temperature in asphalt
+        self.ui[:10,:] = env_temp # applied temperature from environment
 
         print "Applied internal temperature in the asphalt:", internal
-        print "applied temperature from environment:", ambient
+        print "Applied temperature from environment:", ambient
 
     def simulate(self, n_steps):
-        """"This function executes the model in number steps (n_steps)"""
+        r"""
+        This function simulates the difussion in the given number of steps.
+
+        :param integer n_steps: number of steps in which the diffusion model runs
+        """
 
         steps = np.arange(n_steps)
         start_time = time.time()  # Measures file loading time
