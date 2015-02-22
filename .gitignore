@@ -18,7 +18,7 @@
 .idea/Proyecto-de-Grado-Codes.iml
 matriz_u.txt
 busy_widget.py
-/build/
+/simulation/build
 laplacian.pyd
 *.pyc
 laplacian.html
