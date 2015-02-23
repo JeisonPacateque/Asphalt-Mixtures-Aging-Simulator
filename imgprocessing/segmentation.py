@@ -1,18 +1,18 @@
 '''
-Copyright (C) 2015 Jeison Pacateque, Santiago Puerto
+..  Copyright (C) 2015 Jeison Pacateque, Santiago Puerto
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>
 '''
 
 from matplotlib import pyplot, colors
@@ -26,20 +26,42 @@ from slice_mask import sector_mask
 class Segmentation(object):
 
     def __init__(self):
-        """
-        This class handle all the methods to reduce and segment the asphalt
-        mixture reconstruction from Dicom images
+        r"""
+        This class  provides the methods to reduce and segment the images of the
+        toy model. It assumes that the set of Dicom files that represents the toy
+        model have been tranformed in an array of numpy.
         """
         self.loader = FileLoader()
 
     def reduction(self, img, factor=(100. / 450.)):
-        """
-        This method takes the numpy array representation of toyModel (img)
-         and a zoom factor, returning the toymodel scaled for its posterior
-         segmentation.
+        r"""
+        This method reduces the set of images of the toymodel by a given scale
+        factor or zoom factor, using the C-Spline algorithm which is provided
+        by the ndimage module of scipy
 
-             reduction(toymodel, zoomfactor)
+        C-Spline algorithm consists in funding a function which is the linear
+        combination of piecewise definened functions known as Basis Splines
+        (B-Splines), which are smooth functions whose first, second and third
+        derivative pass through one point of the given discrete set:
 
+        .. math::
+            \beta ^3(x) =\begin{cases}
+            \frac{2}{3} - |x|^2 + \frac{|x|^3}{2}  &  0\leqslant |x|< 1 \\
+            \frac{(2-|x|)^3}{6} & 1\leqslant |x| < 2 \\
+            0 & 2\leqslant |x|
+            \end{cases}
+
+        The linear combination of the B-Spline functions can be expressed by the
+        next equation:
+
+        .. math::
+            \zeta (x) = \sum _{k\in Z} c(K)\beta ^n(x-K)
+
+        :param img: representation of the toy model
+        :type img: 3d numpy array
+        :param float factor: zoom factor in which the image is reduced
+        :return: the image rescaled
+        :rtype: 3d numpy array
         """
         print "Running reduction..."
         start_time = time.time()  # Measures file loading time
@@ -55,14 +77,14 @@ class Segmentation(object):
         return reduced[1:, 1:]  # return and cut "noise"
 
     def view(self, original, segmented, reduced):
-        """
-        This method is implemented for test purposes, it takes as argument
+        r"""
+        This method is implemented for test purposes, it takes as arguments
         an untreated slice, a segmented slice and a reduced and segmented
         slice showing its differences on screen using a matplotlib figure
 
             view(original, segmented, reduced)
-
         """
+
         f = pyplot.figure()
         levels = [0, 1, 2]
         colores = ['red', 'white', 'blue', 'red']
@@ -85,10 +107,10 @@ class Segmentation(object):
         pyplot.show()
 
     def histogram(self, img_red):
-        """
+        r"""
         Plots an histogram of the materials distibution over the toy model
         using matplotlib. It is neccesary to reduce the toy model before
-        plotting the histogram
+        plotting the histogram. For test porpuses
 
             histogram(reduced_toymodel)
         """
@@ -96,14 +118,57 @@ class Segmentation(object):
         pyplot.show()
 
     def clasify(self, img, normalize=True):
+        r"""
+        This method segments or clasify the values of the given image in three
+        different groups of values, thus the different Hounsfield unit values
+        found in the image are replaced by only three different values. If the
+        parameter normalize is true, these values are:
+
+        - *0* for the air-void
+        - *1* for the mastic
+        - *2* for the aggregates
+
+        For this porpuse, a implementation of the K-means algorithm, provided
+        by the cluster module of the Scikit-learn library, is used. K-means
+        algorithm takes a dataset X of N values, and a parameter K specifies how
+        many cluster to create. K-means finds evenly-spaced sets of points in
+        subsets of Euclidean spaces called Voronoi diagrams. Each found partitions
+        will be a uniformly shaped region called Voronoi cell, one for each
+        material. This process is executed in two steps:
+
+        *   The assign step consists in calculating a Voronoi diagram having a
+            set of centroids :math:`\mu_n`. The clusters are updated to contain
+            the closest points in distance to each centroid as it is described
+            by the equation:
+
+            .. math::
+                c_k = \left \{ X_n:\left \| X_n -\mu_k \right \| \leqslant
+                \left \| X_n - \mu_l \right \|\right \}
+
+        *   The upadate step, given a set of clusters, recalculates the centroids
+            as the means of all points belonging to a cluster:
+
+            .. math::
+                \mu_k = \frac{1}{C_k}\sum _{X_n\in C_k} Xn
+
+        The k-means algorithm loops through the two previous steps until the
+        assignments of clusters and centroids no longer change. The convergence
+        is guaranteed but the solution might be a local minimum as shown in the
+        next equation:
+
+        .. math::
+            \sum _{k=1}^K\sum _{X_n\in C_k}\left \| X_n - \mu_k \right \|^2 ,
+            \text{with respect to } C_k, \mu_k
+
+        :param img: a slice of the toy model
+        :type img: 2d numpy array
+        :param boolean normalize: If it is true, the segmentation mark the three
+            group of values as 0, 1 and 2. If it is false, the marks are the
+            default values generated by k-means.
+        :return: the image segmented, with only three different possible values
+        :rtype: 3d numpy array
         """
-        K-means algorithm implementation. Take a raw slice as an input returning
-        it with the same size and proportions replacing all the Houndsfield unit
-        values from X-Ray CT for the detected material id.
-            0: For air-voids.
-            1: For mastic.
-            2: For aggregates.
-        """
+
         n_clusters = 3  # number of clusters: void, aggregate and mastic
 
         # convert the image to a linear array
@@ -136,8 +201,18 @@ class Segmentation(object):
         return convert_matrix
 
     def segment_all_samples(self, samples):
-        """Take all the samples, uses K-Means algorithm with each sample slice
-        and returns the interpolated samples"""
+        r"""
+        Take the given samples, uses K-Means algorithm with each sample slice
+        and returns all the segmented samples. it also cuts irrelevant data
+        corresponding to voids outside of the lenth of the radio of the toymodel
+
+        :param samples: the set of slices of the toy model
+        :type samples: list of 2d numpy arrays
+        :return: the toy model with its materials classified in airvoids,
+            mastic and aggregates.
+        :rtype: list of 2d numpy arrays
+        """
+
         start_time = time.time()  # Measures file loading t
         segmented = samples
         col_length = len(segmented)
@@ -146,24 +221,15 @@ class Segmentation(object):
         for i in xrange(col_length):
             segmented[i] = self.clasify(segmented[i])
 
-        masked = self.sample_mask(segmented) #Mask irelevant data
+        for i in range(col_length):
+            mask = sector_mask(segmented[i].shape)
+            segmented[i][~mask] = -1
 
         end_time = time.time()  # Get the time when method ends
-        print "Segmentation finished with",str(col_length),"samples in", str(end_time - start_time), "seconds."
+        print "Segmentation finished with", str(col_length), "samples in", \
+        str(end_time - start_time), "seconds."
 
-        return masked
-
-    def sample_mask(self, sample):
-        """Applies a mask to fit the form of the toy model"""
-        for i in range(len(sample)):
-            mask = sector_mask(sample[i].shape)
-            sample[i][~mask] = -1
-
-        return sample
-
-    def get_sample_empty_pixels(self):
-        return self.mask_empty_pixels
-
+        return segmented
 
 #----------------------------------------------------------------------------------
 
