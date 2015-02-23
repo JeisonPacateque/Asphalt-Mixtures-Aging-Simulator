@@ -22,7 +22,7 @@ import laplacian
 class ThermalModel(object):
     def __init__(self, matrix_materials, max_TC=7.8):
         r"""
-        Provides the thermal model through  two-dimensional
+        This class provides the thermal model through  two-dimensional
         difussion:
 
         :Definition:
@@ -47,14 +47,15 @@ class ThermalModel(object):
             \Delta t \leq \frac{1}{2a} \frac{(\Delta x \Delta y)^2}
             {(\Delta x)^2 + (\Delta x)^2}
 
-        :param numpy.object matrix_materials: numpy array object which represents
+        :param matrix_materials: numpy array object which represents
             the whole toy model
+        :type matrix_materials: 3d numpy array of Material objetcs
         :param float maxTC: maximum transfer coefficient among the different
             materials, used to define stability of dt in the scheme
 
         .. note::
             Part of the code in this class is based on the `examples`_ developed by
-            Tomothy A.V. Teatro licensed under `Creative Commons`_
+            Timothy A.V. Teatro licensed under `Creative Commons`_
 
         .. _examples: http://www.timteatro.net/2010/10/29/performance-python-solving-the-2d-diffusion-equation-with-numpy/
         .. _Creative Commons: http://creativecommons.org/licenses/by-sa/2.0/
@@ -92,7 +93,7 @@ class ThermalModel(object):
     def applySimulationConditions(self, env_temp=40, internal_temp=10):
         r"""
         Set the temperatures in the matrix materials, that is, the environmental
-        temperature (boundary condition) and the initial internal tewmperature
+        temperature (boundary condition) and the initial internal temperature
         in the toy model
 
         :param float env_temp: the environmental temperature
@@ -111,6 +112,8 @@ class ThermalModel(object):
         This function simulates the difussion in the given number of steps.
 
         :param integer n_steps: number of steps in which the diffusion model runs
+        :return: the matrix materials updated
+        :rtype: 3d numpy array of Material objetcs
         """
 
         steps = np.arange(n_steps)
@@ -129,4 +132,5 @@ class ThermalModel(object):
 
         end_time = time.time()  # Get the time when method ends
         print "Thermal simulation done in ", str(end_time - start_time), " seconds."
+
         return self.MM
