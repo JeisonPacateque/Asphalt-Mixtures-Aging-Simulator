@@ -32,7 +32,11 @@ class FEMMechanics(object):
 
 
     def _createStiffnessMatrix(self):
-        """Create stiffness matrix"""
+        """This function uses the LinearBarElementStiffness to create the
+        stiffness matrix (ki) for each Finite Element to create regarding
+        the matrix materials (MM) it also configures each FE element with
+        their Young's Modulus and their transversal area
+        """
         self.ki = np.empty(self.MM.size, dtype=object)
         cont = 0
         for i in xrange(self.MM.shape[0]):
@@ -43,7 +47,11 @@ class FEMMechanics(object):
                 cont += 1
 
     def _createConectivityMatrix(self):
-        """ Create Conectivity Matrix """
+        """This function initialices the conectivity_matrix object using
+        the matrix materials (MM) size for reference, additionally, this
+        method declares the lists where the top and bottom nodes will
+        be
+        """
         self.elements_nodes = []  # Tupla de nodos de cada elemento
         self.elements_top = [] # Indice Elemento superior
         self.elements_bottom = [] #Indice Elemento inferior
@@ -65,11 +73,19 @@ class FEMMechanics(object):
         return y / A
 
     def _LinearBarElementStiffness(self, E, A, L):
-        """ This function returns the element stiffness"""
+        """ This function returns the Finite Element stiffness considering
+        the material Young's modulus (E), the transversal area of the FE (A)
+        and the length of the FE (L)
+        """
         return np.array([[E*(A/L), -E*(A/L)], [-E*(A/L), E*(A/L)]])
 
     def _generalStiffnessMatrixAssemble(self):
-        """Assembles an n x n Stiffness Matrix"""
+        """Assembles the General Stiffness Matrix (K) using the size of the
+        matrix materials (MM) as reference. It also uses the conectivity matrix
+        (conectivity_matrix) to asseble the FE for every material on the matrix
+        materials (MM) by using the function _LinearBarAssemble
+        order to locate all the FE in place for simulation
+        """
         ksize = self.MM.shape[1]*(self.MM.shape[0]+1)
         self.K = np.zeros((ksize, ksize))
         cont = 0
@@ -89,8 +105,11 @@ class FEMMechanics(object):
         return K
 
     def _ElementConectivityMatrix(self, width, height):
-        """Create the nodes and set positions for all elements
-        on a stiffness matrix"""
+        """This function create the nodes and set positions for all
+        elements on a stiffness matrix. It also it also aggregate the
+        top and bottom elements to their own list declared at the
+        function _CreateConectivityMatrix
+        """
         a = 0
         b = 1
         for i in xrange(width):
@@ -107,7 +126,8 @@ class FEMMechanics(object):
 
     def applySimulationConditions(self, force=800):
         """
-        Set the force parameter to apply over the slice sample
+        Set the force parameter to apply over the top elements of the
+        FE General Stiffness Matrix (K)
         """
         self.force = force
 
