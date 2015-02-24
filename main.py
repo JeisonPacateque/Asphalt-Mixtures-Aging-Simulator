@@ -147,18 +147,18 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def segment_sample(self):
         """
-        Uses the segmentation module reduce and segment the toymodel.
-        This also enable the application window to show the animation of the
+        Uses the segmentation module to reduce and segment the toymodel.
+        This also enables the application window to show the animation of the
         treated sample
         """
         self.update_staus("Running segmentation...")
 
         self.dc.reset_index()
 
-        segmented = self.segmentation.reduction(self.collection)
-        reduced = self.segmentation.segment_all_samples(segmented)
+        reduced = self.segmentation.reduction(self.collection)
+        segmented = self.segmentation.segment_all_samples(segmented)
         del self.collection
-        self.segmented_collection = reduced
+        self.segmented_collection = segmented
         self.collection = self.segmented_collection
         self.update_staus("Reduction complete")
         self.count_element_values()
@@ -184,7 +184,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         except:
             print "Please check Mayavi installation"
             QtGui.QMessageBox.information(self, "Error",
-                                    "Please check Mayavi installation")
+                                    "Please check your Mayavi installation")
 
     def write_vtk_file(self):
         """
@@ -280,8 +280,10 @@ class ApplicationWindow(QtGui.QMainWindow):
         QtGui.QMessageBox.about(self, "Help",
         """Asphalt Mixtures Aging Simulator
 
-        The help should be here:
+        You can find <a href="http://asphalt-mixtures-aging-simulator.readthedocs.org"> here
+        the complete documentation of the project
 
+        Rearch Group TOPOVIAL
         Universidad Distrital Francisco Jose de Caldas
         """)
 
@@ -476,7 +478,8 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
         engine = SimulationEngine(aggregate_parameters, mastic_parameters,
                                   air_parameters, aw.collection)
-        materials = engine.simulationCicle(no_thermal_iter=int(self.thermalSteps.text()))
+        no_thermal_iter = int(self.thermalSteps.text())
+        materials = engine.simulationCicle(no_thermal_iter=no_thermal_iter)
 
         output_results = Result(materials)
         output_results.thermalResults()
