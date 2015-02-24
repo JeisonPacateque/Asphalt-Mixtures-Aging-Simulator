@@ -278,12 +278,15 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def help_dialog(self):
         QtGui.QMessageBox.about(self, "Help",
-        """Asphalt Mixtures Aging Simulator
+        """<b>Asphalt Mixtures Aging Simulator</b>
+        <br/><br/>
 
-        You can find <a href="http://asphalt-mixtures-aging-simulator.readthedocs.org"> here
-        the complete documentation of the project
+        You can find <a href="http://asphalt-mixtures-aging-simulator.readthedocs.org"> here </a>
+        the complete documentation of the project.
 
-        Rearch Group TOPOVIAL
+        <br/><br/>
+
+        Rearch Group TOPOVIAL <br/>
         Universidad Distrital Francisco Jose de Caldas
         """)
 
