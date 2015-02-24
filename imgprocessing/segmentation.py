@@ -20,7 +20,6 @@ import numpy as np
 import time
 from scipy import ndimage
 from sklearn import cluster
-from integration.file_loader import FileLoader
 from slice_mask import sector_mask
 
 class Segmentation(object):
@@ -31,7 +30,6 @@ class Segmentation(object):
         toy model. It assumes that the set of Dicom files that represents the toy
         model have been tranformed in an array of numpy.
         """
-        self.loader = FileLoader()
 
     def reduction(self, img, factor=(100. / 450.)):
         r"""
@@ -124,9 +122,9 @@ class Segmentation(object):
         found in the image are replaced by only three different values. If the
         parameter normalize is true, these values are:
 
-        - *0* for the air-void
-        - *1* for the mastic
-        - *2* for the aggregates
+        - **0** for the air-void
+        - **1** for the mastic
+        - **2** for the aggregates
 
         For this porpuse, a implementation of the K-means algorithm, provided
         by the cluster module of the Scikit-learn library, is used. K-means
@@ -204,7 +202,7 @@ class Segmentation(object):
         r"""
         Take the given samples, uses K-Means algorithm with each sample slice
         and returns all the segmented samples. it also cuts irrelevant data
-        corresponding to voids outside of the lenth of the radio of the toymodel
+        corresponding to voids outside of the lenth of the radius of the toymodel
 
         :param samples: the set of slices of the toy model
         :type samples: list of 2d numpy arrays
@@ -234,12 +232,17 @@ class Segmentation(object):
 #----------------------------------------------------------------------------------
 
 if __name__ == '__main__':
+    import sys, os
 
-    import os
-    file_path = os.path.dirname(os.path.abspath(__file__))+'/samples/4/sample_20.dcm'
+    sys.path.insert(0, os.path.abspath('../'))
+
+    from integration.file_loader import FileLoader
+
+    loader = FileLoader()
+    file_path = os.path.dirname('../')+'/samples/4/sample_20.dcm'
 
     segmentation = Segmentation()
-    img_org = segmentation.loader.single_dicom_read(file_path)
+    img_org = loader.single_dicom_read(file_path)
     img_temporal = img_org.copy()  # Copy of the image to process
 
     img_seg = segmentation.clasify(img_org)  # Segment original image

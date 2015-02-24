@@ -20,8 +20,20 @@ import numpy as np
 
 def sector_mask(shape, centre=(50, 50), radius=50, angle_range=(0, 360)):
     """
-    Return a boolean mask for a circular sector. The start/stop angles in
-    `angle_range` should be given in clockwise order.
+    This method provides a circular mask over a numpy array (image), its purpose
+    is to differentiate the air void pixels within the cylindrical toymodel
+    from the air void space outward.
+
+    :param shape: shape of the image
+    :type shape: two-dimensional tuple of integers
+    :param centre: point from where the circular mask is applied
+    :type centre: two-dimensional tuple of integers
+    :param float radius: length of the radius for the circular mask
+    :param angle_range: circular sector where the mask is applied, the whole
+        circle by default
+    :type angle_range: two-dimensional tuple of integers
+    :return: mask for a circular sector
+    :rtype: 2d boolean numpy array
     """
 
     x,y = np.ogrid[:shape[0],:shape[1]]
