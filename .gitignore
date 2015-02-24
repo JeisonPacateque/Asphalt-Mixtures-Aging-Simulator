@@ -22,3 +22,5 @@ busy_widget.py
 laplacian.pyd
 *.pyc
 laplacian.html
+*.def
+build/temp.win-amd64-2.7/Release/laplacian.o
