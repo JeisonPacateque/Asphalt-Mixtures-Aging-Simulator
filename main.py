@@ -30,19 +30,19 @@ from output.results import Result
 class ApplicationWindow(QtGui.QMainWindow):
     def __init__(self):
         """This Class contains the main window of the program"""
-        
+
         super(ApplicationWindow, self).__init__()
-        
+
         self.collection = []
         self.segmented_collection = []
         self.segmentation = Segmentation()
         self.loader = FileLoader()
-        
+
         self.initUI()
-        
-    def initUI(self):        
+
+    def initUI(self):
         """ Gui initicializater"""
-        
+
         self.timer = QtCore.QTimer()     #Timer intended to update the image
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
@@ -283,10 +283,10 @@ class ApplicationWindow(QtGui.QMainWindow):
     def help_dialog(self):
         QtGui.QMessageBox.about(self, "Help",
         """<b>Asphalt Mixtures Aging Simulator</b>
-        
+
         <p>You can find <a href="http://asphalt-mixtures-aging-simulator.readthedocs.org"> here </a>
         the complete documentation of the project.
-        
+
         <p>Research Group TOPOVIAL <br/>
         Universidad Distrital Francisco Jose de Caldas
         """)
@@ -364,6 +364,9 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
         self.title = QtGui.QLabel('Configure the physical constants')
 
+        self.sliceSelectorLabel = QtGui.QLabel("Select the simulation target slice:")
+        self.sliceSelectorEdit = QtGui.QLineEdit()
+
         self.mechanicsLabel = QtGui.QLabel("Young's modulus")
         self.modulusAggregateLabel = QtGui.QLabel("Aggregate:")
         self.modulusMasticLabel = QtGui.QLabel("Mastic:")
@@ -401,9 +404,12 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.cancelButton.clicked[bool].connect(self.closeWindow)
 
         self.grid = QtGui.QGridLayout()
-        self.grid.setSpacing(1)
+        self.grid.setSpacing(2)
 
-        self.grid.addWidget(self.title, 1, 0)
+        self.grid.addWidget(self.title, 0, 0)
+
+        self.grid.addWidget(self.sliceSelectorLabel, 1, 0)
+        self.grid.addWidget(self.sliceSelectorEdit, 1, 1)
 
         self.grid.addWidget(self.mechanicsLabel, 2, 0)
         self.grid.addWidget(self.modulusAggregateLabel, 3, 0)
@@ -444,7 +450,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
 
     def setDefaultValues(self, E2=21000000, E1=10000000, E0=100, conductAsphalt=0.75,
-                         conductRock=7.8, conductAir=0.026, steps=10000):
+                         conductRock=7.8, conductAir=0.026, steps=10000, target_slice=50):
         """
         This method writes default test values over the configuration dialog
         """
@@ -455,6 +461,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.mastic_TC.setText(str(conductAsphalt))
         self.air_TC.setText(str(conductAir))
         self.thermalSteps.setText(str(steps))
+        self.sliceSelectorEdit.setText(str(target_slice))
         self.aggregate_CH.setText('Chem Aggregate')
         self.mastic_CH.setText('Chem Mastic')
         self.air_CH.setText('Chem Air')
@@ -477,12 +484,17 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         air_parameters.append(self.air_TC.text())
         air_parameters.append(self.air_CH.text())
 
+        slice_parameter = self.sliceSelectorEdit.text()
+
+
         #Close the dialog before the simulation starts
         self.close()
 
         engine = SimulationEngine(aggregate_parameters, mastic_parameters,
-                                  air_parameters, aw.collection)
+                                  air_parameters, aw.collection, slice_id = slice_parameter)
+
         thermal_steps = int(self.thermalSteps.text())
+
         materials = engine.simulationCicle(no_thermal_iter=thermal_steps)
 
         output_results = Result(materials)

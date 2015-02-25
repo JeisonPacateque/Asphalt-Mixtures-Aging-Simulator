@@ -162,7 +162,7 @@ class FEMMechanics(object):
 
         f\right\}=\left[k\right]\left\{u\right\}
 
-        where f is the 2×1 element force vector and u is the 2×1 element
+        where f is the 2x1 element force vector and u is the 2x1 element
         displacement vector. The element stresses are obtained by dividing
         the element forces by the crosssectional area A.
         """
