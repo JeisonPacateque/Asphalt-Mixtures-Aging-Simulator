@@ -104,8 +104,8 @@ class ThermalModel(object):
         self.ui.fill(internal_temp)    # internal temperature in asphalt
         self.ui[:10,:] = env_temp # applied temperature from environment
 
-        print "Applied internal temperature in the asphalt:", internal
-        print "Applied temperature from environment:", ambient
+        print "Applied internal temperature in the asphalt:", internal_temp
+        print "Applied temperature from environment:", env_temp
 
     def simulate(self, n_steps):
         r"""
