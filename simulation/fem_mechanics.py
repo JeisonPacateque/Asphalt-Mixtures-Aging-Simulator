@@ -76,6 +76,12 @@ class FEMMechanics(object):
         """ This function returns the Finite Element stiffness considering
         the material Young's modulus (E), the transversal area of the FE (A)
         and the length of the FE (L)
+
+        :Definition:
+
+        .. math::
+            k= \begin{bmatrix} \frac{EA}{L}  & -\frac{EA}{L} \\ -\frac{EA}{L}
+                & \frac{EA}{L} \end{bmatrix}
         """
         return np.array([[E*(A/L), -E*(A/L)], [-E*(A/L), E*(A/L)]])
 
@@ -134,7 +140,31 @@ class FEMMechanics(object):
     def simulate(self):
         """
         Run the simulation with all the configured parameters, the output will
-        be a displacements map handled by the results module
+        be a displacements map handled by the results module.
+        Once the global stiffness matrix K is obtained we have the following
+        structure equation:
+
+        :Definition:
+
+        .. math::
+
+        \left[K\right]\left\{U\right\}=\left\{F\right\}
+
+        where U is the global nodal displacement vector and F is the global
+        nodal force vector.At this step the boundary conditions are applied
+        manually to the vectors U and F.
+
+        Then the matrix is solved by partitioning and Gaussian elimination.
+        Finally once the unknown displacements and reactions are found, the
+        element forces are obtained for each element as follows:
+
+        .. math::
+
+        f\right\}=\left[k\right]\left\{u\right\}
+
+        where f is the 2×1 element force vector and u is the 2×1 element
+        displacement vector. The element stresses are obtained by dividing
+        the element forces by the crosssectional area A.
         """
         mask = np.ones(self.K.shape[0], dtype=bool)
         mask[self.elements_bottom] = False
