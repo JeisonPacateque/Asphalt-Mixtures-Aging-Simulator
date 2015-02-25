@@ -32,7 +32,7 @@ class FEMMechanics(object):
 
 
     def _createStiffnessMatrix(self):
-        """This function uses the LinearBarElementStiffness to create the
+        r"""This function uses the LinearBarElementStiffness to create the
         stiffness matrix (ki) for each Finite Element to create regarding
         the matrix materials (MM) it also configures each FE element with
         their Young's Modulus and their transversal area
@@ -47,7 +47,7 @@ class FEMMechanics(object):
                 cont += 1
 
     def _createConectivityMatrix(self):
-        """This function initialices the conectivity_matrix object using
+        r"""This function initialices the conectivity_matrix object using
         the matrix materials (MM) size for reference, additionally, this
         method declares the lists where the top and bottom nodes will
         be
@@ -60,20 +60,20 @@ class FEMMechanics(object):
         self.MM.shape[1], self.MM.shape[0])
 
     def _LinearBarElementForces(self, k, u):
-        """This function returns the element nodalforce vector given the
+        r"""This function returns the element nodalforce vector given the
         element stiffness matrix k and the element nodal displacement
         vector u."""
         return np.dot(k, u)
 
     def _LinearBarElementStresses(self, k, u, A):
-        """This function returns the element nodal stress vector given the
+        r"""This function returns the element nodal stress vector given the
         element stiffness matrix k, the element nodal displacement vector u,
         and the cross-sectional area A."""
         y = np.dot(k, u)
         return y / A
 
     def _LinearBarElementStiffness(self, E, A, L):
-        """ This function returns the Finite Element stiffness considering
+        r""" This function returns the Finite Element stiffness considering
         the material Young's modulus (E), the transversal area of the FE (A)
         and the length of the FE (L)
 
@@ -86,7 +86,7 @@ class FEMMechanics(object):
         return np.array([[E*(A/L), -E*(A/L)], [-E*(A/L), E*(A/L)]])
 
     def _generalStiffnessMatrixAssemble(self):
-        """Assembles the General Stiffness Matrix (K) using the size of the
+        r"""Assembles the General Stiffness Matrix (K) using the size of the
         matrix materials (MM) as reference. It also uses the conectivity matrix
         (conectivity_matrix) to asseble the FE for every material on the matrix
         materials (MM) by using the function _LinearBarAssemble
@@ -100,7 +100,7 @@ class FEMMechanics(object):
             cont += 1
 
     def _LinearBarAssemble(self, K, k, i, j):
-        """This function assembles the element stiffness matrix k of the linear
+        r"""This function assembles the element stiffness matrix k of the linear
         bar with nodes i and j into the global stiffness matrix K.This function
         returns the global stiffness matrix K after the element stiffness
         matrix k is assembled."""
@@ -111,7 +111,7 @@ class FEMMechanics(object):
         return K
 
     def _ElementConectivityMatrix(self, width, height):
-        """This function create the nodes and set positions for all
+        r"""This function create the nodes and set positions for all
         elements on a stiffness matrix. It also it also aggregate the
         top and bottom elements to their own list declared at the
         function _CreateConectivityMatrix
@@ -131,14 +131,14 @@ class FEMMechanics(object):
         return self.elements_nodes
 
     def applySimulationConditions(self, force=800):
-        """
+        r"""
         Set the force parameter to apply over the top elements of the
         FE General Stiffness Matrix (K)
         """
         self.force = force
 
     def simulate(self):
-        """
+        r"""
         Run the simulation with all the configured parameters, the output will
         be a displacements map handled by the results module.
         Once the global stiffness matrix K is obtained we have the following
