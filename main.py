@@ -156,7 +156,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.dc.reset_index()
 
         reduced = self.segmentation.reduction(self.collection)
-        segmented = self.segmentation.segment_all_samples(segmented)
+        segmented = self.segmentation.segment_all_samples(reduced)
         del self.collection
         self.segmented_collection = segmented
         self.collection = self.segmented_collection
@@ -279,14 +279,11 @@ class ApplicationWindow(QtGui.QMainWindow):
     def help_dialog(self):
         QtGui.QMessageBox.about(self, "Help",
         """<b>Asphalt Mixtures Aging Simulator</b>
-        <br/><br/>
-
-        You can find <a href="http://asphalt-mixtures-aging-simulator.readthedocs.org"> here </a>
+        
+        <p>You can find <a href="http://asphalt-mixtures-aging-simulator.readthedocs.org"> here </a>
         the complete documentation of the project.
-
-        <br/><br/>
-
-        Rearch Group TOPOVIAL <br/>
+        
+        <p>Research Group TOPOVIAL <br/>
         Universidad Distrital Francisco Jose de Caldas
         """)
 
