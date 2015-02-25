@@ -28,18 +28,22 @@ from output.results import Result
 
 
 class ApplicationWindow(QtGui.QMainWindow):
-    """This Class contains the main window of the program"""
-
     def __init__(self):
-        """
-        The constructor build the GUI of the application
-        """
-        self.timer = QtCore.QTimer()     #Timer intended to update the image
+        """This Class contains the main window of the program"""
+        
+        super(ApplicationWindow, self).__init__()
+        
         self.collection = []
         self.segmented_collection = []
         self.segmentation = Segmentation()
-
-        QtGui.QMainWindow.__init__(self)
+        self.loader = FileLoader()
+        
+        self.initUI()
+        
+    def initUI(self):        
+        """ Gui initicializater"""
+        
+        self.timer = QtCore.QTimer()     #Timer intended to update the image
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
         self.file_menu = QtGui.QMenu('&File', self)
@@ -108,7 +112,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         path = str(chosen_path+"/") #QString to Python string
         #Prevents the execution of load_path if the user don't select a folder
         if path != "/":
-            self.collection = FileLoader().load_path(path) #Load Files
+            self.collection = self.loader.load_path(path) #Load Files
             total_loaded = str(len(self.collection))+" DICOM files loaded."
             self.folder_path.setText(path)
             self.update_staus(total_loaded)
@@ -147,7 +151,7 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def segment_sample(self):
         """
-        Uses the segmentation module to reduce and segment the toymodel.
+        It uses the segmentation module to reduce and segment the toymodel.
         This also enables the application window to show the animation of the
         treated sample
         """
@@ -478,8 +482,8 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
         engine = SimulationEngine(aggregate_parameters, mastic_parameters,
                                   air_parameters, aw.collection)
-        no_thermal_iter = int(self.thermalSteps.text())
-        materials = engine.simulationCicle(no_thermal_iter=no_thermal_iter)
+        thermal_steps = int(self.thermalSteps.text())
+        materials = engine.simulationCicle(no_thermal_iter=thermal_steps)
 
         output_results = Result(materials)
         output_results.thermalResults()
@@ -495,4 +499,3 @@ if __name__ == '__main__':
     aw.setWindowTitle("Asphalt Mixtures Aging Simulator")
     aw.show()
     sys.exit(qApp.exec_())
-    qApp.exec_()
