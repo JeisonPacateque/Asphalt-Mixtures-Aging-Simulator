@@ -1,6 +1,8 @@
 Simulation model
 ===========================================================
 
+.. automodule:: simulation
+
 .. module:: simulation.fem_mechanics
 .. autoclass:: FEMMechanics
 	:members:
