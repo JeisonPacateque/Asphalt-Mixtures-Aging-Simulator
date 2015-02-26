@@ -491,7 +491,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         air_parameters.append(self.air_TC.text())
         air_parameters.append(self.air_CH.text())
 
-        slice_parameter = self.lineEdit.text()
+        slice_parameter = self.sliderSelected.text()
 
 
         #Close the dialog before the simulation starts
