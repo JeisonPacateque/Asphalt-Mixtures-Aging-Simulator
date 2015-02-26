@@ -22,7 +22,6 @@ from PyQt4 import QtGui, QtCore
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from integration.file_loader import  FileLoader
-from imgprocessing.segmentation import Segmentation
 from simulation.simulation_engine import SimulationEngine
 from output.results import Result
 
@@ -34,8 +33,6 @@ class ApplicationWindow(QtGui.QMainWindow):
         super(ApplicationWindow, self).__init__()
 
         self.collection = []
-        self.segmented_collection = []
-        self.segmentation = Segmentation()
         self.loader = FileLoader()
 
         self.initUI()
@@ -155,30 +152,29 @@ class ApplicationWindow(QtGui.QMainWindow):
         This also enables the application window to show the animation of the
         treated sample
         """
-        self.update_staus("Running segmentation...")
-
-        self.dc.reset_index()
-
-        reduced = self.segmentation.reduction(self.collection)
-        segmented = self.segmentation.segment_all_samples(reduced)
-        del self.collection
-        self.segmented_collection = segmented
-        self.collection = self.segmented_collection
-        self.update_staus("Reduction complete")
+        
+        from imgprocessing.segmentation import Segmentation
+        segmenter = Segmentation()
+        
+   
+        self.update_staus("Segmenting and reducing the sample...")
+        reduced = segmenter.reduction(self.collection)      
+        self.collection = segmenter.segment_all_samples(reduced)
+        self.update_staus("Segmentation and reduction completed")
         self.count_element_values()
-
+    
+        self.dc.reset_index()
         self.action_sample_3d.setEnabled(True)  #Enables the 3D Model viewer
         self.action_sample_count.setEnabled(True) #Enables the count method
         self.action_file_writevtk.setEnabled(True) #Enables the VTK writer
         self.simulation_setup.setEnabled(True) #Enables the simulation setup
         self.simulation_run.setEnabled(True) #Enables the simulation setup
 
-        self.action_sample_segment.setEnabled(False) #Disables de segmentation action
-
+        self.action_sample_segment.setEnabled(False) #Disables de segmentation action  
 
     def show_3d_sample(self):
         """
-        Load the 3D render scrip
+        Load the 3D render script
         """
         try:
             from output.render_3d import ToyModel3d
@@ -299,7 +295,9 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def setup_simulation(self):
         """Shows the configure simulation dialog"""
-        config_dialog = ConfigureSimulationDialog()
+        
+        _, _, size_Z = self.collection.shape
+        config_dialog = ConfigureSimulationDialog(size_Z)
         config_dialog.exec_() #Prevents the dialog to disappear
 
     def run_simulation(self):
@@ -359,15 +357,21 @@ class ConfigureSimulationDialog(QtGui.QDialog):
     the simulation runs
     """
 
-    def __init__(self):
+    def __init__(self, size_Z=50):
         super(ConfigureSimulationDialog, self).__init__()
+        
+        self.title = QtGui.QLabel('<b> Select the vertical slice </b>')
 
-        self.title = QtGui.QLabel('Configure the physical constants')
-
-        self.sliceSelectorLabel = QtGui.QLabel("Select the simulation target slice:")
-        self.sliceSelectorEdit = QtGui.QLineEdit()
-
-        self.mechanicsLabel = QtGui.QLabel("Young's modulus")
+        self.slider = QtGui.QSlider()
+        self.slider.setGeometry(QtCore.QRect(120, 380, 321, 31))
+        self.slider.setOrientation(QtCore.Qt.Horizontal)
+        self.slider.setRange(0, size_Z)
+        self.slider.valueChanged.connect(self.changeText)
+        
+        self.sliderSelected = QtGui.QLineEdit()
+        self.sliderSelected.setGeometry(QtCore.QRect(112, 280, 331, 20))
+        
+        self.mechanicsLabel = QtGui.QLabel("<b> Young's modulus </b>")
         self.modulusAggregateLabel = QtGui.QLabel("Aggregate:")
         self.modulusMasticLabel = QtGui.QLabel("Mastic:")
         self.modulusAirLabel = QtGui.QLabel("Air voids:")
@@ -376,7 +380,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.mastic_YM = QtGui.QLineEdit()
         self.air_YM = QtGui.QLineEdit()
 
-        self.thermalLabel = QtGui.QLabel("Thermal conductivity")
+        self.thermalLabel = QtGui.QLabel("<b> Thermal conductivity </b>")
         self.thermalAggregateLabel = QtGui.QLabel("Aggregate:")
         self.thermalMasticLabel = QtGui.QLabel("Mastic:")
         self.thermalAirLabel = QtGui.QLabel("Air voids:")
@@ -385,7 +389,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.mastic_TC = QtGui.QLineEdit()
         self.air_TC = QtGui.QLineEdit()
 
-        self.chemicalLabel = QtGui.QLabel("Chemical constants")
+        self.chemicalLabel = QtGui.QLabel("<b> Chemical constants </b>")
         self.chemicalAggregateLabel = QtGui.QLabel("Chemical value1:")
         self.chemicalMasticLabel = QtGui.QLabel("Chemical value2:")
         self.chemicalAirLabel = QtGui.QLabel("Chemical value3:")
@@ -408,8 +412,8 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
         self.grid.addWidget(self.title, 0, 0)
 
-        self.grid.addWidget(self.sliceSelectorLabel, 1, 0)
-        self.grid.addWidget(self.sliceSelectorEdit, 1, 1)
+        self.grid.addWidget(self.slider, 1, 0)
+        self.grid.addWidget(self.sliderSelected, 1, 1)
 
         self.grid.addWidget(self.mechanicsLabel, 2, 0)
         self.grid.addWidget(self.modulusAggregateLabel, 3, 0)
@@ -443,14 +447,17 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
         self.setLayout(self.grid)
 
-        self.setGeometry(300, 300, 350, 300)
+        self.setGeometry(300, 300, 480, 450)
         self.setWindowTitle('Configure Simulation')
         self.setDefaultValues()
         self.show()
-
-
+    
+    def changeText(self, value):
+        self.z = value
+        self.sliderSelected.setText(str(self.z))
+    
     def setDefaultValues(self, E2=21000000, E1=10000000, E0=100, conductAsphalt=0.75,
-                         conductRock=7.8, conductAir=0.026, steps=10000, target_slice=50):
+                         conductRock=7.8, conductAir=0.026, steps=10000, target_slice=0):
         """
         This method writes default test values over the configuration dialog
         """
@@ -461,7 +468,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.mastic_TC.setText(str(conductAsphalt))
         self.air_TC.setText(str(conductAir))
         self.thermalSteps.setText(str(steps))
-        self.sliceSelectorEdit.setText(str(target_slice))
+        self.sliderSelected.setText(str(target_slice))
         self.aggregate_CH.setText('Chem Aggregate')
         self.mastic_CH.setText('Chem Mastic')
         self.air_CH.setText('Chem Air')
@@ -484,7 +491,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         air_parameters.append(self.air_TC.text())
         air_parameters.append(self.air_CH.text())
 
-        slice_parameter = self.sliceSelectorEdit.text()
+        slice_parameter = self.lineEdit.text()
 
 
         #Close the dialog before the simulation starts
