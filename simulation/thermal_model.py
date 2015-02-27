@@ -18,8 +18,9 @@
 import numpy as np
 import time
 import laplacian
+from physical_model import PhysicalModel
 
-class ThermalModel(object):
+class ThermalModel(PhysicalModel):
     def __init__(self, matrix_materials, max_TC=7.8):
         r"""
         This class provides the thermal model through  two-dimensional
@@ -61,10 +62,8 @@ class ThermalModel(object):
         .. _Creative Commons: http://creativecommons.org/licenses/by-sa/2.0/
         """
 
-        # reference of the matrix materials used only
-        # to get transfer coeefficient amd  object construction
-        self.MM  = matrix_materials.copy()
-
+        super(ThermalModel, self).__init__(matrix_materials)         
+        
         #initial temperature field
         self.ui = np.zeros(self.MM.shape, dtype=np.float)
         self.u = self.ui.copy() # next step temperature field
