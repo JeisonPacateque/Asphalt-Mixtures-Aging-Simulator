@@ -179,7 +179,7 @@ class FEMMechanics(object):
         U = U.reshape(self.MM.shape)
         print U.shape
 
-        # copy the field temperature into the matrix materials
+        # copy the displacements field into the matrix materials
         for i in xrange(self.MM.shape[0]):
             for j in xrange(self.MM.shape[1]):
                 self.MM[i,j].displacement = U[i,j]
