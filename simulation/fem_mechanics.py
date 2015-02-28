@@ -148,7 +148,7 @@ class FEMMechanics(object):
 
         .. math::
 
-        \left[K\right]\left\{U\right\}=\left\{F\right\}
+            \left[K\right]\left\{U\right\}=\left\{F\right\}
 
         where U is the global nodal displacement vector and F is the global
         nodal force vector.At this step the boundary conditions are applied
@@ -160,7 +160,7 @@ class FEMMechanics(object):
 
         .. math::
 
-        f\right\}=\left[k\right]\left\{u\right\}
+            \left [ f \right ]  = \left [ k \right ] \left \{ u \right \}
 
         where f is the 2x1 element force vector and u is the 2x1 element
         displacement vector. The element stresses are obtained by dividing
