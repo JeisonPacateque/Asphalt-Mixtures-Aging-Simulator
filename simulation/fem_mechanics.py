@@ -17,6 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import numpy as np
 from physical_model import PhysicalModel
+import time
+
 
 class FEMMechanics(PhysicalModel):
     def __init__(self, matrix_materials):
@@ -132,7 +134,7 @@ class FEMMechanics(PhysicalModel):
 
         return self.elements_nodes
 
-    def applySimulationConditions(self, force=800):
+    def applySimulationConditions(self, force):
         r"""
         Set the force parameter to apply over the top elements of the
         FE General Stiffness Matrix (K)
@@ -168,6 +170,9 @@ class FEMMechanics(PhysicalModel):
         displacement vector. The element stresses are obtained by dividing
         the element forces by the crosssectional area A.
         """
+        start_time = time.time()  # Measures file loading time
+        print "Applied force:", self.force
+
         mask = np.ones(self.K.shape[0], dtype=bool)
         mask[self.elements_bottom] = False
         k_sub = self.K[mask]
@@ -179,9 +184,13 @@ class FEMMechanics(PhysicalModel):
         #calculate displacements-------------------------------------------
         U = np.linalg.solve(k_sub, forces)
         U = U.reshape(self.MM.shape)
-        print U.shape
+
 
         # copy the displacements field into the matrix materials
         for i in xrange(self.MM.shape[0]):
             for j in xrange(self.MM.shape[1]):
                 self.MM[i,j].displacement = U[i,j]
+
+
+        end_time = time.time()  # Get the time when method ends
+        print "Mechanical simulation done in ", str(end_time - start_time), " seconds."

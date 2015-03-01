@@ -63,7 +63,6 @@ class ApplicationWindow(QtGui.QMainWindow):
 
         self.simulation_menu = QtGui.QMenu('&Simulation', self)
         self.simulation_setup = self.simulation_menu.addAction('&Set up simulation...', self.setup_simulation)
-        self.simulation_run = self.simulation_menu.addAction('&Run simulation...', self.run_simulation)
         self.menuBar().addMenu(self.simulation_menu)
 
         self.help_menu = QtGui.QMenu('&Help', self)
@@ -152,25 +151,24 @@ class ApplicationWindow(QtGui.QMainWindow):
         This also enables the application window to show the animation of the
         treated sample
         """
-        
+
         from imgprocessing.segmentation import Segmentation
         segmenter = Segmentation()
-        
-   
+
+
         self.update_staus("Segmenting and reducing the sample...")
-        reduced = segmenter.reduction(self.collection)      
+        reduced = segmenter.reduction(self.collection)
         self.collection = segmenter.segment_all_samples(reduced)
         self.update_staus("Segmentation and reduction completed")
         self.count_element_values()
-    
+
         self.dc.reset_index()
         self.action_sample_3d.setEnabled(True)  #Enables the 3D Model viewer
         self.action_sample_count.setEnabled(True) #Enables the count method
         self.action_file_writevtk.setEnabled(True) #Enables the VTK writer
         self.simulation_setup.setEnabled(True) #Enables the simulation setup
-        self.simulation_run.setEnabled(True) #Enables the simulation setup
 
-        self.action_sample_segment.setEnabled(False) #Disables de segmentation action  
+        self.action_sample_segment.setEnabled(False) #Disables de segmentation action
 
     def show_3d_sample(self):
         """
@@ -229,7 +227,6 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.action_sample_3d.setEnabled(False)
         self.action_file_writevtk.setEnabled(True)
         self.simulation_setup.setEnabled(False)
-        self.simulation_run.setEnabled(False)
 
         self.action_animation_pause.setEnabled(state)
         self.action_animation_resume.setEnabled(state)
@@ -295,7 +292,7 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def setup_simulation(self):
         """Shows the configure simulation dialog"""
-        
+
         _, _, size_Z = self.collection.shape
         config_dialog = ConfigureSimulationDialog(size_Z)
         config_dialog.exec_() #Prevents the dialog to disappear
@@ -359,7 +356,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
     def __init__(self, size_Z=50):
         super(ConfigureSimulationDialog, self).__init__()
-        
+
         self.title = QtGui.QLabel('<b> Select the vertical slice </b>')
 
         self.slider = QtGui.QSlider()
@@ -367,18 +364,20 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.slider.setOrientation(QtCore.Qt.Horizontal)
         self.slider.setRange(0, size_Z)
         self.slider.valueChanged.connect(self.changeText)
-        
+
         self.sliderSelected = QtGui.QLineEdit()
         self.sliderSelected.setGeometry(QtCore.QRect(112, 280, 331, 20))
-        
+
         self.mechanicsLabel = QtGui.QLabel("<b> Young's modulus </b>")
         self.modulusAggregateLabel = QtGui.QLabel("Aggregate:")
         self.modulusMasticLabel = QtGui.QLabel("Mastic:")
         self.modulusAirLabel = QtGui.QLabel("Air voids:")
+        self.mechanicalForceLabel = QtGui.QLabel("Applied force: ")
 
         self.aggregate_YM = QtGui.QLineEdit()
         self.mastic_YM = QtGui.QLineEdit()
         self.air_YM = QtGui.QLineEdit()
+        self.mechanicalForceEdit = QtGui.QLineEdit()
 
         self.thermalLabel = QtGui.QLabel("<b> Thermal conductivity </b>")
         self.thermalAggregateLabel = QtGui.QLabel("Aggregate:")
@@ -418,6 +417,8 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.grid.addWidget(self.mechanicsLabel, 2, 0)
         self.grid.addWidget(self.modulusAggregateLabel, 3, 0)
         self.grid.addWidget(self.aggregate_YM, 3, 1)
+        self.grid.addWidget(self.mechanicalForceLabel, 3, 2)
+        self.grid.addWidget(self.mechanicalForceEdit, 3, 3)
         self.grid.addWidget(self.modulusMasticLabel, 4, 0)
         self.grid.addWidget(self.mastic_YM, 4, 1)
         self.grid.addWidget(self.modulusAirLabel, 5, 0)
@@ -451,7 +452,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.setWindowTitle('Configure Simulation')
         self.setDefaultValues()
         self.show()
-    
+
     def changeText(self, value):
         self.z = value
         self.sliderSelected.setText(str(self.z))
@@ -471,6 +472,8 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         steps = 10000
         target_slice = 0
         
+        mechanical_force = 800
+        
         
         self.aggregate_YM.setText(str(E2))
         self.mastic_YM.setText(str(E1))
@@ -479,6 +482,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.mastic_TC.setText(str(conductAsphalt))
         self.air_TC.setText(str(conductAir))
         self.thermalSteps.setText(str(steps))
+        self.mechanicalForceEdit.setText(str(mechanical_force))
         self.sliderSelected.setText(str(target_slice))
         self.aggregate_CH.setText('Chem Aggregate')
         self.mastic_CH.setText('Chem Mastic')
@@ -503,7 +507,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         air_parameters.append(self.air_CH.text())
 
         slice_parameter = self.sliderSelected.text()
-
+        force_parameter = int(self.mechanicalForceEdit.text())
 
         #Close the dialog before the simulation starts
         self.close()
@@ -513,10 +517,11 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
         thermal_steps = int(self.thermalSteps.text())
 
-        materials = engine.simulationCicle(no_thermal_iter=thermal_steps)
+        materials = engine.simulationCicle(no_thermal_iter=thermal_steps,
+                                           mechanical_force = force_parameter)
 
         output_results = Result(materials)
-        output_results.thermalResults()
+        output_results.showResults()
 
     def closeWindow(self):
         self.close()

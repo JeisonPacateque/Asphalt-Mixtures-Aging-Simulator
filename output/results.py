@@ -29,23 +29,8 @@ class Result(object):
         through ...
         """
         self.materials = matrix_materials
-        heatmap = self.thermalResults()
-        displacements = self.mechanicalResults()
-
-        plt.figure(1)
-        plt.clf() # clear figure
-        plt.title('Heat Map')
-        plt.imshow(heatmap, interpolation='nearest', cmap=cm.jet)
-        plt.colorbar()
-        plt.show()
-
-        plt.figure(2)
-        plt.clf()
-        clines = np.linspace(0., 1., 10) # contour line levels
-        plt.title('Displacements field')
-        C = plt.contour(displacements, colors='k')
-        plt.clabel(C, inline=10, fontsize=10)
-        plt.show()
+        self.heatmap = self.thermalResults()
+        self.displacements = self.mechanicalResults()
 
     def thermalResults(self):
         """
@@ -70,3 +55,19 @@ class Result(object):
                 displacements[i,j] = self.materials[i,j].displacement
 
         return displacements
+    
+    def showResults(self):
+        plt.figure(1)
+        plt.clf() # clear figure
+        plt.title('Heat Map')
+        plt.imshow(self.heatmap, interpolation='nearest', cmap=cm.jet)
+        plt.colorbar()
+        plt.show()
+
+        plt.figure(2)
+        plt.clf()
+        clines = np.linspace(0., 1., 10) # contour line levels
+        plt.title('Displacements field')
+        C = plt.contour(self.displacements, colors='k')
+        plt.clabel(C, inline=10, fontsize=10)
+        plt.show()
