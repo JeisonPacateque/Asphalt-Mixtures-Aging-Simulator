@@ -31,21 +31,24 @@ class SimulationEngine(object):
         # [0] ---> young modules
         # [1] ---> thermical conductivity
         # [2] ---> chemical value
+        
+        self.collection = collection
         self.mastic = Material(mastic_parameters[0], mastic_parameters[1],
                                mastic_parameters[2])
         self.aggregate = Material(aggregate_parameters[0], aggregate_parameters[1],
                                    aggregate_parameters[2])
         self.airvoid = Material(air_parameters[0], air_parameters[1],
                                 air_parameters[2])
-
-        vertical_slice = self.loadVerticalSlice(collection, slice_id=50)
-
+                
+        vertical_slice = self.loadVerticalSlice(slice_id)
+      
         # Structure data where the simulation takes place
         self.matrix_materials = self.getMatrixMaterials(vertical_slice)
 
-    def loadVerticalSlice(self, collection, slice_id):
+    def loadVerticalSlice(self, slice_id):
         """Cut the slice of the collection in the position id"""
-        vertical_slice = collection[:, :, slice_id]
+        vertical_slice = self.collection[:, :, slice_id]
+        print vertical_slice
         return vertical_slice.transpose()
 
     def getMatrixMaterials(self, vertical_slice):
@@ -57,7 +60,7 @@ class SimulationEngine(object):
                 material_matrix[x,y] = copy.deepcopy(self.aggregate)
             elif vertical_slice[x,y] == 1:
                 material_matrix[x,y] = copy.deepcopy(self.mastic)
-            elif vertical_slice[x,y] == 0:
+            elif vertical_slice[x,y] == 0 or  vertical_slice[x,y] == -1:
                 material_matrix[x,y] = copy.deepcopy(self.airvoid)
 
         print "Materials matrix created, size:", material_matrix.shape
