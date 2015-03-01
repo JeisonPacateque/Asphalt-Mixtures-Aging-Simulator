@@ -16,14 +16,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 '''
 
 import numpy as np
+from physical_model import PhysicalModel
 
-class FEMMechanics(object):
+class FEMMechanics(PhysicalModel):
     def __init__(self, matrix_materials):
         """This class supports the Mechanic FEM Simulation
         matrix_materials = initial matrix materials
-        (numpy objetc array, array of class Material)
-        """
-        self.MM = matrix_materials # local reference of the matrix materials
+        (numpy objetc array, array of class Material)        """
+        
+        super(FEMMechanics, self).__init__(matrix_materials)        
+        
         self.force = 0  # applied force over asphalt mixture
 
         self._createStiffnessMatrix()
