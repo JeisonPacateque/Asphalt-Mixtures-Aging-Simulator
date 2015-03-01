@@ -456,11 +456,22 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.z = value
         self.sliderSelected.setText(str(self.z))
     
-    def setDefaultValues(self, E2=21000000, E1=10000000, E0=100, conductAsphalt=0.75,
-                         conductRock=7.8, conductAir=0.026, steps=10000, target_slice=0):
+    def setDefaultValues(self):
         """
         This method writes default test values over the configuration dialog
         """
+        E2 = 21000000
+        E1 = 10000000
+        E0 = 100
+        
+        conductAsphalt = 0.75
+        conductRock = 7.8
+        conductAir = 0.026
+        
+        steps = 10000
+        target_slice = 0
+        
+        
         self.aggregate_YM.setText(str(E2))
         self.mastic_YM.setText(str(E1))
         self.air_YM.setText(str(E0))
