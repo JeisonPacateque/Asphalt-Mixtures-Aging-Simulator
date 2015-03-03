@@ -1,3 +1,4 @@
+#!/usr/bin/env python2
 '''
 Copyright (C) 2015 Jeison Pacateque, Santiago Puerto
 
@@ -16,9 +17,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 '''
 
 import sys
-import matplotlib.image as mpimg
 import os
 from PyQt4 import QtGui, QtCore
+import matplotlib
+matplotlib.use("Qt4Agg")
+import matplotlib.image as mpimg
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from integration.file_loader import  FileLoader
@@ -43,34 +46,34 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.timer = QtCore.QTimer()     #Timer intended to update the image
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
-        self.file_menu = QtGui.QMenu('&File', self)
-        self.file_menu.addAction('&Choose path', self.open_path, QtCore.Qt.CTRL + QtCore.Qt.Key_O)
+        self.file_menu = QtGui.QMenu('File', self)
+        self.file_menu.addAction('Choose path', self.open_path, QtCore.Qt.CTRL + QtCore.Qt.Key_O)
         self.action_file_writevtk = self.file_menu.addAction('Write VTK file', self.write_vtk_file, QtCore.Qt.CTRL + QtCore.Qt.Key_W)
-        self.file_menu.addAction('&Exit', self.fileQuit, QtCore.Qt.CTRL + QtCore.Qt.Key_Q)
+        self.file_menu.addAction('Exit', self.fileQuit, QtCore.Qt.CTRL + QtCore.Qt.Key_Q)
         self.menuBar().addMenu(self.file_menu)
 
-        self.animation_menu = QtGui.QMenu('&Animation', self)
+        self.animation_menu = QtGui.QMenu('Animation', self)
         self.action_animation_start = self.animation_menu.addAction('&Start', self.start_animation, QtCore.Qt.Key_S)
-        self.action_animation_resume = self.animation_menu.addAction('&Resume', self.resume_animation, QtCore.Qt.Key_Return)
-        self.action_animation_pause = self.animation_menu.addAction('&Pause', self.pause_animation, QtCore.Qt.Key_Space)
+        self.action_animation_pause = self.animation_menu.addAction('Pause/Resume', self.pause_animation, QtCore.Qt.Key_Space)
+        self.paused = False #flag to control pause animation
         self.menuBar().addMenu(self.animation_menu)
 
-        self.sample_menu = QtGui.QMenu('&Sample', self)
-        self.action_sample_segment = self.sample_menu.addAction('&Segment sample', self.segment_sample, QtCore.Qt.CTRL + QtCore.Qt.Key_S)
-        self.action_sample_3d = self.sample_menu.addAction('&Show 3D model', self.show_3d_sample)
-        self.action_sample_count = self.sample_menu.addAction('&Count segmented elements', self.count_element_values)
+        self.sample_menu = QtGui.QMenu('Sample', self)
+        self.action_sample_segment = self.sample_menu.addAction('Segment sample', self.segment_sample, QtCore.Qt.CTRL + QtCore.Qt.Key_S)
+        self.action_sample_3d = self.sample_menu.addAction('Show 3D model', self.show_3d_sample)
+        self.action_sample_count = self.sample_menu.addAction('Count segmented elements', self.count_element_values)
         self.menuBar().addMenu(self.sample_menu)
 
-        self.simulation_menu = QtGui.QMenu('&Simulation', self)
-        self.simulation_setup = self.simulation_menu.addAction('&Set up simulation...', self.setup_simulation)
+        self.simulation_menu = QtGui.QMenu('Simulation', self)
+        self.simulation_setup = self.simulation_menu.addAction('Set up simulation...', self.setup_simulation)
         self.menuBar().addMenu(self.simulation_menu)
 
-        self.help_menu = QtGui.QMenu('&Help', self)
+        self.help_menu = QtGui.QMenu('Help', self)
         self.menuBar().addSeparator()
         self.menuBar().addMenu(self.help_menu)
 
-        self.help_menu.addAction('&Help', self.help_dialog)
-        self.help_menu.addAction('&About...', self.about)
+        self.help_menu.addAction('Help', self.help_dialog)
+        self.help_menu.addAction('About...', self.about)
 
 
         open_button = QtGui.QPushButton('Choose work path', self)
@@ -124,20 +127,19 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.dc.reset_index()
         QtCore.QObject.connect(self.timer, QtCore.SIGNAL("timeout()"), self.dc.update_figure)
         self.timer.start(150)                #Set the update time
-
+        self.paused = False        
+        
     def pause_animation(self):
         """
-        Pause the 2D animation of the X-Ray raw or treated Dicom slices from
+        Pause and Resume the 2D animation of the X-Ray raw or treated Dicom slices from
         the asphalt mixture sample
         """
-        self.timer.stop()
-
-    def resume_animation(self):
-        """
-        Resume 2D animation of the X-Ray raw or treated Dicom slices from
-        the asphalt mixture sample
-        """
-        self.timer.start(150)
+        if self.paused:
+            self.timer.start(150)
+            self.paused = False
+        else:
+            self.timer.stop()
+            self.paused = True    
 
     def update_staus(self, message):
         """
@@ -229,7 +231,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.simulation_setup.setEnabled(False)
 
         self.action_animation_pause.setEnabled(state)
-        self.action_animation_resume.setEnabled(state)
+#        self.action_animation_resume.setEnabled(state)
         self.action_animation_start.setEnabled(state)
         self.action_sample_segment.setEnabled(state)
 
