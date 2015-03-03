@@ -295,8 +295,7 @@ class ApplicationWindow(QtGui.QMainWindow):
     def setup_simulation(self):
         """Shows the configure simulation dialog"""
 
-        _, _, size_Z = self.collection.shape
-        config_dialog = ConfigureSimulationDialog(size_Z)
+        config_dialog = ConfigureSimulationDialog(self.collection)
         config_dialog.exec_() #Prevents the dialog to disappear
 
     def run_simulation(self):
@@ -356,8 +355,11 @@ class ConfigureSimulationDialog(QtGui.QDialog):
     the simulation runs
     """
 
-    def __init__(self, size_Z=50):
+    def __init__(self, collection):
         super(ConfigureSimulationDialog, self).__init__()
+
+        self.collection = collection        
+        _, _, size_Z = self.collection.shape
 
         self.title = QtGui.QLabel('<b> Select the vertical slice </b>')
 
@@ -508,16 +510,18 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         air_parameters.append(self.air_TC.text())
         air_parameters.append(self.air_CH.text())
 
-        slice_parameter = self.sliderSelected.text()
+        slice_parameter = int(self.sliderSelected.text())
         force_parameter = int(self.mechanicalForceEdit.text())
 
         #Close the dialog before the simulation starts
         self.close()
 
         engine = SimulationEngine(aggregate_parameters, mastic_parameters,
-                                  air_parameters, aw.collection, slice_id = slice_parameter)
+                                  air_parameters, self.collection, slice_parameter)
 
         thermal_steps = int(self.thermalSteps.text())
+        
+        
 
         materials = engine.simulationCicle(no_thermal_iter=thermal_steps,
                                            mechanical_force = force_parameter)
