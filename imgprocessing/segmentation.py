@@ -219,15 +219,19 @@ class Segmentation(object):
         for i in xrange(col_length):
             segmented[i] = self.clasify(segmented[i])
 
-        for i in range(col_length):
-            mask = sector_mask(segmented[i].shape)
-            segmented[i][~mask] = -1
-
         end_time = time.time()  # Get the time when method ends
         print "Segmentation finished with", str(col_length), "samples in", \
         str(end_time - start_time), "seconds."
 
         return segmented
+
+    def apply_mask(self, collection):
+        col_length = len(collection)
+        for i in range(col_length):
+            mask = sector_mask(collection[i].shape)
+            collection[i][~mask] = -1
+        
+        return collection
 
 #----------------------------------------------------------------------------------
 

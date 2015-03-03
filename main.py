@@ -27,6 +27,7 @@ from matplotlib.figure import Figure
 from integration.file_loader import  FileLoader
 from simulation.simulation_engine import SimulationEngine
 from output.results import Result
+from imgprocessing.segmentation import Segmentation
 
 
 class ApplicationWindow(QtGui.QMainWindow):
@@ -37,6 +38,7 @@ class ApplicationWindow(QtGui.QMainWindow):
 
         self.collection = []
         self.loader = FileLoader()
+        self.segmenter = Segmentation()
 
         self.initUI()
 
@@ -154,13 +156,9 @@ class ApplicationWindow(QtGui.QMainWindow):
         treated sample
         """
 
-        from imgprocessing.segmentation import Segmentation
-        segmenter = Segmentation()
-
-
         self.update_staus("Segmenting and reducing the sample...")
-        reduced = segmenter.reduction(self.collection)
-        self.collection = segmenter.segment_all_samples(reduced)
+        reduced = self.segmenter.reduction(self.collection)
+        self.collection = self.segmenter.segment_all_samples(reduced)
         self.update_staus("Segmentation and reduction completed")
         self.count_element_values()
 
@@ -196,9 +194,13 @@ class ApplicationWindow(QtGui.QMainWindow):
     def count_element_values(self):
         """Shows the total count of detected elements after the segmentation"""
         from numpy import count_nonzero
-        empty = count_nonzero(self.collection==0)
-        mastic = count_nonzero(self.collection==1)
-        aggregate = count_nonzero(self.collection==2)
+        
+        collection_mask = self.collection.copy()
+        collection_mask = self.segmenter.apply_mask(collection_mask) 
+        
+        empty = count_nonzero(collection_mask==0)
+        mastic = count_nonzero(collection_mask==1)
+        aggregate = count_nonzero(collection_mask==2)
         total = (empty+mastic+aggregate)
 
         QtGui.QMessageBox.about(self,
