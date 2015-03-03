@@ -38,9 +38,9 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.collection = []
         self.loader = FileLoader()
 
-        self.initUI()
+        self._initUI()
 
-    def initUI(self):
+    def _initUI(self):
         """ Gui initicializater"""
 
         self.timer = QtCore.QTimer()     #Timer intended to update the image
@@ -156,12 +156,23 @@ class ApplicationWindow(QtGui.QMainWindow):
 
         from imgprocessing.segmentation import Segmentation
         segmenter = Segmentation()
-
-
+        
+        progress = QtGui.QProgressDialog(self)
+        progress.setLabelText("Segmenting and reducing the sample...")
+        progress.setCancelButton(None)
+        progress.setRange(0, 0)
+        progress.setMinimumDuration(0)
+        progress.show()
+        QtGui.QApplication.processEvents()
+        
+                
         self.update_staus("Segmenting and reducing the sample...")
         reduced = segmenter.reduction(self.collection)
         self.collection = segmenter.segment_all_samples(reduced)
         self.update_staus("Segmentation and reduction completed")
+        
+        progress.cancel()
+                
         self.count_element_values()
 
         self.dc.reset_index()
@@ -196,6 +207,7 @@ class ApplicationWindow(QtGui.QMainWindow):
     def count_element_values(self):
         """Shows the total count of detected elements after the segmentation"""
         from numpy import count_nonzero
+        
         empty = count_nonzero(self.collection==0)
         mastic = count_nonzero(self.collection==1)
         aggregate = count_nonzero(self.collection==2)
@@ -298,10 +310,6 @@ class ApplicationWindow(QtGui.QMainWindow):
         config_dialog = ConfigureSimulationDialog(self.collection)
         config_dialog.exec_() #Prevents the dialog to disappear
 
-    def run_simulation(self):
-        print "Run simulation"
-
-
 
 class Canvas(FigureCanvas):
     """Set the graphical elements to show in a Qt Window"""
@@ -349,7 +357,7 @@ class MyDynamicMplCanvas(Canvas):
 
 
 #------------------------------------------------------------------------
-class ConfigureSimulationDialog(QtGui.QDialog):
+class ConfigureSimulationDialog(QtGui.QDialog, QtCore.QThread):
     """
     This dialog enables the user to control the simulation parameters after
     the simulation runs
@@ -359,14 +367,17 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         super(ConfigureSimulationDialog, self).__init__()
 
         self.collection = collection        
-        _, _, size_Z = self.collection.shape
+        _, _, self.size_Z = self.collection.shape
+        
+        self._initUI()
 
+    def _initUI(self):
         self.title = QtGui.QLabel('<b> Select the vertical slice </b>')
 
         self.slider = QtGui.QSlider()
         self.slider.setGeometry(QtCore.QRect(120, 380, 321, 31))
         self.slider.setOrientation(QtCore.Qt.Horizontal)
-        self.slider.setRange(0, size_Z)
+        self.slider.setRange(0, self.size_Z)
         self.slider.valueChanged.connect(self.changeText)
 
         self.sliderSelected = QtGui.QLineEdit()
@@ -457,6 +468,9 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.setDefaultValues()
         self.show()
 
+    def closeWindow(self):
+        self.close()
+    
     def changeText(self, value):
         self.z = value
         self.sliderSelected.setText(str(self.z))
@@ -491,6 +505,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.aggregate_CH.setText('Chem Aggregate')
         self.mastic_CH.setText('Chem Mastic')
         self.air_CH.setText('Chem Air')
+        
 
     def runSimulation(self):
         """
@@ -514,8 +529,16 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         force_parameter = int(self.mechanicalForceEdit.text())
 
         #Close the dialog before the simulation starts
-        self.close()
-
+        self.close()        
+        
+        progress = QtGui.QProgressDialog(aw)
+        progress.setLabelText("Simulating...")
+        progress.setCancelButton(None)
+        progress.setRange(0, 0)
+        progress.setMinimumDuration(0)
+        progress.show()
+        QtGui.QApplication.processEvents()
+        
         engine = SimulationEngine(aggregate_parameters, mastic_parameters,
                                   air_parameters, self.collection, slice_parameter)
 
@@ -525,12 +548,12 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
         materials = engine.simulationCicle(no_thermal_iter=thermal_steps,
                                            mechanical_force = force_parameter)
+        
 
+        progress.cancel()                                       
+                           
         output_results = Result(materials)
         output_results.showResults()
-
-    def closeWindow(self):
-        self.close()
 
 
 #-----------------------------------------------------------------------------
