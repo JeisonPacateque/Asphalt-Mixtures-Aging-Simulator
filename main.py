@@ -150,27 +150,33 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def segment_sample(self):
         """
-        It uses the segmentation module to reduce and segmented the toymodel.
+        Thorugh a controller it reduces and segmentes the toymodel.
         This also enables the application window to show the animation of the
         treated sample
         """
-              
-        self.update_staus("Segmenting and reducing the sample...")
+
+        self.progressBar = QtGui.QProgressBar(self)
         seg_controller = SegmentationController(self.collection)
-        busy_bar = BusyBar(task=seg_controller)
-        busy_bar.onStart()
-        seg_controller.getCollection()
-        self.update_staus("Segmentation and reduction completed")
-                
-        self.count_element_values()
-#
-#        self.dc.reset_index()
-#        self.action_sample_3d.setEnabled(True)  #Enables the 3D Model viewer
-#        self.action_sample_count.setEnabled(True) #Enables the count method
-#        self.action_file_writevtk.setEnabled(True) #Enables the VTK writer
-#        self.simulation_setup.setEnabled(True) #Enables the simulation setup
-#
-#        self.action_sample_segment.setEnabled(False) #Disables de segmentation action
+        self.update_staus("Segmenting and reducing the sample...")
+
+        def onFinished():
+            self.progressBar.setRange(0,1)
+            self.progressBar.setValue(1)
+            self.collection = seg_controller.getCollection()
+            
+            self.count_element_values()
+            
+            self.dc.reset_index()
+            self.action_sample_3d.setEnabled(True)  #Enables the 3D Model viewer
+            self.action_sample_count.setEnabled(True) #Enables the count method
+            self.simulation_setup.setEnabled(True) #Enables the simulation setup
+            self.action_sample_segment.setEnabled(False) #Disables de segmentation action
+            self.progressBar.hide()
+
+        self.connect(seg_controller, QtCore.SIGNAL("finished()"), onFinished)
+        seg_controller.start()
+        self.progressBar.show()
+        self.progressBar.setRange(0,0)
 
     def show_3d_sample(self):
         """
@@ -346,7 +352,7 @@ class MyDynamicMplCanvas(Canvas):
 
 
 #------------------------------------------------------------------------
-class ConfigureSimulationDialog(QtGui.QDialog, QtCore.QThread):
+class ConfigureSimulationDialog(QtGui.QDialog):
     """
     This dialog enables the user to control the simulation parameters after
     the simulation runs
@@ -546,16 +552,17 @@ class ConfigureSimulationDialog(QtGui.QDialog, QtCore.QThread):
         output_results.showResults()
         
 class BusyBar(QtGui.QWidget):
-    def __init__(self, parent=None, task=None):
+    def __init__(self, task, parent=None):
         super(BusyBar, self).__init__(parent)
-#        layout = QtGui.QVBoxLayout(self)
 
-        # Create a progress bar and a button and add them to the main layout
+        self.finished = False
+        # Create a progress bar
         self.progressBar = QtGui.QProgressBar(self)
         self.progressBar.setRange(0,1)
 #        layout.addWidget(self.progressBar)
         self.task = task
-        self.task.taskFinished.connect(self.onFinished)
+        self.connect(self.task, QtCore.SIGNAL("finished()"), self.onFinished)
+        #self.task.taskFinished.connect(self.onFinished)
 
     def onStart(self):
         self.show()
@@ -566,6 +573,8 @@ class BusyBar(QtGui.QWidget):
         # Stop the pulsation
         self.progressBar.setRange(0,1)
         self.progressBar.setValue(1)
+        self.finished = True
+        self.hide()
 
 
 #-----------------------------------------------------------------------------
