@@ -27,6 +27,7 @@ from matplotlib.figure import Figure
 from integration.file_loader import  FileLoader
 from simulation.simulation_engine import SimulationEngine
 from output.results import Result
+from graphic_controller import SegmentationController
 
 
 class ApplicationWindow(QtGui.QMainWindow):
@@ -149,39 +150,27 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def segment_sample(self):
         """
-        It uses the segmentation module to reduce and segment the toymodel.
+        It uses the segmentation module to reduce and segmented the toymodel.
         This also enables the application window to show the animation of the
         treated sample
         """
-
-        from imgprocessing.segmentation import Segmentation
-        segmenter = Segmentation()
-        
-        progress = QtGui.QProgressDialog(self)
-        progress.setLabelText("Segmenting and reducing the sample...")
-        progress.setCancelButton(None)
-        progress.setRange(0, 0)
-        progress.setMinimumDuration(0)
-        progress.show()
-        QtGui.QApplication.processEvents()
-        
-                
+              
         self.update_staus("Segmenting and reducing the sample...")
-        reduced = segmenter.reduction(self.collection)
-        self.collection = segmenter.segment_all_samples(reduced)
+        seg_controller = SegmentationController(self.collection)
+        busy_bar = BusyBar(task=seg_controller)
+        busy_bar.onStart()
+        seg_controller.getCollection()
         self.update_staus("Segmentation and reduction completed")
-        
-        progress.cancel()
                 
         self.count_element_values()
-
-        self.dc.reset_index()
-        self.action_sample_3d.setEnabled(True)  #Enables the 3D Model viewer
-        self.action_sample_count.setEnabled(True) #Enables the count method
-        self.action_file_writevtk.setEnabled(True) #Enables the VTK writer
-        self.simulation_setup.setEnabled(True) #Enables the simulation setup
-
-        self.action_sample_segment.setEnabled(False) #Disables de segmentation action
+#
+#        self.dc.reset_index()
+#        self.action_sample_3d.setEnabled(True)  #Enables the 3D Model viewer
+#        self.action_sample_count.setEnabled(True) #Enables the count method
+#        self.action_file_writevtk.setEnabled(True) #Enables the VTK writer
+#        self.simulation_setup.setEnabled(True) #Enables the simulation setup
+#
+#        self.action_sample_segment.setEnabled(False) #Disables de segmentation action
 
     def show_3d_sample(self):
         """
@@ -527,6 +516,7 @@ class ConfigureSimulationDialog(QtGui.QDialog, QtCore.QThread):
 
         slice_parameter = int(self.sliderSelected.text())
         force_parameter = int(self.mechanicalForceEdit.text())
+        thermal_steps = int(self.thermalSteps.text())
 
         #Close the dialog before the simulation starts
         self.close()        
@@ -542,7 +532,7 @@ class ConfigureSimulationDialog(QtGui.QDialog, QtCore.QThread):
         engine = SimulationEngine(aggregate_parameters, mastic_parameters,
                                   air_parameters, self.collection, slice_parameter)
 
-        thermal_steps = int(self.thermalSteps.text())
+        
         
         
 
@@ -554,6 +544,28 @@ class ConfigureSimulationDialog(QtGui.QDialog, QtCore.QThread):
                            
         output_results = Result(materials)
         output_results.showResults()
+        
+class BusyBar(QtGui.QWidget):
+    def __init__(self, parent=None, task=None):
+        super(BusyBar, self).__init__(parent)
+#        layout = QtGui.QVBoxLayout(self)
+
+        # Create a progress bar and a button and add them to the main layout
+        self.progressBar = QtGui.QProgressBar(self)
+        self.progressBar.setRange(0,1)
+#        layout.addWidget(self.progressBar)
+        self.task = task
+        self.task.taskFinished.connect(self.onFinished)
+
+    def onStart(self):
+        self.show()
+        self.progressBar.setRange(0,0)
+        self.task.start()
+
+    def onFinished(self):
+        # Stop the pulsation
+        self.progressBar.setRange(0,1)
+        self.progressBar.setValue(1)
 
 
 #-----------------------------------------------------------------------------
