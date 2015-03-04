@@ -25,9 +25,8 @@ import matplotlib.image as mpimg
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from integration.file_loader import  FileLoader
-from simulation.simulation_engine import SimulationEngine
 from output.results import Result
-from graphic_controller import SegmentationController
+from graphic_controller import SegmentationController, SimulationController
 
 
 class ApplicationWindow(QtGui.QMainWindow):
@@ -154,27 +153,28 @@ class ApplicationWindow(QtGui.QMainWindow):
         This also enables the application window to show the animation of the
         treated sample
         """
-
         self.progressBar = QtGui.QProgressBar(self)
-        seg_controller = SegmentationController(self.collection)
+        controller = SegmentationController(self.collection)
         self.update_staus("Segmenting and reducing the sample...")
 
         def onFinished():
             self.progressBar.setRange(0,1)
             self.progressBar.setValue(1)
-            self.collection = seg_controller.getCollection()
-            
-            self.count_element_values()
+            self.collection = controller.getCollection()
+            self.update_staus("Segmenting and reducing completed...")
             
             self.dc.reset_index()
             self.action_sample_3d.setEnabled(True)  #Enables the 3D Model viewer
             self.action_sample_count.setEnabled(True) #Enables the count method
             self.simulation_setup.setEnabled(True) #Enables the simulation setup
             self.action_sample_segment.setEnabled(False) #Disables de segmentation action
-            self.progressBar.hide()
+            self.progressBar.close()
+            
+            self.count_element_values()
+            
 
-        self.connect(seg_controller, QtCore.SIGNAL("finished()"), onFinished)
-        seg_controller.start()
+        self.connect(controller, QtCore.SIGNAL("finished()"), onFinished)
+        controller.start()
         self.progressBar.show()
         self.progressBar.setRange(0,0)
 
@@ -483,10 +483,9 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         conductAir = 0.026
         
         steps = 10000
-        target_slice = 0
+        target_slice = self.size_Z/2
         
         mechanical_force = 800
-        
         
         self.aggregate_YM.setText(str(E2))
         self.mastic_YM.setText(str(E1))
@@ -505,78 +504,47 @@ class ConfigureSimulationDialog(QtGui.QDialog):
     def runSimulation(self):
         """
         This method loads the user input and initialize the simulation engine
-        """
-        aggregate_parameters, mastic_parameters, air_parameters = [], [], []
-
-        aggregate_parameters.append(self.aggregate_YM.text())
-        aggregate_parameters.append(self.aggregate_TC.text())
-        aggregate_parameters.append(self.aggregate_CH.text())
-
-        mastic_parameters.append(self.mastic_YM.text())
-        mastic_parameters.append(self.mastic_TC.text())
-        mastic_parameters.append(self.mastic_CH.text())
-
-        air_parameters.append(self.air_YM.text())
-        air_parameters.append(self.air_TC.text())
-        air_parameters.append(self.air_CH.text())
-
-        slice_parameter = int(self.sliderSelected.text())
-        force_parameter = int(self.mechanicalForceEdit.text())
-        thermal_steps = int(self.thermalSteps.text())
+        """        
+        options = {
+        'physical_cons': {
+            'aggregate_YM': self.aggregate_YM.text(),
+            'aggregate_TC': self.aggregate_TC.text(),
+            'aggregate_CH': self.aggregate_CH.text(),
+    
+            'mastic_YM': self.mastic_YM.text(),
+            'mastic_TC': self.mastic_TC.text(),
+            'mastic_CH': self.mastic_CH.text(),
+            
+            'air_YM': self.air_YM.text(),
+            'air_TC': self.air_TC.text(),
+            'air_CH': self.air_CH.text(),
+        },
+        
+        'inputs': {    
+            'force_input': int(self.mechanicalForceEdit.text()),
+            'thermal_steps': int(self.thermalSteps.text()),
+        }
+        
+        }
+        
+        slice_id = int(self.sliderSelected.text())
 
         #Close the dialog before the simulation starts
-        self.close()        
-        
-        progress = QtGui.QProgressDialog(aw)
-        progress.setLabelText("Simulating...")
-        progress.setCancelButton(None)
-        progress.setRange(0, 0)
-        progress.setMinimumDuration(0)
-        progress.show()
-        QtGui.QApplication.processEvents()
-        
-        engine = SimulationEngine(aggregate_parameters, mastic_parameters,
-                                  air_parameters, self.collection, slice_parameter)
+        self.close()
 
-        
-        
-        
-
-        materials = engine.simulationCicle(no_thermal_iter=thermal_steps,
-                                           mechanical_force = force_parameter)
-        
-
-        progress.cancel()                                       
-                           
-        output_results = Result(materials)
-        output_results.showResults()
-        
-class BusyBar(QtGui.QWidget):
-    def __init__(self, task, parent=None):
-        super(BusyBar, self).__init__(parent)
-
-        self.finished = False
-        # Create a progress bar
         self.progressBar = QtGui.QProgressBar(self)
-        self.progressBar.setRange(0,1)
-#        layout.addWidget(self.progressBar)
-        self.task = task
-        self.connect(self.task, QtCore.SIGNAL("finished()"), self.onFinished)
-        #self.task.taskFinished.connect(self.onFinished)
+        controller = SimulationController(self.collection, slice_id, **options)
 
-    def onStart(self):
-        self.show()
+        def onFinished():
+            self.progressBar.setRange(0,1)
+            self.progressBar.setValue(1)
+            self.progressBar.hide()
+
+        self.connect(controller, QtCore.SIGNAL("finished()"), onFinished)
+        controller.start()
+        self.progressBar.show()
         self.progressBar.setRange(0,0)
-        self.task.start()
-
-    def onFinished(self):
-        # Stop the pulsation
-        self.progressBar.setRange(0,1)
-        self.progressBar.setValue(1)
-        self.finished = True
-        self.hide()
-
-
+        
 #-----------------------------------------------------------------------------
 if __name__ == '__main__':
     qApp = QtGui.QApplication(sys.argv)
