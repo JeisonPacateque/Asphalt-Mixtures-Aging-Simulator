@@ -17,6 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from mayavi import mlab
 from numpy import array
+from mayavi.modules.text import Text
+
 
 def ToyModel3d(sample):
     """
@@ -49,7 +51,35 @@ def ToyModel3d(sample):
     scp.module_manager.scalar_lut_manager.data_range = array([ 0.,  2.])
 
 
+    engine = mlab.get_engine()
+
+    textAggregate = Text()
+    textMastic = Text()
+    textVoids = Text()
+
+    engine.add_filter(textAggregate, scp.module_manager)
+    engine.add_filter(textMastic, ipw.module_manager)
+    engine.add_filter(textVoids, iso.module_manager)
+
+
+    textAggregate.text = 'Aggregate'
+    textMastic.text = 'Mastic'
+    textVoids.text = 'Air Voids'
+
+    textAggregate.actor.text_scale_mode = 'viewport'
+    textMastic.actor.text_scale_mode = 'viewport'
+    textVoids.actor.text_scale_mode = 'viewport'
+
+    textAggregate.actor.minimum_size = array([ 1, 10])
+    textMastic.actor.minimum_size = array([ 1, 10])
+    textVoids.actor.minimum_size = array([ 1, 10])
+
+    textAggregate.actor.position = array([ 0.115,  0.7 ])
+    textMastic.actor.position = array([ 0.115,  0.45])
+    textVoids.actor.position = array([ 0.115,  0.23])
+
+
     mlab.orientation_axes()
     mlab.title("Asphalt Mixture Reconstruction", size=0.25)
-    mlab.colorbar(title='Material', orientation='vertical', nb_labels=3, nb_colors=3)
+    mlab.colorbar(title='Material', orientation='vertical', nb_labels=0, nb_colors=3)
     mlab.show()
