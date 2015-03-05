@@ -26,32 +26,35 @@ class SimulationEngine(object):
     This class configures the sample as a materials array in order to run the
     simulations defined in the thermal, mechanical and chemical models.
     """
-    def __init__(self, aggregate_parameters, mastic_parameters, air_parameters,
-                 collection, slice_id=50, steps=10000):
-
-        # [0] ---> young modules
-        # [1] ---> thermical conductivity
-        # [2] ---> chemical value
+    def __init__(self, collection, slice_id, **physical_cons):
 
         self.collection = collection
-        self.mastic = Material(mastic_parameters[0], mastic_parameters[1],
-                               mastic_parameters[2])
-        self.aggregate = Material(aggregate_parameters[0], aggregate_parameters[1],
-                                   aggregate_parameters[2])
-        self.airvoid = Material(air_parameters[0], air_parameters[1],
-                                air_parameters[2])
 
-        vertical_slice = self.loadVerticalSlice(slice_id)
+        # materials creation
+        self.mastic = Material(physical_cons['mastic_YM'], # young modulus
+                               physical_cons['mastic_TC'], # thermal conducticity
+                               physical_cons['mastic_CH']) # chemical
+                               
+        self.aggregate = Material(physical_cons['aggregate_YM'],
+                                  physical_cons['aggregate_TC'],
+                                  physical_cons['aggregate_CH'])
+                                    
+        self.airvoid = Material(physical_cons['air_YM'],
+                                physical_cons['air_TC'],
+                                physical_cons['air_CH'])
+
+        vertical_slice = self._loadVerticalSlice(slice_id)
 
         # Structure data where the simulation takes place
-        self.matrix_materials = self.getMatrixMaterials(vertical_slice)
+        self.matrix_materials = self._getMatrixMaterials(vertical_slice)
 
-    def loadVerticalSlice(self, slice_id):
+    def _loadVerticalSlice(self, slice_id):
         """Cut the slice of the collection in the position id"""
         vertical_slice = self.collection[:, :, slice_id]
+        vertical_slice = vertical_slice.copy() # avoid side effects
         return vertical_slice.transpose()
 
-    def getMatrixMaterials(self, vertical_slice):
+    def _getMatrixMaterials(self, vertical_slice):
         """Create the matrix material from a vertical slice"""
         material_matrix = np.empty(vertical_slice.shape, dtype=object)
 
@@ -66,8 +69,7 @@ class SimulationEngine(object):
         print "Materials matrix created, size:", material_matrix.shape
         return material_matrix
 
-    def simulationCicle(self, mechanical_force, no_mech_iter=1, no_thermal_iter=200,
-                        no_chemic_iter=1):
+    def simulationCicle(self, **inputs):
 #==============================================================================
 #       Thermal model implementation (Every model should run on a loop)
 #==============================================================================
@@ -78,12 +80,12 @@ class SimulationEngine(object):
 
         self.thermal = ThermalModel(self.matrix_materials, max_TC)
         self.thermal.applySimulationConditions()
-        self.matrix_materials = self.thermal.simulate(no_thermal_iter)
+        self.matrix_materials = self.thermal.simulate(inputs['thermal_steps'])
 #==============================================================================
 #       Mechanical model implementation
 #==============================================================================
         self.mechanics = FEMMechanics(self.matrix_materials)
-        self.mechanics.applySimulationConditions(mechanical_force)
+        self.mechanics.applySimulationConditions(inputs['force_input'])
         self.mechanics.simulate()
 
         return self.matrix_materials

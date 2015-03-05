@@ -225,13 +225,6 @@ class Segmentation(object):
 
         return segmented
 
-    def apply_mask(self, collection):
-        col_length = len(collection)
-        for i in range(col_length):
-            mask = sector_mask(collection[i].shape)
-            collection[i][~mask] = -1
-        
-        return collection
 
 #----------------------------------------------------------------------------------
 

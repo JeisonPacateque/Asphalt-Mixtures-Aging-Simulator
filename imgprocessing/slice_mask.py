@@ -58,3 +58,11 @@ def sector_mask(shape, centre=(50, 50), radius=50, angle_range=(0, 360)):
     anglemask = theta <= (tmax-tmin)
 
     return circmask*anglemask
+
+def apply_mask(collection):
+    col_length = len(collection)
+    for i in range(col_length):
+        mask = sector_mask(collection[i].shape)
+        collection[i][~mask] = -1
+    
+    return collection

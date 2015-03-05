@@ -25,9 +25,8 @@ import matplotlib.image as mpimg
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from integration.file_loader import  FileLoader
-from simulation.simulation_engine import SimulationEngine
 from output.results import Result
-from imgprocessing.segmentation import Segmentation
+from graphic_controller import SegmentationController, SimulationController
 
 
 class ApplicationWindow(QtGui.QMainWindow):
@@ -38,11 +37,10 @@ class ApplicationWindow(QtGui.QMainWindow):
 
         self.collection = []
         self.loader = FileLoader()
-        self.segmenter = Segmentation()
 
-        self.initUI()
+        self._initUI()
 
-    def initUI(self):
+    def _initUI(self):
         """ Gui initicializater"""
 
         self.timer = QtCore.QTimer()     #Timer intended to update the image
@@ -50,7 +48,6 @@ class ApplicationWindow(QtGui.QMainWindow):
 
         self.file_menu = QtGui.QMenu('File', self)
         self.file_menu.addAction('Choose path', self.open_path, QtCore.Qt.CTRL + QtCore.Qt.Key_O)
-        self.action_file_writevtk = self.file_menu.addAction('Write VTK file', self.write_vtk_file, QtCore.Qt.CTRL + QtCore.Qt.Key_W)
         self.file_menu.addAction('Exit', self.fileQuit, QtCore.Qt.CTRL + QtCore.Qt.Key_Q)
         self.menuBar().addMenu(self.file_menu)
 
@@ -129,8 +126,8 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.dc.reset_index()
         QtCore.QObject.connect(self.timer, QtCore.SIGNAL("timeout()"), self.dc.update_figure)
         self.timer.start(150)                #Set the update time
-        self.paused = False        
-        
+        self.paused = False
+
     def pause_animation(self):
         """
         Pause and Resume the 2D animation of the X-Ray raw or treated Dicom slices from
@@ -141,7 +138,7 @@ class ApplicationWindow(QtGui.QMainWindow):
             self.paused = False
         else:
             self.timer.stop()
-            self.paused = True    
+            self.paused = True
 
     def update_staus(self, message):
         """
@@ -151,24 +148,34 @@ class ApplicationWindow(QtGui.QMainWindow):
 
     def segment_sample(self):
         """
-        It uses the segmentation module to reduce and segment the toymodel.
+        Thorugh a controller it reduces and segmentes the toymodel.
         This also enables the application window to show the animation of the
         treated sample
         """
-
+        self.progressBar = QtGui.QProgressBar(self)
+        self.progressBar.setGeometry(QtCore.QRect(50, 210, 460, 40))
+        controller = SegmentationController(self.collection)
         self.update_staus("Segmenting and reducing the sample...")
-        reduced = self.segmenter.reduction(self.collection)
-        self.collection = self.segmenter.segment_all_samples(reduced)
-        self.update_staus("Segmentation and reduction completed")
-        self.count_element_values()
 
-        self.dc.reset_index()
-        self.action_sample_3d.setEnabled(True)  #Enables the 3D Model viewer
-        self.action_sample_count.setEnabled(True) #Enables the count method
-        self.action_file_writevtk.setEnabled(True) #Enables the VTK writer
-        self.simulation_setup.setEnabled(True) #Enables the simulation setup
+        def onFinished():
+            self.progressBar.setRange(0,1)
+            self.progressBar.setValue(1)
+            self.collection = controller.getData()
+            self.update_staus("Segmenting and reducing completed...")
 
-        self.action_sample_segment.setEnabled(False) #Disables de segmentation action
+            self.dc.reset_index()
+            self.action_sample_3d.setEnabled(True)  #Enables the 3D Model viewer
+            self.action_sample_count.setEnabled(True) #Enables the count method
+            self.simulation_setup.setEnabled(True) #Enables the simulation setup
+            self.action_sample_segment.setEnabled(False) #Disables de segmentation action
+            self.progressBar.close()
+
+            self.count_element_values()
+
+        controller.finished.connect(onFinished)
+        controller.start()
+        self.progressBar.show()
+        self.progressBar.setRange(0,0)
 
     def show_3d_sample(self):
         """
@@ -184,23 +191,19 @@ class ApplicationWindow(QtGui.QMainWindow):
             QtGui.QMessageBox.information(self, "Error",
                                     "Please check your Mayavi installation")
 
-    def write_vtk_file(self):
-        """
-        Deprecated. This method is used for testing
-        """
-        print "Writting VTK file from loaded model..."
-
 
     def count_element_values(self):
         """Shows the total count of detected elements after the segmentation"""
         from numpy import count_nonzero
+        from imgprocessing.slice_mask import apply_mask
         
         collection_mask = self.collection.copy()
-        collection_mask = self.segmenter.apply_mask(collection_mask) 
+        collection_mask = apply_mask(collection_mask) 
         
         empty = count_nonzero(collection_mask==0)
         mastic = count_nonzero(collection_mask==1)
         aggregate = count_nonzero(collection_mask==2)
+
         total = (empty+mastic+aggregate)
 
         QtGui.QMessageBox.about(self,
@@ -229,7 +232,6 @@ class ApplicationWindow(QtGui.QMainWindow):
         the count method requires samples to be segmented"""
         self.action_sample_count.setEnabled(False)
         self.action_sample_3d.setEnabled(False)
-        self.action_file_writevtk.setEnabled(True)
         self.simulation_setup.setEnabled(False)
 
         self.action_animation_pause.setEnabled(state)
@@ -300,10 +302,6 @@ class ApplicationWindow(QtGui.QMainWindow):
         config_dialog = ConfigureSimulationDialog(self.collection)
         config_dialog.exec_() #Prevents the dialog to disappear
 
-    def run_simulation(self):
-        print "Run simulation"
-
-
 
 class Canvas(FigureCanvas):
     """Set the graphical elements to show in a Qt Window"""
@@ -360,15 +358,18 @@ class ConfigureSimulationDialog(QtGui.QDialog):
     def __init__(self, collection):
         super(ConfigureSimulationDialog, self).__init__()
 
-        self.collection = collection        
-        _, _, size_Z = self.collection.shape
+        self.collection = collection
+        _, _, self.size_Z = self.collection.shape
 
+        self._initUI()
+
+    def _initUI(self):
         self.title = QtGui.QLabel('<b> Select the vertical slice </b>')
 
         self.slider = QtGui.QSlider()
         self.slider.setGeometry(QtCore.QRect(120, 380, 321, 31))
         self.slider.setOrientation(QtCore.Qt.Horizontal)
-        self.slider.setRange(0, size_Z)
+        self.slider.setRange(0, self.size_Z)
         self.slider.valueChanged.connect(self.changeText)
 
         self.sliderSelected = QtGui.QLineEdit()
@@ -459,10 +460,13 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.setDefaultValues()
         self.show()
 
+    def closeWindow(self):
+        self.close()
+
     def changeText(self, value):
         self.z = value
         self.sliderSelected.setText(str(self.z))
-    
+
     def setDefaultValues(self):
         """
         This method writes default test values over the configuration dialog
@@ -470,17 +474,16 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         E2 = 21000000
         E1 = 10000000
         E0 = 100
-        
+
         conductAsphalt = 0.75
         conductRock = 7.8
         conductAir = 0.026
-        
+
         steps = 10000
-        target_slice = 0
-        
+        target_slice = self.size_Z/2
+
         mechanical_force = 800
-        
-        
+
         self.aggregate_YM.setText(str(E2))
         self.mastic_YM.setText(str(E1))
         self.air_YM.setText(str(E0))
@@ -494,46 +497,55 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.mastic_CH.setText('Chem Mastic')
         self.air_CH.setText('Chem Air')
 
+
     def runSimulation(self):
         """
         This method loads the user input and initialize the simulation engine
         """
-        aggregate_parameters, mastic_parameters, air_parameters = [], [], []
+        options = {
+        'physical_cons': {
+            'aggregate_YM': self.aggregate_YM.text(),
+            'aggregate_TC': self.aggregate_TC.text(),
+            'aggregate_CH': self.aggregate_CH.text(),
 
-        aggregate_parameters.append(self.aggregate_YM.text())
-        aggregate_parameters.append(self.aggregate_TC.text())
-        aggregate_parameters.append(self.aggregate_CH.text())
+            'mastic_YM': self.mastic_YM.text(),
+            'mastic_TC': self.mastic_TC.text(),
+            'mastic_CH': self.mastic_CH.text(),
 
-        mastic_parameters.append(self.mastic_YM.text())
-        mastic_parameters.append(self.mastic_TC.text())
-        mastic_parameters.append(self.mastic_CH.text())
+            'air_YM': self.air_YM.text(),
+            'air_TC': self.air_TC.text(),
+            'air_CH': self.air_CH.text(),
+        },
 
-        air_parameters.append(self.air_YM.text())
-        air_parameters.append(self.air_TC.text())
-        air_parameters.append(self.air_CH.text())
+        'inputs': {
+            'force_input': int(self.mechanicalForceEdit.text()),
+            'thermal_steps': int(self.thermalSteps.text()),
+        }
 
-        slice_parameter = int(self.sliderSelected.text())
-        force_parameter = int(self.mechanicalForceEdit.text())
+        }
+
+        slice_id = int(self.sliderSelected.text())
 
         #Close the dialog before the simulation starts
-        self.close()
 
-        engine = SimulationEngine(aggregate_parameters, mastic_parameters,
-                                  air_parameters, self.collection, slice_parameter)
+        self.progressBar = QtGui.QProgressBar(self)
+        self.progressBar.setGeometry(QtCore.QRect(30, 210, 460, 40))
+        controller = SimulationController(self.collection, slice_id, **options)
 
-        thermal_steps = int(self.thermalSteps.text())
-        
-        
+        def onFinished():
+            self.progressBar.setRange(0,1)
+            self.progressBar.setValue(1)
+            self.progressBar.hide()
+            materials = controller.getData()
+            output_results = Result(materials)
+            output_results.showResults()
 
-        materials = engine.simulationCicle(no_thermal_iter=thermal_steps,
-                                           mechanical_force = force_parameter)
+        controller.finished.connect(onFinished)
 
-        output_results = Result(materials)
-        output_results.showResults()
-
-    def closeWindow(self):
-        self.close()
-
+#        self.connect(controller, QtCore.SIGNAL("finished()"), onFinished)
+        controller.start()
+        self.progressBar.show()
+        self.progressBar.setRange(0,0)
 
 #-----------------------------------------------------------------------------
 if __name__ == '__main__':

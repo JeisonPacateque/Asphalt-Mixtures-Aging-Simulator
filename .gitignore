@@ -3,6 +3,7 @@
 *.pdf
 *.so
 *.c
+.idea/
 /samples/
 /docs/_build/
 /file_loader.pyc
