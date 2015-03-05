@@ -160,7 +160,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         def onFinished():
             self.progressBar.setRange(0,1)
             self.progressBar.setValue(1)
-            self.collection = controller.getCollection()
+            self.collection = controller.getData()
             self.update_staus("Segmenting and reducing completed...")
             
             self.dc.reset_index()
@@ -172,8 +172,8 @@ class ApplicationWindow(QtGui.QMainWindow):
             
             self.count_element_values()
             
-
-        self.connect(controller, QtCore.SIGNAL("finished()"), onFinished)
+        controller.finished.connect(onFinished)
+#        self.connect(controller, QtCore.SIGNAL("finished()"), onFinished)
         controller.start()
         self.progressBar.show()
         self.progressBar.setRange(0,0)
@@ -530,7 +530,6 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         slice_id = int(self.sliderSelected.text())
 
         #Close the dialog before the simulation starts
-        self.close()
 
         self.progressBar = QtGui.QProgressBar(self)
         controller = SimulationController(self.collection, slice_id, **options)
@@ -539,8 +538,13 @@ class ConfigureSimulationDialog(QtGui.QDialog):
             self.progressBar.setRange(0,1)
             self.progressBar.setValue(1)
             self.progressBar.hide()
-
-        self.connect(controller, QtCore.SIGNAL("finished()"), onFinished)
+            materials = controller.getData()
+            output_results = Result(materials)
+            output_results.showResults()
+        
+        controller.finished.connect(onFinished)
+            
+#        self.connect(controller, QtCore.SIGNAL("finished()"), onFinished)
         controller.start()
         self.progressBar.show()
         self.progressBar.setRange(0,0)

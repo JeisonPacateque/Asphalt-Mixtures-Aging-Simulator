@@ -69,7 +69,7 @@ class SimulationEngine(object):
         print "Materials matrix created, size:", material_matrix.shape
         return material_matrix
 
-    def simulationCicle(self, ):
+    def simulationCicle(self, **inputs):
 #==============================================================================
 #       Thermal model implementation (Every model should run on a loop)
 #==============================================================================
@@ -80,12 +80,12 @@ class SimulationEngine(object):
 
         self.thermal = ThermalModel(self.matrix_materials, max_TC)
         self.thermal.applySimulationConditions()
-        self.matrix_materials = self.thermal.simulate(no_thermal_iter)
+        self.matrix_materials = self.thermal.simulate(inputs['thermal_steps'])
 #==============================================================================
 #       Mechanical model implementation
 #==============================================================================
         self.mechanics = FEMMechanics(self.matrix_materials)
-        self.mechanics.applySimulationConditions(mechanical_force)
+        self.mechanics.applySimulationConditions(inputs['force_input'])
         self.mechanics.simulate()
 
         return self.matrix_materials

@@ -7,43 +7,38 @@ Created on Tue Mar  3 20:35:32 2015
 from simulation.simulation_engine import SimulationEngine
 from imgprocessing.segmentation import Segmentation
 from PyQt4 import QtCore
-from time import sleep
 
-class GraphicController(QtCore.QThread):
+class GraphicController(QtCore.QThread, QtCore.QObject):
     def __init__(self, collection, parent=None): 
-        QtCore.QThread.__init__(self, parent)
-        self.collection = collection
+        QtCore.QObject.__init__(self, parent)
+        self.data = collection
         
-    def getCollection(self):
-        return self.collection
+    def getData(self):
+        return self.data
 
 class SegmentationController(GraphicController):
+    finished = QtCore.pyqtSignal()
     def __init__(self, collection):
         super(SegmentationController, self).__init__(collection)
         self.segmenter = Segmentation()
 
     def run(self):
-        reduced = self.segmenter.reduction(self.collection)
-        self.collection = self.segmenter.segment_all_samples(reduced)
+        reduced = self.segmenter.reduction(self.data)
+        self.data = self.segmenter.segment_all_samples(reduced)
         
-        self.emit(QtCore.SIGNAL("finished()"))
+#        self.emit(QtCore.SIGNAL("finished()"))
+        self.finished.emit()
 
 class SimulationController(GraphicController):
+    finished = QtCore.pyqtSignal()
     def __init__(self, collection, slice_id, **options):
-        
+        super(SimulationController, self).__init__(collection)        
         self.physical_cons = options['physical_cons']
         self.inputs = options['inputs']
-        super(SimulationController, self).__init__(collection)
-        self.engine = SimulationEngine(self.collection, slice_id,
-                                       **self.physical_cons)
+        self.slice_id = slice_id
     
     def run(self):
-#        self.materials = self.engine.simulationCicle(**self.inputs['inputs'])
-        sleep(5)
-        self.finished.emit()
-#        self.emit(QtCore.SIGNAL("done()"))
-    
-#    def output(self):
-#        output_results = Result(materials)
-#        output_results.showResults()                                           
+        self.engine = SimulationEngine(self.data, self.slice_id, **self.physical_cons)
+        self.data = self.engine.simulationCicle(**self.inputs)
+        self.finished.emit()                                      
                                             
