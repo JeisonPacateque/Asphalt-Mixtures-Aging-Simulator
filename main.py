@@ -22,6 +22,7 @@ from PyQt4 import QtGui, QtCore
 import matplotlib
 matplotlib.use("Qt4Agg")
 import matplotlib.image as mpimg
+from matplotlib.colors import ListedColormap
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from integration.file_loader import  FileLoader
@@ -196,10 +197,10 @@ class ApplicationWindow(QtGui.QMainWindow):
         """Shows the total count of detected elements after the segmentation"""
         from numpy import count_nonzero
         from imgprocessing.slice_mask import apply_mask
-        
+
         collection_mask = self.collection.copy()
-        collection_mask = apply_mask(collection_mask) 
-        
+        collection_mask = apply_mask(collection_mask)
+
         empty = count_nonzero(collection_mask==0)
         mastic = count_nonzero(collection_mask==1)
         aggregate = count_nonzero(collection_mask==2)
@@ -306,18 +307,17 @@ class ApplicationWindow(QtGui.QMainWindow):
 class Canvas(FigureCanvas):
     """Set the graphical elements to show in a Qt Window"""
     def __init__(self, parent=None, width=5, height=4, dpi=100):
-        fig = Figure(figsize=(width, height), dpi=dpi)
-        self.axes = fig.add_subplot(111)
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.axes = self.fig.add_subplot(111)
         self.axes.hold(False) #We want the axes cleared every time plot() is called
-        initial = mpimg.imread('images/python.png')
-        self.axes.imshow(initial)   #Show an initial image for the app
-        FigureCanvas.__init__(self, fig)
+        FigureCanvas.__init__(self, self.fig)
         self.setParent(parent)
 
         FigureCanvas.setSizePolicy(self,
                                    QtGui.QSizePolicy.Expanding,
                                    QtGui.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
+
 
 #-------------------------------------------------------------------------------
 
@@ -327,13 +327,46 @@ class MyDynamicMplCanvas(Canvas):
         super(MyDynamicMplCanvas, self).__init__(main_widget, width=5, height=4, dpi=100)
         self.index = 0
         self.collection = "Empty"
+        self.myFigure = Canvas()
+        initial = mpimg.imread('images/python.png')
+        self.temp = self.axes.imshow(initial)
+
+        import matplotlib as mpl
+        import matplotlib.pyplot as plt
+
+        min, max = (-1, 2)
+        step = 1
+
+        # Setting up a colormap that's a simple transtion
+        mymap = mpl.colors.LinearSegmentedColormap.from_list('mycolors',['blue', 'white','red'])
+
+        # Using contourf to provide my colorbar info, then clearing the figure
+        Z = [[0,0],[0,0]]
+        levels = range(min,max+step,step)
+        CS3 = plt.contourf(Z, levels, cmap=mymap)
+        plt.clf()
+
+        # Plotting what I actually want
+        X=[[1,2],[1,2],[1,2],[1,2]]
+        Y=[[1,2],[1,3],[1,4],[1,5]]
+        Z=[-40,-20,0,30]
+        for x,y,z in zip(X,Y,Z):
+            # setting rgb color based on z normalized to my range
+            r = (float(z)-min)/(max-min)
+            g = 0
+            b = 1-r
+        plt.plot(x,y,color=(r,g,b))
+        asd = self.myFigure.fig.colorbar(CS3, ax=self.axes)
+        asd.set_ticklabels(['','Voids', 'Mastic', 'Aggregate'])
+
 
     def update_figure(self):
         """Read and plot all the images stored in the image list"""
         if type(self.collection) == str:
             self.collection = aw.get_collection()
         if self.index != len(self.collection) : #Conditional to restart the loop
-            self.axes.imshow(self.collection[self.index], cmap='seismic', interpolation='nearest')
+
+            self.temp = self.axes.imshow(self.collection[self.index], cmap='seismic', interpolation='nearest')
 
             status_text = "Sample: "+str(self.index)
             aw.update_staus(status_text) #Show in status bar the current index
@@ -341,6 +374,7 @@ class MyDynamicMplCanvas(Canvas):
             self.draw()
         else:
             self.index=0 #When iteration catches the len(self.collection) restart the loop
+
 
     def reset_index(self):
         """Reset the slice index to restart the animation"""
