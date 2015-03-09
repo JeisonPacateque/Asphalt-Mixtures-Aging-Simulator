@@ -22,7 +22,8 @@ from PyQt4 import QtGui, QtCore
 import matplotlib
 matplotlib.use("Qt4Agg")
 import matplotlib.image as mpimg
-from matplotlib.colors import ListedColormap
+import matplotlib as mpl
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from integration.file_loader import  FileLoader
@@ -83,6 +84,7 @@ class ApplicationWindow(QtGui.QMainWindow):
 
         l = QtGui.QGridLayout(self.main_widget)
         self.dc = MyDynamicMplCanvas(self.main_widget, width=5, height=4, dpi=100)
+
 
         self.folder_path = QtGui.QLineEdit(self)
         self.folder_path.setReadOnly(True) #The only way to edit path should be by using the button
@@ -318,7 +320,6 @@ class Canvas(FigureCanvas):
                                    QtGui.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-
 #-------------------------------------------------------------------------------
 
 class MyDynamicMplCanvas(Canvas):
@@ -327,41 +328,38 @@ class MyDynamicMplCanvas(Canvas):
         super(MyDynamicMplCanvas, self).__init__(main_widget, width=5, height=4, dpi=100)
         self.index = 0
         self.collection = "Empty"
+        print "canvas constructos"
         self.myFigure = Canvas()
         initial = mpimg.imread('images/python.png')
         self.temp = self.axes.imshow(initial)
 
-        import matplotlib as mpl
-        import matplotlib.pyplot as plt
-
         min, max = (-1, 2)
         step = 1
-
-        # Setting up a colormap that's a simple transtion
-        mymap = mpl.colors.LinearSegmentedColormap.from_list('mycolors',['blue', 'white','red'])
-
-        # Using contourf to provide my colorbar info, then clearing the figure
+        # Setting up a colormap
+        self.mymap = mpl.colors.LinearSegmentedColormap.from_list('mycolors',['blue', 'white', 'red'])
         Z = [[0,0],[0,0]]
         levels = range(min,max+step,step)
-        CS3 = plt.contourf(Z, levels, cmap=mymap)
+        material_colors = plt.contourf(Z, levels, cmap=self.mymap)
         plt.clf()
 
         # Plotting what I actually want
         X=[[1,2],[1,2],[1,2],[1,2]]
         Y=[[1,2],[1,3],[1,4],[1,5]]
-        Z=[-40,-20,0,30]
+        Z=[-50,-1,0,50]
         for x,y,z in zip(X,Y,Z):
             # setting rgb color based on z normalized to my range
             r = (float(z)-min)/(max-min)
             g = 0
             b = 1-r
         plt.plot(x,y,color=(r,g,b))
-        asd = self.myFigure.fig.colorbar(CS3, ax=self.axes)
-        asd.set_ticklabels(['','Voids', 'Mastic', 'Aggregate'])
+        self.fig_colorbar = self.myFigure.fig.colorbar(material_colors, ax=self.axes)
+        self.fig_colorbar.set_ticklabels(['','', '', ''])
 
 
     def update_figure(self):
         """Read and plot all the images stored in the image list"""
+        #Set the labels for the materials
+        self.fig_colorbar.set_ticklabels(['','Voids', 'Mastic', 'Aggregate'])
         if type(self.collection) == str:
             self.collection = aw.get_collection()
         if self.index != len(self.collection) : #Conditional to restart the loop
