@@ -16,13 +16,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 '''
 
 class Material(object):
-    def __init__(self, young_modulus, thermal_conductivity, chemical_value):
+    def __init__(self, phase, young_modulus, thermal_conductivity, chemical_value):
         """
         This class is the representation of the asphalt mixtures materials to
         be simulated. Since the specific nature of the intended simulations,
         just thermal mechanical and chemical attributes are considered
         """
-
+        
+        self._phase = phase        
+        
         self._young_modulus = float(young_modulus) # Young's modulus
 
         # Thermal conductivity units are W/(m K) in the SI
@@ -35,6 +37,7 @@ class Material(object):
         self._lengthFE = 1
 
         self._displacement = 0 # local displacement of the element
+        self._rca = 0  # rate carbonyle
 
     @property
     def young_modulus(self):
@@ -91,3 +94,19 @@ class Material(object):
     @displacement.setter
     def displacement(self, value):
         self._displacement = value
+    
+    @property
+    def phase(self):
+        return self._phase
+    
+    @phase.setter
+    def phase(self, value):
+        self._phase = value
+    
+    @property
+    def rca(self):
+        return self._rca
+    
+    @rca.setter
+    def rca(self, value):
+        self._rca
