@@ -76,7 +76,6 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.help_menu.addAction('Help', self.help_dialog)
         self.help_menu.addAction('About...', self.about)
 
-
         open_button = QtGui.QPushButton('Choose work path', self)
         open_button.clicked[bool].connect(self.open_path) #Button listener
 
@@ -92,7 +91,15 @@ class ApplicationWindow(QtGui.QMainWindow):
         l.addWidget(self.folder_path, 1, 1)
         l.addWidget(open_button, 1, 2)
         l.addWidget(self.dc, 2, 1, 2, 2)
+        self.setGeometry(10, 35 , 560, 520)
 
+        window_size = self.geometry()
+        left = window_size.left()
+        right = window_size.right()-500
+        top = window_size.top()+200
+        bottom = window_size.bottom()+21
+
+        self.window_size = QtCore.QRect(left, top, bottom, right)
         self.main_widget.setFocus()
         self.setCentralWidget(self.main_widget)
         self.menu_buttons_state()
@@ -156,7 +163,8 @@ class ApplicationWindow(QtGui.QMainWindow):
         treated sample
         """
         self.progressBar = QtGui.QProgressBar(self)
-        self.progressBar.setGeometry(QtCore.QRect(50, 210, 460, 40))
+        #self.progressBar.setGeometry(QtCore.QRect(50, 210, 460, 40))
+        self.progressBar.setGeometry(self.window_size)
         controller = SegmentationController(self.collection)
         self.update_staus("Segmenting and reducing the sample...")
 
@@ -302,8 +310,8 @@ class ApplicationWindow(QtGui.QMainWindow):
     def setup_simulation(self):
         """Shows the configure simulation dialog"""
 
-        config_dialog = ConfigureSimulationDialog(self.collection)
-        config_dialog.exec_() #Prevents the dialog to disappear
+        self.config_dialog = ConfigureSimulationDialog(self.collection)
+        self.config_dialog.exec_() #Prevents the dialog to disappear
 
 
 class Canvas(FigureCanvas):
@@ -328,7 +336,6 @@ class MyDynamicMplCanvas(Canvas):
         super(MyDynamicMplCanvas, self).__init__(main_widget, width=5, height=4, dpi=100)
         self.index = 0
         self.collection = "Empty"
-        print "canvas constructos"
         self.myFigure = Canvas()
         initial = mpimg.imread('images/python.png')
         self.temp = self.axes.imshow(initial)
@@ -484,10 +491,16 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.grid.addWidget(self.runSimulationButton, 14, 1)
         self.grid.addWidget(self.cancelButton, 14, 2)
 
-
         self.setLayout(self.grid)
+        self.setGeometry(10, 35 , 560, 520)
 
-        self.setGeometry(300, 300, 480, 450)
+        window_size = self.geometry()
+        left = window_size.left()
+        right = window_size.right()-500
+        top = window_size.top()+200
+        bottom = window_size.bottom()+21
+
+        self.window_size = QtCore.QRect(left, top, bottom, right)
         self.setWindowTitle('Configure Simulation')
         self.setDefaultValues()
         self.show()
@@ -561,21 +574,19 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         #Close the dialog before the simulation starts
 
         self.progressBar = QtGui.QProgressBar(self)
-        self.progressBar.setGeometry(QtCore.QRect(30, 210, 460, 40))
-        controller = SimulationController(self.collection, slice_id, **options)
+        self.progressBar.setGeometry(QtCore.QRect(self.window_size))
+        self.controller = SimulationController(self.collection, slice_id, **options)
 
         def onFinished():
             self.progressBar.setRange(0,1)
             self.progressBar.setValue(1)
             self.progressBar.hide()
-            materials = controller.getData()
+            materials = self.controller.getData()
             output_results = Result(materials)
             output_results.showResults()
 
-        controller.finished.connect(onFinished)
-
-#        self.connect(controller, QtCore.SIGNAL("finished()"), onFinished)
-        controller.start()
+        self.controller.finished.connect(onFinished)
+        self.controller.start()
         self.progressBar.show()
         self.progressBar.setRange(0,0)
 
