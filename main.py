@@ -97,7 +97,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         left = window_size.left()
         right = window_size.right()-500
         top = window_size.top()+200
-        bottom = window_size.bottom()+21
+        bottom = window_size.bottom()-20
 
         self.window_size = QtCore.QRect(left, top, bottom, right)
         self.main_widget.setFocus()
@@ -498,7 +498,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         left = window_size.left()
         right = window_size.right()-500
         top = window_size.top()+200
-        bottom = window_size.bottom()+21
+        bottom = window_size.bottom()-20
 
         self.window_size = QtCore.QRect(left, top, bottom, right)
         self.setWindowTitle('Configure Simulation')
