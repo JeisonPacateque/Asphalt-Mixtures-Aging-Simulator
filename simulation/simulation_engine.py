@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from thermal_model import ThermalModel
 from fem_mechanics import FEMMechanics
+from chemical_model import ChemicalModel
 import numpy as np
 from material import Material
 import copy
@@ -31,15 +32,18 @@ class SimulationEngine(object):
         self.collection = collection
 
         # materials creation
-        self.mastic = Material(physical_cons['mastic_YM'], # young modulus
+        self.mastic = Material('mastic',
+                               physical_cons['mastic_YM'], # young modulus
                                physical_cons['mastic_TC'], # thermal conducticity
                                physical_cons['mastic_CH']) # chemical
                                
-        self.aggregate = Material(physical_cons['aggregate_YM'],
+        self.aggregate = Material('aggregate',
+                                  physical_cons['aggregate_YM'],
                                   physical_cons['aggregate_TC'],
                                   physical_cons['aggregate_CH'])
                                     
-        self.airvoid = Material(physical_cons['air_YM'],
+        self.airvoid = Material('airvoid',
+                                physical_cons['air_YM'],
                                 physical_cons['air_TC'],
                                 physical_cons['air_CH'])
 
@@ -88,4 +92,11 @@ class SimulationEngine(object):
         self.mechanics.applySimulationConditions(inputs['force_input'])
         self.mechanics.simulate()
 
+#==============================================================================
+#       Chemical model implementation
+#==============================================================================
+        self.chemical = ChemicalModel(self.matrix_materials)
+        self.chemical.applySimulationConditions()
+        self.chemical.simulate()
+        
         return self.matrix_materials

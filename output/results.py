@@ -31,6 +31,7 @@ class Result(object):
         self.materials = matrix_materials
         self.heatmap = self.thermalResults()
         self.displacements = self.mechanicalResults()
+        self.rcas = self.chemicalResults() 
 
     def thermalResults(self):
         """
@@ -56,6 +57,15 @@ class Result(object):
 
         return displacements
     
+    def chemicalResults(self):
+        rcas = np.zeros(self.materials.shape)
+        for i in xrange(self.materials.shape[0]):
+            for j in xrange(self.materials.shape[1]):
+                rcas[i,j] = self.materials[i,j].rca
+        
+        return rcas
+        
+    
     def showResults(self):
         plt.figure(1)
         plt.clf() # clear figure
@@ -71,3 +81,10 @@ class Result(object):
         C = plt.contour(self.displacements, colors='k')
         plt.clabel(C, inline=10, fontsize=10)
         plt.show()
+        
+#        plt.figure(3)
+#        plt.clf()
+#        plt.title("Carbonyle rates")
+#        X = plt.contour(self.rcas, colors='k')
+#        plt.clabel(X, inline=10, fontsize=10)
+#        plt.show()
