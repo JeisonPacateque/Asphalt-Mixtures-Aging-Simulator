@@ -21,7 +21,7 @@ import laplacian
 from physical_model import PhysicalModel
 
 class ThermalModel(PhysicalModel):
-    def __init__(self, matrix_materials, max_TC=7.8):
+    def __init__(self, matrix_materials, meanTC):
         r"""
         This class provides the thermal model through  two-dimensional
         difussion:
@@ -62,8 +62,8 @@ class ThermalModel(PhysicalModel):
         .. _Creative Commons: http://creativecommons.org/licenses/by-sa/2.0/
         """
 
-        super(ThermalModel, self).__init__(matrix_materials)         
-        
+        super(ThermalModel, self).__init__(matrix_materials)
+
         #initial temperature field
         self.ui = np.zeros(self.MM.shape, dtype=np.float)
         self.u = self.ui.copy() # next step temperature field
@@ -86,8 +86,10 @@ class ThermalModel(PhysicalModel):
 
         # For stability, this is the largest interval possible
         # for the size of the time-step:
-        self.dt = self.dx2*self.dy2/(max_TC**(self.dx2 + self.dy2))
+        print meanTC
+        self.dt = self.dx2*self.dy2/(2*7.8*(self.dx2 + self.dy2))
         print "dt = ", self.dt
+
 
     def applySimulationConditions(self, env_temp=40, internal_temp=10):
         r"""
