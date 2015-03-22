@@ -77,8 +77,8 @@ class ThermalModel(PhysicalModel):
         # Calculate dx, dy
         self.lengthX = self.MM.shape[0]
         self.lengthY = self.MM.shape[1]
-        dx = 1./self.lengthX
-        dy = 1./self.lengthY
+        dx = 10./self.lengthX
+        dy = 10./self.lengthY
         self.dx2 = dx**2 # To save CPU cycles, we'll compute Delta x^2
         self.dy2 = dy**2 # and Delta y^2 only once and store them.
         print "dx2=", self.dx2
