@@ -60,8 +60,8 @@ class FEMMechanics(PhysicalModel):
         self.elements_top = [] # Indice Elemento superior
         self.elements_bottom = [] #Indice Elemento inferior
         #La matriz de conectividad se debe cargar invertida
-        self.conectivity_matrix = self._ElementConectivityMatrix(
-        self.MM.shape[1], self.MM.shape[0])
+        self.conectivity_matrix = self._ElementConectivityMatrix(self.MM.shape[1],
+                                                                 self.MM.shape[0])
 
     def _LinearBarElementForces(self, k, u):
         r"""This function returns the element nodalforce vector given the
@@ -73,8 +73,7 @@ class FEMMechanics(PhysicalModel):
         r"""This function returns the element nodal stress vector given the
         element stiffness matrix k, the element nodal displacement vector u,
         and the cross-sectional area A."""
-        y = np.dot(k, u)
-        return y / A
+        return np.dot(k, u/A)
 
     def _LinearBarElementStiffness(self, E, A, L):
         r""" This function returns the Finite Element stiffness considering
@@ -183,14 +182,25 @@ class FEMMechanics(PhysicalModel):
 
         #calculate displacements-------------------------------------------
         U = np.linalg.solve(k_sub, forces)
+        Ux = np.append(np.copy(U), np.zeros((46)))            
+        
         U = U.reshape(self.MM.shape)
-
-
-        # copy the displacements field into the matrix materials
+        
+        forces_node = np.dot(self.K, Ux)
+        
+        #copy the displacements field into the matrix materials
         for i in xrange(self.MM.shape[0]):
             for j in xrange(self.MM.shape[1]):
-                self.MM[i,j].displacement = U[i,j]
-
+                self.MM[i,j].displacement = U[i,j]    
+        
+                
+#        #aca hay que hace un calculo de los esfuerzos
+#        for i in xrange(self.MM.shape[0]):
+#            for j in xrange(self.MM.shape[1]):
+#                self.MM[i,j].displacements = forces_node[i,j]
+        
 
         end_time = time.time()  # Get the time when method ends
         print "Mechanical simulation done in ", str(end_time - start_time), " seconds."
+        
+        return self.MM

@@ -89,6 +89,9 @@ class ThermalModel(PhysicalModel):
         print meanTC
         self.dt = self.dx2*self.dy2/(2*7.8*(self.dx2 + self.dy2))
         print "dt = ", self.dt
+        
+        internal_temp=15
+        self.ui.fill(internal_temp)    # internal temperature in asphalt
 
 
     def applySimulationConditions(self, env_temp=40, internal_temp=10):
@@ -101,12 +104,15 @@ class ThermalModel(PhysicalModel):
         :param float internal_temp: the initial internal temperature to apply in
             the toy model
         """
+        env_temp=40
 
-        self.ui.fill(internal_temp)    # internal temperature in asphalt
-        self.ui[:10,:] = env_temp # applied temperature from environment
+        self.ui[:2,:] = env_temp # applied temperature from environment
+        self.ui[-2:,:] = env_temp
+        self.ui[:,:2] = env_temp
+        self.ui[:,-2:] = env_temp
 
-        print "Applied internal temperature in the asphalt:", internal_temp
-        print "Applied temperature from environment:", env_temp
+#        print "Applied internal temperature in the asphalt:", internal_temp
+#        print "Applied temperature from environment:", env_temp
 
     def simulate(self, n_steps):
         r"""
@@ -121,9 +127,18 @@ class ThermalModel(PhysicalModel):
         start_time = time.time()  # Measures file loading time
 
         for step in np.nditer(steps):
+            self.applySimulationConditions()
             print "Thermal simulation step:", step
             self. u = laplacian.evolve_ts(self.ui, self.u, self.TCs,
                                 self.dt, self.dx2, self.dy2)
+            
+            arr = self.ui[1:-1, 1:-1]
+            if (arr>39).all() :
+                "entro"
+                print "final step is ", step
+                print "each steap equal to ", step/14400., "seconds"
+                break
+            
             self.ui = self.u.copy()
 
         # copy the field temperature into the matrix materials
@@ -132,6 +147,6 @@ class ThermalModel(PhysicalModel):
                 self.MM[i,j].temperature = self.u[i,j]
 
         end_time = time.time()  # Get the time when method ends
-        print "Thermal simulation done in ", str(end_time - start_time), " seconds."
+#        print "Thermal simulation done in ", str(end_time - start_time), " seconds."
 
         return self.MM

@@ -72,7 +72,21 @@ class SimulationEngine(object):
 
         print "Materials matrix created, size:", material_matrix.shape
         return material_matrix
-
+    
+    def _calcNewModules(self, MM):
+        print "recalculando los modulos"
+        for i in xrange(MM.shape[0]):
+            for j in xrange(MM.shape[1]):
+                if MM[i,j].phase == 'mastic':
+                    if MM[i,j].temperature <= 20:
+                        MM[i,j].young_modulus = 16030
+                        
+                    elif MM[i,j].temperature <= 35:
+                        MM[i,j].young_modulus = 5148
+                        
+                    else:
+                        MM[i,j].young_modulus = 1527
+        
     def simulationCicle(self, **inputs):
 #==============================================================================
 #       Thermal model implementation (Every model should run on a loop)
@@ -80,23 +94,32 @@ class SimulationEngine(object):
         max_TC = max(self.mastic.thermal_conductivity,
                      self.airvoid.thermal_conductivity,
                      self.aggregate.thermal_conductivity)
-
+        
+        self.chemical = ChemicalModel(self.matrix_materials)
+        self.chemical.applySimulationConditions()
+        self.matrix_materials = self.chemical.simulate()
+        
+        self.mechanics = FEMMechanics(self.matrix_materials)
+        self.mechanics.applySimulationConditions(inputs['force_input'])
+        self.matrix_materials = self.mechanics.simulate()
+        
+        data1 = self.matrix_materials.copy()
 
         self.thermal = ThermalModel(self.matrix_materials, max_TC)
         self.thermal.applySimulationConditions()
         self.matrix_materials = self.thermal.simulate(inputs['thermal_steps'])
-#==============================================================================
-#       Mechanical model implementation
-#==============================================================================
-        self.mechanics = FEMMechanics(self.matrix_materials)
-        self.mechanics.applySimulationConditions(inputs['force_input'])
-        self.mechanics.simulate()
-
-#==============================================================================
-#       Chemical model implementation
-#==============================================================================
+        
+        self._calcNewModules(self.matrix_materials)
+        # cambiar la energia de activación para correr el segundo modelo quimico
+        
         self.chemical = ChemicalModel(self.matrix_materials)
         self.chemical.applySimulationConditions()
-        self.chemical.simulate()
+        self.matrix_materials = self.chemical.simulate()
         
-        return self.matrix_materials
+        self.mechanics = FEMMechanics(self.matrix_materials)
+        self.mechanics.applySimulationConditions(inputs['force_input'])
+        self.matrix_materials = self.mechanics.simulate()
+        
+        data2 = self.matrix_materials.copy()       
+        
+        return data1, data2

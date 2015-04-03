@@ -20,7 +20,7 @@ from matplotlib import cm
 import numpy as np
 
 class Result(object):
-    def __init__(self, matrix_materials):
+    def __init__(self, matrix_materials, name):
         """
         This class handle shows on screen using matplotlib the material status
         after the thermal, mechanical and chemical simulation. The thermal
@@ -28,6 +28,7 @@ class Result(object):
         simulation results through a displacements map and the chemical reusults
         through ...
         """
+        self.name = name
         self.materials = matrix_materials
         self.heatmap = self.thermalResults()
         self.displacements = self.mechanicalResults()
@@ -67,20 +68,23 @@ class Result(object):
         
     
     def showResults(self):
+        print "saving the results of " + self.name
         plt.figure(1)
         plt.clf() # clear figure
         plt.title('Heat Map')
         plt.imshow(self.heatmap, interpolation='nearest', cmap=cm.jet)
         plt.colorbar()
-        plt.show()
+        plt.savefig(self.name+" heatmap")
+
+#        plt.show()
 
         plt.figure(2)
         plt.clf()
         clines = np.linspace(0., 1., 10) # contour line levels
-        plt.title('Displacements field')
+        plt.title('forces')
         C = plt.contour(self.displacements, colors='k')
         plt.clabel(C, inline=10, fontsize=10)
-        plt.show()
+        plt.savefig(self.name+" forces")
         
 #        plt.figure(3)
 #        plt.clf()
