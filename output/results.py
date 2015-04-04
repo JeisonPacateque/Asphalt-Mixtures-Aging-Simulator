@@ -31,7 +31,7 @@ class Result(object):
         self.name = name
         self.materials = matrix_materials
         self.heatmap = self.thermalResults()
-        self.displacements = self.mechanicalResults()
+        self.stresses = self.mechanicalResults()
         self.rcas = self.chemicalResults() 
 
     def thermalResults(self):
@@ -50,13 +50,13 @@ class Result(object):
         """
         DIsplacements map implementation using matplotlib
         """
-        displacements = np.zeros(self.materials.shape)
+        stresses = np.zeros(self.materials.shape)
 
         for i in xrange(self.materials.shape[0]):
             for j in xrange(self.materials.shape[1]):
-                displacements[i,j] = self.materials[i,j].displacement
+                stresses[i,j] = self.materials[i,j].stress
 
-        return displacements
+        return stresses
     
     def chemicalResults(self):
         rcas = np.zeros(self.materials.shape)
@@ -81,14 +81,19 @@ class Result(object):
         plt.figure(2)
         plt.clf()
         clines = np.linspace(0., 1., 10) # contour line levels
-        plt.title('forces')
-        C = plt.contour(self.displacements, colors='k')
-        plt.clabel(C, inline=10, fontsize=10)
-        plt.savefig(self.name+" forces")
+        plt.title('stress')
+#        C = plt.contour(self.stresses, colors='k')
+#        plt.clabel(C, inline=10, fontsize=10)
+        plt.imshow(self.stresses, interpolation='nearest')
+        plt.colorbar()
+        plt.savefig(self.name+" stress map")
         
-#        plt.figure(3)
-#        plt.clf()
-#        plt.title("Carbonyle rates")
+        plt.figure(3)
+        plt.clf()
+        plt.title("Carbonyle rates")
 #        X = plt.contour(self.rcas, colors='k')
 #        plt.clabel(X, inline=10, fontsize=10)
 #        plt.show()
+        plt.imshow(self.rcas, interpolation='nearest')
+        plt.colorbar()
+        plt.savefig(self.name + " carbonyle rates")

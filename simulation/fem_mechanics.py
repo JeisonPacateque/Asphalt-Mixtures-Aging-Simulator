@@ -182,24 +182,28 @@ class FEMMechanics(PhysicalModel):
 
         #calculate displacements-------------------------------------------
         U = np.linalg.solve(k_sub, forces)
-        Ux = np.append(np.copy(U), np.zeros((46)))            
         
-        U = U.reshape(self.MM.shape)
+        #Calculate the stress in each element
+        stresses = np.zeros(U.size)
+        cont = 0
+        for ux in np.nditer(U):
+            sigma =  self._LinearBarElementStresses(self.ki[cont], ux, 1)
+            stresses[cont] = sigma[0][0]
+            cont += 1
         
-        forces_node = np.dot(self.K, Ux)
+#        U = U.reshape(self.MM.shape) # reshape the displacements matrix U
         
         #copy the displacements field into the matrix materials
-        for i in xrange(self.MM.shape[0]):
-            for j in xrange(self.MM.shape[1]):
-                self.MM[i,j].displacement = U[i,j]    
-        
-                
-#        #aca hay que hace un calculo de los esfuerzos
 #        for i in xrange(self.MM.shape[0]):
 #            for j in xrange(self.MM.shape[1]):
-#                self.MM[i,j].displacements = forces_node[i,j]
+#                self.MM[i,j].displacement = U[i,j]    
         
-
+        stresses = stresses.reshape(self.MM.shape)
+        #copy the stresses field into the matrix materials
+        for i in xrange(self.MM.shape[0]):
+            for j in xrange(self.MM.shape[1]):
+                self.MM[i,j].stress = stresses[i, j]  
+        
         end_time = time.time()  # Get the time when method ends
         print "Mechanical simulation done in ", str(end_time - start_time), " seconds."
         

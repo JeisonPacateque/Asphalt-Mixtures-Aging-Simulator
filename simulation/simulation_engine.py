@@ -96,7 +96,7 @@ class SimulationEngine(object):
                      self.aggregate.thermal_conductivity)
         
         self.chemical = ChemicalModel(self.matrix_materials)
-        self.chemical.applySimulationConditions()
+        self.chemical.applySimulationConditions(74.47)
         self.matrix_materials = self.chemical.simulate()
         
         self.mechanics = FEMMechanics(self.matrix_materials)
@@ -110,10 +110,15 @@ class SimulationEngine(object):
         self.matrix_materials = self.thermal.simulate(inputs['thermal_steps'])
         
         self._calcNewModules(self.matrix_materials)
-        # cambiar la energia de activación para correr el segundo modelo quimico
+        # cambiar la energia de activacion para correr el segundo modelo quimico
         
         self.chemical = ChemicalModel(self.matrix_materials)
-        self.chemical.applySimulationConditions()
+        #A little change in the energy activation(EA) is emplemented
+        # from a increase of 3.13 of the rca in three moths
+        # it's obtained the following change in EA
+        # 3.9700659563673262303399289700659563673262303399289700659*10e-7 each second
+        # in 4 hours, that is, 144000 seconds, rca would increase 313/5475
+        self.chemical.applySimulationConditions(313/5475.)
         self.matrix_materials = self.chemical.simulate()
         
         self.mechanics = FEMMechanics(self.matrix_materials)

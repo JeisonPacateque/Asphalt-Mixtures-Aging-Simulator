@@ -17,9 +17,8 @@ class ChemicalModel(PhysicalModel):
             for j in xrange(self.MM.shape[1]):
                  self.u[i,j] = self.MM[i,j].temperature + 273.15
     
-    def applySimulationConditions(self):
-        pass
-    
+    def applySimulationConditions(self, EnergyActivation):
+        self.Ea = EnergyActivation    
     
     def simulate(self):
         A = 1.21e-10  # factor de amplitud
@@ -28,15 +27,13 @@ class ChemicalModel(PhysicalModel):
 
         alfa = 0 
         
-        Ea = 74.47 # energia de activacion
-        
         R = 8.3144621 # molar gas constant        
         
         for i in xrange(self.MM.shape[0]):
             for j in xrange(self.MM.shape[1]):
                 if self.MM[i,j].phase == 'mastic':
-                    T = self.u[i,j]
-                    self.MM[i,j].rca = A*(P**alfa)*(np.e**(-Ea/(R*T)))
+                    T = self.u[i,j] # temperature in the given pixel
+                    self.MM[i,j].rca = A*(P**alfa)*(np.e**(-self.Ea/(R*T)))
     
         return self.MM
         
