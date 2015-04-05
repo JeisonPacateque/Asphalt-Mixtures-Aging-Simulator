@@ -470,10 +470,12 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.grid.addWidget(self.modulusAirLabel, 5, 0)
         self.grid.addWidget(self.air_YM, 5, 1)
 
-'''
-This graphical elements are commented because modifying those values strongly
-affect the behavior of the simulation
-'''
+
+#==============================================================================
+# This graphical elements are commented because modifying those values strongly
+# affect the behavior of the simulation
+#==============================================================================
+
 
         self.grid.addWidget(self.thermalLabel, 6, 0)
 #        self.grid.addWidget(self.thermalAggregateLabel, 7, 0)
