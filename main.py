@@ -470,23 +470,29 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.grid.addWidget(self.modulusAirLabel, 5, 0)
         self.grid.addWidget(self.air_YM, 5, 1)
 
-        self.grid.addWidget(self.thermalLabel, 6, 0)
-        self.grid.addWidget(self.thermalAggregateLabel, 7, 0)
-        self.grid.addWidget(self.aggregate_TC, 7, 1)
-        self.grid.addWidget(self.thermalMasticLabel, 8, 0)
-        self.grid.addWidget(self.mastic_TC, 8, 1)
-        self.grid.addWidget(self.thermalAirLabel, 9, 0)
-        self.grid.addWidget(self.air_TC, 9, 1)
-        self.grid.addWidget(self.thermalStepsLabel, 7, 2)
-        self.grid.addWidget(self.thermalSteps, 7, 3)
+'''
+This graphical elements are commented because modifying those values strongly
+affect the behavior of the simulation
+'''
 
-        self.grid.addWidget(self.chemicalLabel, 10, 0)
-        self.grid.addWidget(self.chemicalAggregateLabel, 11, 0)
-        self.grid.addWidget(self.aggregate_CH, 11, 1)
-        self.grid.addWidget(self.chemicalMasticLabel, 12, 0)
-        self.grid.addWidget(self.mastic_CH, 12, 1)
-        self.grid.addWidget(self.chemicalAirLabel, 13, 0)
-        self.grid.addWidget(self.air_CH, 13, 1)
+        self.grid.addWidget(self.thermalLabel, 6, 0)
+#        self.grid.addWidget(self.thermalAggregateLabel, 7, 0)
+#        self.grid.addWidget(self.aggregate_TC, 7, 1)
+#        self.grid.addWidget(self.thermalMasticLabel, 8, 0)
+#        self.grid.addWidget(self.mastic_TC, 8, 1)
+#        self.grid.addWidget(self.thermalAirLabel, 9, 0)
+#        self.grid.addWidget(self.air_TC, 9, 1)
+        self.grid.addWidget(self.thermalStepsLabel, 7, 1)
+        self.grid.addWidget(self.thermalSteps, 7,2)
+
+
+#        self.grid.addWidget(self.chemicalLabel, 10, 0)
+#        self.grid.addWidget(self.chemicalAggregateLabel, 11, 0)
+#        self.grid.addWidget(self.aggregate_CH, 11, 1)
+#        self.grid.addWidget(self.chemicalMasticLabel, 12, 0)
+#        self.grid.addWidget(self.mastic_CH, 12, 1)
+#        self.grid.addWidget(self.chemicalAirLabel, 13, 0)
+#        self.grid.addWidget(self.air_CH, 13, 1)
 
         self.grid.addWidget(self.runSimulationButton, 14, 1)
         self.grid.addWidget(self.cancelButton, 14, 2)
