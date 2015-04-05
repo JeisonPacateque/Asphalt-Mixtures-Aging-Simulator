@@ -76,7 +76,7 @@ class Result(object):
         # Set folder name with curent time
         timestamp = str(datetime.datetime.now().strftime('%d%m%Y_%H%M'))
         # Set the results path
-        results_path = folder_path+"\\results "+timestamp
+        results_path = folder_path+"/results"+timestamp
         # Create forlder if results folder doesn't exist
         if not os.path.exists(results_path):
             os.makedirs(results_path)
@@ -88,7 +88,7 @@ class Result(object):
         plt.title('Heat Map')
         plt.imshow(self.heatmap, interpolation='nearest', cmap=cm.jet, origin='lower')
         plt.colorbar()
-        plt.savefig(results_path+"\\"+self.name+"_heatmap")
+        plt.savefig(results_path+"/"+self.name+"_heatmap")
 
 #        plt.show()
 
@@ -100,7 +100,7 @@ class Result(object):
 #        plt.clabel(C, inline=10, fontsize=10)
         plt.imshow(self.stresses, interpolation='nearest', origin='lower')
         plt.colorbar()
-        plt.savefig(results_path+"\\"+self.name+"_stress map")
+        plt.savefig(results_path+"/"+self.name+"_stress map")
 
         plt.figure(3)
         plt.clf()
@@ -110,4 +110,4 @@ class Result(object):
 #        plt.show()
         plt.imshow(self.rcas, interpolation='nearest', origin='lower')
         plt.colorbar()
-        plt.savefig(results_path+"\\"+self.name + "_carbonyle rates")
+        plt.savefig(results_path+"/"+self.name + "_carbonyle rates")
