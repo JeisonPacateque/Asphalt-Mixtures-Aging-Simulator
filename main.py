@@ -586,6 +586,8 @@ class ConfigureSimulationDialog(QtGui.QDialog):
             output_results1.showResults()
             output_results2 = Result(data2, "data2")
             output_results2.showResults()
+            QtGui.QMessageBox.about(self, "Information:",
+            "Simulation done, results saved at Results folder")
 
         self.controller.finished.connect(onFinished)
         self.controller.start()

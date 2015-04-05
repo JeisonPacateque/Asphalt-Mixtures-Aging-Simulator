@@ -15,9 +15,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>
 '''
 
+import os
+import datetime
+import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
-import numpy as np
+
 
 class Result(object):
     def __init__(self, matrix_materials, name):
@@ -32,7 +35,7 @@ class Result(object):
         self.materials = matrix_materials
         self.heatmap = self.thermalResults()
         self.stresses = self.mechanicalResults()
-        self.rcas = self.chemicalResults() 
+        self.rcas = self.chemicalResults()
 
     def thermalResults(self):
         """
@@ -57,24 +60,35 @@ class Result(object):
                 stresses[i,j] = self.materials[i,j].stress
 
         return stresses
-    
+
     def chemicalResults(self):
         rcas = np.zeros(self.materials.shape)
         for i in xrange(self.materials.shape[0]):
             for j in xrange(self.materials.shape[1]):
                 rcas[i,j] = self.materials[i,j].rca
-        
+
         return rcas
-        
-    
+
+
     def showResults(self):
-        print "saving the results of " + self.name
+        # Get current path
+        folder_path = os.getcwd()
+        # Set folder name with curent time
+        timestamp = str(datetime.datetime.now().strftime('%d%m%Y_%H%M'))
+        # Set the results path
+        results_path = folder_path+"\\results "+timestamp
+        # Create forlder if results folder doesn't exist
+        if not os.path.exists(results_path):
+            os.makedirs(results_path)
+
+
+        print "Saving the results of " + self.name
         plt.figure(1)
         plt.clf() # clear figure
         plt.title('Heat Map')
-        plt.imshow(self.heatmap, interpolation='nearest', cmap=cm.jet)
+        plt.imshow(self.heatmap, interpolation='nearest', cmap=cm.jet, origin='lower')
         plt.colorbar()
-        plt.savefig(self.name+" heatmap")
+        plt.savefig(results_path+"\\"+self.name+"_heatmap")
 
 #        plt.show()
 
@@ -84,16 +98,16 @@ class Result(object):
         plt.title('stress')
 #        C = plt.contour(self.stresses, colors='k')
 #        plt.clabel(C, inline=10, fontsize=10)
-        plt.imshow(self.stresses, interpolation='nearest')
+        plt.imshow(self.stresses, interpolation='nearest', origin='lower')
         plt.colorbar()
-        plt.savefig(self.name+" stress map")
-        
+        plt.savefig(results_path+"\\"+self.name+"_stress map")
+
         plt.figure(3)
         plt.clf()
         plt.title("Carbonyle rates")
 #        X = plt.contour(self.rcas, colors='k')
 #        plt.clabel(X, inline=10, fontsize=10)
 #        plt.show()
-        plt.imshow(self.rcas, interpolation='nearest')
+        plt.imshow(self.rcas, interpolation='nearest', origin='lower')
         plt.colorbar()
-        plt.savefig(self.name + " carbonyle rates")
+        plt.savefig(results_path+"\\"+self.name + "_carbonyle rates")

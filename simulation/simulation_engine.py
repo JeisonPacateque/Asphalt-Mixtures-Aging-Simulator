@@ -36,12 +36,12 @@ class SimulationEngine(object):
                                physical_cons['mastic_YM'], # young modulus
                                physical_cons['mastic_TC'], # thermal conducticity
                                physical_cons['mastic_CH']) # chemical
-                               
+
         self.aggregate = Material('aggregate',
                                   physical_cons['aggregate_YM'],
                                   physical_cons['aggregate_TC'],
                                   physical_cons['aggregate_CH'])
-                                    
+
         self.airvoid = Material('airvoid',
                                 physical_cons['air_YM'],
                                 physical_cons['air_TC'],
@@ -72,21 +72,21 @@ class SimulationEngine(object):
 
         print "Materials matrix created, size:", material_matrix.shape
         return material_matrix
-    
+
     def _calcNewModules(self, MM):
-        print "recalculando los modulos"
+        print "Recalculating Young's modules..."
         for i in xrange(MM.shape[0]):
             for j in xrange(MM.shape[1]):
                 if MM[i,j].phase == 'mastic':
                     if MM[i,j].temperature <= 20:
                         MM[i,j].young_modulus = 16030
-                        
+
                     elif MM[i,j].temperature <= 35:
                         MM[i,j].young_modulus = 5148
-                        
+
                     else:
                         MM[i,j].young_modulus = 1527
-        
+
     def simulationCicle(self, **inputs):
 #==============================================================================
 #       Thermal model implementation (Every model should run on a loop)
@@ -94,24 +94,24 @@ class SimulationEngine(object):
         max_TC = max(self.mastic.thermal_conductivity,
                      self.airvoid.thermal_conductivity,
                      self.aggregate.thermal_conductivity)
-        
+
         self.chemical = ChemicalModel(self.matrix_materials)
         self.chemical.applySimulationConditions(74.47)
         self.matrix_materials = self.chemical.simulate()
-        
+
         self.mechanics = FEMMechanics(self.matrix_materials)
         self.mechanics.applySimulationConditions(inputs['force_input'])
         self.matrix_materials = self.mechanics.simulate()
-        
+
         data1 = self.matrix_materials.copy()
 
         self.thermal = ThermalModel(self.matrix_materials, max_TC)
         self.thermal.applySimulationConditions()
         self.matrix_materials = self.thermal.simulate(inputs['thermal_steps'])
-        
+
         self._calcNewModules(self.matrix_materials)
-        # cambiar la energia de activacion para correr el segundo modelo quimico
-        
+        # Change the EA in order to run the second chemical model
+
         self.chemical = ChemicalModel(self.matrix_materials)
         #A little change in the energy activation(EA) is emplemented
         # from a increase of 3.13 of the rca in three moths
@@ -120,11 +120,11 @@ class SimulationEngine(object):
         # in 4 hours, that is, 144000 seconds, rca would increase 313/5475
         self.chemical.applySimulationConditions(313/5475.)
         self.matrix_materials = self.chemical.simulate()
-        
+
         self.mechanics = FEMMechanics(self.matrix_materials)
         self.mechanics.applySimulationConditions(inputs['force_input'])
         self.matrix_materials = self.mechanics.simulate()
-        
-        data2 = self.matrix_materials.copy()       
-        
+
+        data2 = self.matrix_materials.copy()
+
         return data1, data2
