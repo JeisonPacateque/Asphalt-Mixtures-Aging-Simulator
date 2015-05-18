@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 Copyright (C) 2015 Jeison Pacateque, Santiago Puerto
 
@@ -20,6 +21,7 @@ import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
+from matplotlib.ticker import FormatStrFormatter
 
 
 class Result(object):
@@ -86,6 +88,8 @@ class Result(object):
         plt.figure(1)
         plt.clf() # clear figure
         plt.title('Heat Map')
+        plt.gca().xaxis.set_major_formatter(FormatStrFormatter(u'%d C°'))
+        plt.gca().yaxis.set_major_formatter(FormatStrFormatter(u'%d C°'))
         plt.imshow(self.heatmap, interpolation='nearest', cmap=cm.jet, origin='lower')
         plt.colorbar()
         plt.savefig(results_path+"/"+self.name+"_heatmap")
@@ -98,6 +102,8 @@ class Result(object):
         plt.title('stress')
 #        C = plt.contour(self.stresses, colors='k')
 #        plt.clabel(C, inline=10, fontsize=10)
+        plt.gca().xaxis.set_major_formatter(FormatStrFormatter('%d MPa'))
+        plt.gca().yaxis.set_major_formatter(FormatStrFormatter('%d MPa'))
         plt.imshow(self.stresses, interpolation='nearest', origin='lower')
         plt.colorbar()
         plt.savefig(results_path+"/"+self.name+"_stress map")
