@@ -88,8 +88,8 @@ class Result(object):
         plt.figure(1)
         plt.clf() # clear figure
         plt.title('Heat Map')
-        plt.gca().xaxis.set_major_formatter(FormatStrFormatter(u'%d C°'))
-        plt.gca().yaxis.set_major_formatter(FormatStrFormatter(u'%d C°'))
+        plt.gca().xaxis.set_major_formatter(FormatStrFormatter(u'%d °C'))
+        plt.gca().yaxis.set_major_formatter(FormatStrFormatter(u'%d °C'))
         plt.xticks(rotation=45)
         plt.imshow(self.heatmap, interpolation='nearest', cmap=cm.jet, origin='lower')
         plt.colorbar()
