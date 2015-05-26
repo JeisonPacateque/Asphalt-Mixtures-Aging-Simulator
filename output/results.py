@@ -92,7 +92,8 @@ class Result(object):
         plt.gca().yaxis.set_major_formatter(FormatStrFormatter(u'%d Px'))
         plt.xticks(rotation=45)
         plt.imshow(self.heatmap, interpolation='nearest', cmap=cm.jet, origin='lower')
-        plt.colorbar()
+        cbarHeat = plt.colorbar()
+        cbarHeat.set_label(u'Celcius degrees (°C)')
         plt.savefig(results_path+"/"+self.name+"_heatmap")
 
 #        plt.show()
@@ -107,7 +108,8 @@ class Result(object):
         plt.gca().yaxis.set_major_formatter(FormatStrFormatter('%d Px'))
         plt.xticks(rotation=45)
         plt.imshow(self.stresses, interpolation='nearest', origin='lower')
-        plt.colorbar()
+        cbarStress = plt.colorbar()
+        cbarStress.set_label(u'Mega Pascals (MPa)')
         plt.savefig(results_path+"/"+self.name+"_stress map")
 
         plt.figure(3)
