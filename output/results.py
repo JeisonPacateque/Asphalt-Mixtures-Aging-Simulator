@@ -122,5 +122,6 @@ class Result(object):
         plt.gca().yaxis.set_major_formatter(FormatStrFormatter('%d Px'))
         plt.xticks(rotation=45)
         plt.imshow(self.rcas, interpolation='nearest', origin='lower')
-        plt.colorbar()
+        cbarCarbonyle = plt.colorbar()
+        cbarCarbonyle.set_label(u'Molarity/Seconds (Mol/Sec)')
         plt.savefig(results_path+"/"+self.name + "_carbonyle rates")
