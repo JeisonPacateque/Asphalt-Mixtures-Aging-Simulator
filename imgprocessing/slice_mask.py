@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2015 Jeison Pacateque, Santiago Puerto
+Copyright (C) 2015 Jeison Pacateque, Santiago Puerto, Wilmar Fernandez
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -64,5 +64,5 @@ def apply_mask(collection):
     for i in range(col_length):
         mask = sector_mask(collection[i].shape)
         collection[i][~mask] = -1
-    
+
     return collection

@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 '''
-Copyright (C) 2015 Jeison Pacateque, Santiago Puerto
+Copyright (C) 2015 Jeison Pacateque, Santiago Puerto, Wilmar Fernandez
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

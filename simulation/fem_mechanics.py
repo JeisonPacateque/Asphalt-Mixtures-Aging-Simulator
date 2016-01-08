@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2015 Jeison Pacateque, Santiago Puerto
+Copyright (C) 2015 Jeison Pacateque, Santiago Puerto, Wilmar Fernandez
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,9 +25,9 @@ class FEMMechanics(PhysicalModel):
         """This class supports the Mechanic FEM Simulation
         matrix_materials = initial matrix materials
         (numpy objetc array, array of class Material)        """
-        
-        super(FEMMechanics, self).__init__(matrix_materials)        
-        
+
+        super(FEMMechanics, self).__init__(matrix_materials)
+
         self.force = 0  # applied force over asphalt mixture
 
         self._createStiffnessMatrix()
@@ -182,7 +182,7 @@ class FEMMechanics(PhysicalModel):
 
         #calculate displacements-------------------------------------------
         U = np.linalg.solve(k_sub, forces)
-        
+
         #Calculate the stress in each element
         stresses = np.zeros(U.size)
         cont = 0
@@ -190,21 +190,21 @@ class FEMMechanics(PhysicalModel):
             sigma =  self._LinearBarElementStresses(self.ki[cont], ux, 1)
             stresses[cont] = sigma[0][0]
             cont += 1
-        
+
 #        U = U.reshape(self.MM.shape) # reshape the displacements matrix U
-        
+
         #copy the displacements field into the matrix materials
 #        for i in xrange(self.MM.shape[0]):
 #            for j in xrange(self.MM.shape[1]):
-#                self.MM[i,j].displacement = U[i,j]    
-        
+#                self.MM[i,j].displacement = U[i,j]
+
         stresses = stresses.reshape(self.MM.shape)
         #copy the stresses field into the matrix materials
         for i in xrange(self.MM.shape[0]):
             for j in xrange(self.MM.shape[1]):
-                self.MM[i,j].stress = stresses[i, j]  
-        
+                self.MM[i,j].stress = stresses[i, j]
+
         end_time = time.time()  # Get the time when method ends
         print "Mechanical simulation done in ", str(end_time - start_time), " seconds."
-        
+
         return self.MM

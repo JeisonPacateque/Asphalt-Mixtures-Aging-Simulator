@@ -1,18 +1,18 @@
 '''
-..  Copyright (C) 2015 Jeison Pacateque, Santiago Puerto
+Copyright (C) 2015 Jeison Pacateque, Santiago Puerto, Wilmar Fernandez
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>
 '''
 
 import numpy as np
@@ -89,7 +89,7 @@ class ThermalModel(PhysicalModel):
         print meanTC
         self.dt = self.dx2*self.dy2/(2*7.8*(self.dx2 + self.dy2))
         print "dt = ", self.dt
-        
+
         internal_temp=15
         self.ui.fill(internal_temp)    # internal temperature in asphalt
 
@@ -131,14 +131,14 @@ class ThermalModel(PhysicalModel):
             print "Thermal simulation step:", step
             self. u = laplacian.evolve_ts(self.ui, self.u, self.TCs,
                                 self.dt, self.dx2, self.dy2)
-            
+
             arr = self.ui[1:-1, 1:-1]
             if (arr>39).all() :
                 "entro"
                 print "final step is ", step
                 print "each steap equal to ", step/14400., "seconds"
                 break
-            
+
             self.ui = self.u.copy()
 
         # copy the field temperature into the matrix materials

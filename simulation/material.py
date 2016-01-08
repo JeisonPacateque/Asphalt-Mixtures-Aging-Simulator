@@ -1,5 +1,5 @@
 '''
-Copyright (C) 2015 Jeison Pacateque, Santiago Puerto
+Copyright (C) 2015 Jeison Pacateque, Santiago Puerto, Wilmar Fernandez
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,9 +22,9 @@ class Material(object):
         be simulated. Since the specific nature of the intended simulations,
         just thermal mechanical and chemical attributes are considered
         """
-        
-        self._phase = phase        
-        
+
+        self._phase = phase
+
         self._young_modulus = float(young_modulus) # Young's modulus
 
         # Thermal conductivity units are W/(m K) in the SI
@@ -94,27 +94,27 @@ class Material(object):
     @displacement.setter
     def displacement(self, value):
         self._displacement = value
-    
+
     @property
     def phase(self):
         return self._phase
-    
+
     @phase.setter
     def phase(self, value):
         self._phase = value
-    
+
     @property
     def rca(self):
         return self._rca
-    
+
     @rca.setter
     def rca(self, value):
         self._rca = value
-    
+
     @property
     def stress(self):
         return self._stress
-    
+
     @stress.setter
     def stress(self, value):
         self._stress = value
