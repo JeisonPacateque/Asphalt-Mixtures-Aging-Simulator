@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/env python2
 '''
 Copyright (C) 2015 Jeison Pacateque, Santiago Puerto, Wilmar Fernandez
@@ -271,9 +272,9 @@ class ApplicationWindow(QtGui.QMainWindow):
                                 ("%s") % "About",\
                                 """
                                 <br><b>Asphalt Mixtures Aging Simulator</b>
-                                <p>Copyright &copy; 2014-2015 Jeison Pacateque, Santiago Puerto
+                                <p>Copyright &copy; 2014-2015 Jeison Pacateque, Santiago Puerto, Wilmar Fernandez
                                 <br>Licensed under the terms of the GNU GPLv3 License
-                                <p>Created by Santiago Puerto and Jeison Pacateque
+                                <p>Created by Jeison Pacateque, Santiago Puerto and Wilmar Fernandez
                                 <p>This project performs a 3D reconstruction of a cylindrical asphalt mixture
                                 sample from a set images on a Dicom file format. The components of asphalt
                                 mixture will be identified through 3-phase segmentation. Additionally, a
@@ -286,8 +287,9 @@ class ApplicationWindow(QtGui.QMainWindow):
                                 <p>The source is hosted on
                                 <a href="https://github.com/JeisonPacateque/Asphalt-Mixtures-Aging-Simulator"> Github</a>
 
-                                <p>Research Group TOPOVIAL
-                                <br>Distrital University Francisco Jose de Caldas
+                                <p>Pavements and Sustainable Materials Research Group
+                                <br>Grupo de Investigaci&oacute;n en Pavimentos y Materiales Sostenibles
+                                <br>Universidad Distrital Francisco Jos&eacute; de Caldas
                                 """)
 
     def help_dialog(self):
@@ -297,8 +299,8 @@ class ApplicationWindow(QtGui.QMainWindow):
         <p>You can find <a href="http://asphalt-mixtures-aging-simulator.readthedocs.org"> here </a>
         the complete documentation of the project.
 
-        <p>Research Group TOPOVIAL <br/>
-        Universidad Distrital Francisco Jose de Caldas
+        <p>Pavements and Sustainable Materials Research Group<br/>
+        Universidad Distrital Francisco Jos&eacute; de Caldas
         """)
 
     def get_collection(self):
