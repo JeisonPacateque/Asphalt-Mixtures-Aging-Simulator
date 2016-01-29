@@ -16,8 +16,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 '''
 
 import numpy as np
+import matplotlib.pyplot as plt
 from physical_model import PhysicalModel
 import time
+import os
+import scipy
 
 
 class FEMMechanics(PhysicalModel):
@@ -33,6 +36,23 @@ class FEMMechanics(PhysicalModel):
         self._createStiffnessMatrix()
         self._createConectivityMatrix()
         self._generalStiffnessMatrixAssemble()
+        self.printToTxt()
+
+
+    def printToTxt(self):
+        matrix_materiales = np.empty([self.MM.shape[0], self.MM.shape[1]], dtype=int)
+
+        for i in xrange(self.MM.shape[0]):
+            for j in xrange(self.MM.shape[1]):
+                #print "Modulo Young ["+str(i)+"]["+str(j)+"]: " + str(self.MM[i, j].young_modulus)
+                matrix_materiales[i, j] = self.MM[i, j].young_modulus
+
+
+        if not os.path.exists("plain_images"):
+            os.makedirs("plain_images")
+
+        np.savetxt('plain_images/materials.txt', matrix_materiales, delimiter=',', fmt='%i')
+        scipy.misc.imsave('plain_images/materials.jpg', matrix_materiales)
 
 
     def _createStiffnessMatrix(self):
@@ -50,6 +70,7 @@ class FEMMechanics(PhysicalModel):
                 self.MM[i,j].areaFE, self.MM[i,j].lengthFE)
                 cont += 1
 
+
     def _createConectivityMatrix(self):
         r"""This function initialices the conectivity_matrix object using
         the matrix materials (MM) size for reference, additionally, this
@@ -62,6 +83,8 @@ class FEMMechanics(PhysicalModel):
         #La matriz de conectividad se debe cargar invertida
         self.conectivity_matrix = self._ElementConectivityMatrix(self.MM.shape[1],
                                                                  self.MM.shape[0])
+
+
 
     def _LinearBarElementForces(self, k, u):
         r"""This function returns the element nodalforce vector given the

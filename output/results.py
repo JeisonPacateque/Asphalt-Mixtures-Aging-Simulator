@@ -96,6 +96,7 @@ class Result(object):
         cbarHeat.set_label(u'Celcius degrees (°C)')
         plt.savefig(results_path+"/"+self.name+"_heatmap")
 
+
 #        plt.show()
 
         plt.figure(2)
