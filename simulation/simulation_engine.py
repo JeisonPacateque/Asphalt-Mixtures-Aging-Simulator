@@ -21,6 +21,8 @@ from chemical_model import ChemicalModel
 import numpy as np
 from material import Material
 import copy
+import os
+import scipy
 
 class SimulationEngine(object):
     """
@@ -51,6 +53,29 @@ class SimulationEngine(object):
 
         # Structure data where the simulation takes place
         self.matrix_materials = self._getMatrixMaterials(vertical_slice)
+        self.printToTxt()
+
+    def printToTxt(self):
+        r"""This function saves in a txt and jpg file the values of the Young's
+        modulus for each material on the vertical slice selected by the user
+        when the simulation is configured."""
+
+        print "Exporting matrix materials..."
+        matrix_materiales = np.empty([self.matrix_materials.shape[0], self.matrix_materials.shape[1]], dtype=int)
+
+        #Creates the folder for the output
+        if not os.path.exists("plain_images"):
+            os.makedirs("plain_images")
+
+        #Iterate over the slice to obtain the modulus from each node
+        for i in xrange(self.matrix_materials.shape[0]):
+            for j in xrange(self.matrix_materials.shape[1]):
+                matrix_materiales[i, j] = self.matrix_materials[i, j].young_modulus
+
+        #Save the files to the plain_images folder
+        np.savetxt('plain_images/materials.txt', matrix_materiales, delimiter=',', fmt='%i')
+        scipy.misc.imsave('plain_images/materials.jpg', matrix_materiales)
+
 
     def _loadVerticalSlice(self, slice_id):
         """Cut the slice of the collection in the position id"""
