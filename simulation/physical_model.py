@@ -25,9 +25,9 @@ class PhysicalModel(object):
         self.MM = matrix_materials # local reference of the matrix materials
 
     @abstractmethod
-    def applySimulationConditions():
+    def applySimulationConditions(self):
         pass
 
     @abstractmethod
-    def simulate():
+    def simulate(self):
         pass

@@ -22,7 +22,7 @@ import numpy as np
 from material import Material
 import copy
 import os
-import scipy
+from scipy.misc import imsave
 
 class SimulationEngine(object):
     """
@@ -61,20 +61,21 @@ class SimulationEngine(object):
         when the simulation is configured."""
 
         print "Exporting matrix materials..."
-        matrix_materiales = np.empty([self.matrix_materials.shape[0], self.matrix_materials.shape[1]], dtype=int)
+        # matrix_modulus = np.empty([self.matrix_materials.shape[0], self.matrix_materials.shape[1]], dtype=int)
+        matrix_modulus = np.empty(self.matrix_materials.shape, dtype=int)
 
-        #Creates the folder for the output
+        # Creates the folder for the output
         if not os.path.exists("plain_images"):
             os.makedirs("plain_images")
 
-        #Iterate over the slice to obtain the modulus from each node
+        # Iterate over the slice to obtain the modulus from each node
         for i in xrange(self.matrix_materials.shape[0]):
             for j in xrange(self.matrix_materials.shape[1]):
-                matrix_materiales[i, j] = self.matrix_materials[i, j].young_modulus
+                matrix_modulus[i, j] = self.matrix_materials[i, j].young_modulus
 
-        #Save the files to the plain_images folder
-        np.savetxt('plain_images/materials.txt', matrix_materiales, delimiter=',', fmt='%i')
-        scipy.misc.imsave('plain_images/materials.jpg', matrix_materiales)
+        # Saves the files to the plain_images folder
+        np.savetxt('plain_images/materials.txt', matrix_modulus, delimiter=',', fmt='%i')
+        imsave('plain_images/materials.jpg', matrix_modulus)
 
 
     def _loadVerticalSlice(self, slice_id):

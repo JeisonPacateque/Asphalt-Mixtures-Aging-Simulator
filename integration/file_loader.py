@@ -15,12 +15,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>
 '''
 
-import glob
 import os
 import dicom
-import time
-import re
+from matplotlib.pyplot import imread
 import numpy as np
+import re
+from PIL import Image
 
 
 class FileLoader(object):
@@ -34,26 +34,43 @@ class FileLoader(object):
 
         self.coleccion_imagenes = []  # Image list
 
+    def get_collection(self):
+        return self.coleccion_imagenes
+
     def human_key(self, key):
         """Method to 'Natural sort' a list"""
         parts = re.split('(\d*\.\d+|\d+)', key)
         return tuple((e.swapcase() if i % 2 == 0 else float(e))
                 for i, e in enumerate(parts))
 
-    def single_dicom_read(self, dicom_file):
-        """Read a single DICOM file and return a NumPy Pixel Array"""
+    def read_single_dicom(self, dicom_file):
+        """Read a single DICOM file
+        :return numpy array"""
         temp = dicom.read_file(dicom_file)  # Read the file as DICOM image
         px_array = temp.pixel_array  # Transform DICOM image as numpy array
         dicom_slice = px_array[35:485, 35:485] #Cut the slice to match draw area
         #print "Loaded", str(dicom_file)
         return dicom_slice
 
+    def read_single_tiff(self, tiff_file):
+        """Read a single TIFF file
+        :return numpy array"""
+        # im = Image.open(tiff_file)
+        # im.show()
+        # print im
+        # imarray = np.array(im)
+        # print imarray.shape, imarray
+        # return imarray
+        # im = imread(tiff_file)
+        # print im.shape
+        return imread(tiff_file)
+
     def load_path(self, path):
         """
         Load a whole folder of Dicom files and return a NumPy toyModel
         """
         try:
-            start_time = time.time()  # Measures file loading time
+            # start_time = time.time()  # Measures file loading time
             del self.coleccion_imagenes[:]#Clean collection if previous executions
 
             for dirname, dirnames, filenames in os.walk(path):
@@ -63,42 +80,26 @@ class FileLoader(object):
                     print os.path.join(dirname, subdirname)
 
                 filenames.sort(key=self.human_key)  # Sort files by name
-                print "Loading " + str(len(filenames)) + " DICOM files from: " + path
+                # print "Loading " + str(len(filenames)) + " DICOM files from: " + path
 
-                # join the path with all filenames.
-                for filename in filenames:
+
+                for filename in filenames: # join the path with all filenames.
                     file_path = os.path.join(dirname, filename)  # Set the path file
-                    # print file_path
-                    image = self.single_dicom_read(file_path)
+                    try:
+                        image = self.read_single_dicom(file_path) # try to read a dicom file
+                    except:
+                        try:
+                            image = self.read_single_tiff(file_path) # try to read a tiff file
+                        except:
+                            raise Exception("File not supported")
+
                     self.coleccion_imagenes.append(image)  # Add current image to a list
 
             num_archivos = len(self.coleccion_imagenes)
-            end_time = time.time()  # Get the time when method ends
-            print num_archivos, "DICOM files loaded in ", str(end_time - start_time), " seconds."
-        except:
-            print "Error reading dicom files"
+            # end_time = time.time()  # Get the time when method ends
+            print num_archivos, "files loaded"#in ", str(end_time - start_time), " seconds."
+        except Exception as e:
+            print "Error reading the image files", e
             raise
-        return self.coleccion_imagenes  # Access method to the loaded images
-
-    def get_collection(self):
-            return self.coleccion_imagenes
-
-
-class FileLoaderNPY(FileLoader):
-    """The aim of this class is to provide to the user the
-    ability to read segmented files (*npy)"""
-
-    def __init__(self):
-        self.coleccion_imagenes = []
-
-    def load_path(self, path):
-        archives_list = glob.glob(path + "*.npy")
-        archives_list.sort()
-
-        num_archives = len(archives_list)
-
-        for i in xrange(num_archives):
-            archive = archives_list[i]
-            print archive
-            img = np.load(archive)
-            self.coleccion_imagenes.append(img)
+        else:
+            return self.get_collection()  # Access method to the loaded images
