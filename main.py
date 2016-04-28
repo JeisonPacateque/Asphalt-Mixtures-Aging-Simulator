@@ -19,21 +19,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import sys
 import os
-from PyQt4 import QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore
 import matplotlib
 
-matplotlib.use("Qt4Agg")
+# matplotlib.use("Qt4Agg")
 import matplotlib.image as mpimg
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
 from integration.file_loader import FileLoader
 from output.results import Result
 from graphic_controller import SegmentationController, SimulationController
 
 
-class ApplicationWindow(QtGui.QMainWindow):
+class ApplicationWindow(QtWidgets.QMainWindow, QtCore.QObject):
+    trigger = QtCore.pyqtSignal()
+
     def __init__(self):
         """This Class contains the main window of the program"""
 
@@ -42,53 +45,53 @@ class ApplicationWindow(QtGui.QMainWindow):
         self.collection = []
         self.loader = FileLoader()
 
+        self.timer = QtCore.QTimer()  # Timer intended to update the image
         self._initUI()
 
     def _initUI(self):
         """ Gui initicializater"""
 
-        self.timer = QtCore.QTimer()  # Timer intended to update the image
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
-        self.file_menu = QtGui.QMenu('File', self)
+        self.file_menu = QtWidgets.QMenu('File', self)
         self.file_menu.addAction('Choose path', self.open_path, QtCore.Qt.CTRL + QtCore.Qt.Key_O)
         self.file_menu.addAction('Exit', self.fileQuit, QtCore.Qt.CTRL + QtCore.Qt.Key_Q)
         self.menuBar().addMenu(self.file_menu)
 
-        self.animation_menu = QtGui.QMenu('Animation', self)
+        self.animation_menu = QtWidgets.QMenu('Animation', self)
         self.action_animation_start = self.animation_menu.addAction('&Start', self.start_animation, QtCore.Qt.Key_S)
         self.action_animation_pause = self.animation_menu.addAction('Pause/Resume', self.pause_animation,
                                                                     QtCore.Qt.Key_Space)
         self.paused = False  # flag to control pause animation
         self.menuBar().addMenu(self.animation_menu)
 
-        self.sample_menu = QtGui.QMenu('Sample', self)
+        self.sample_menu = QtWidgets.QMenu('Sample', self)
         self.action_sample_segment = self.sample_menu.addAction('Segment sample', self.segment_sample,
                                                                 QtCore.Qt.CTRL + QtCore.Qt.Key_S)
         self.action_sample_3d = self.sample_menu.addAction('Show 3D model', self.show_3d_sample)
         self.action_sample_count = self.sample_menu.addAction('Count segmented elements', self.count_element_values)
         self.menuBar().addMenu(self.sample_menu)
 
-        self.simulation_menu = QtGui.QMenu('Simulation', self)
+        self.simulation_menu = QtWidgets.QMenu('Simulation', self)
         self.simulation_setup = self.simulation_menu.addAction('Set up simulation...', self.setup_simulation)
         self.menuBar().addMenu(self.simulation_menu)
 
-        self.help_menu = QtGui.QMenu('Help', self)
+        self.help_menu = QtWidgets.QMenu('Help', self)
         self.menuBar().addSeparator()
         self.menuBar().addMenu(self.help_menu)
 
         self.help_menu.addAction('Help', self.help_dialog)
         self.help_menu.addAction('About...', self.about)
 
-        open_button = QtGui.QPushButton('Choose work path', self)
+        open_button = QtWidgets.QPushButton('Choose work path', self)
         open_button.clicked[bool].connect(self.open_path)  # Button listener
 
-        self.main_widget = QtGui.QWidget(self)
+        self.main_widget = QtWidgets.QWidget(self)
 
-        l = QtGui.QGridLayout(self.main_widget)
+        l = QtWidgets.QGridLayout(self.main_widget)
         self.dc = MyDynamicMplCanvas(self.main_widget, width=5, height=4, dpi=100)
 
-        self.folder_path = QtGui.QLineEdit(self)
+        self.folder_path = QtWidgets.QLineEdit(self)
         self.folder_path.setReadOnly(True)  # The only way to edit path should be by using the button
 
         l.addWidget(self.folder_path, 1, 1)
@@ -111,28 +114,28 @@ class ApplicationWindow(QtGui.QMainWindow):
         """
         Shows an "open folder dialog" looking for Dicom files to load
         """
-        self.pause_animation();
+        self.pause_animation()
         self.update_staus("Loading files from path...")
         current_path = os.path.dirname(os.path.abspath(__file__)) + '/samples/4/'
-        chosen_path = QtGui.QFileDialog.getExistingDirectory(None,
+        chosen_path = QtWidgets.QFileDialog.getExistingDirectory(None,
                                                              'Open working directory',
                                                              current_path,
-                                                             QtGui.QFileDialog.ShowDirsOnly)
+                                                             QtWidgets.QFileDialog.ShowDirsOnly)
 
         path = str(chosen_path + "/")  # QString to Python string
         # Prevents the execution of load_path if the user don't select a folder
         try:
             self.collection = self.loader.load_path(path)  # Load Files
-            print type(self.collection[0]), self.collection[0].shape
+            print(type(self.collection[0]), self.collection[0].shape)
         except Exception as msg_error:
-            print "Error loading the image files", msg_error
-            QtGui.QMessageBox.information(self, "Error", str(msg_error))
+            print("Error loading the image files", msg_error)
+            QtWidgets.QMessageBox.information(self, "Error", str(msg_error))
         else:
             total_loaded = str(len(self.collection)) + " files loaded."
             self.folder_path.setText(path)
             self.update_staus(total_loaded)
             self.menu_buttons_state(True)
-            QtGui.QMessageBox.about(self, "Information:", total_loaded)
+            QtWidgets.QMessageBox.about(self, "Information:", total_loaded)
 
     def start_animation(self):
         """
@@ -140,8 +143,11 @@ class ApplicationWindow(QtGui.QMainWindow):
         the asphalt mixture sample
         """
         self.dc.reset_index()
-        QtCore.QObject.connect(self.timer, QtCore.SIGNAL("timeout()"), self.dc.update_figure)
-        self.timer.start(150)  # Set the update time
+        # QtCore.QObject.connect(self.timer, QtCore.SIGNAL("timeout()"), self.dc.update_figure)
+
+        # self.trigger.connect(self.timer,QtCore.QTimer.timeout(), self.dc.update_figure())
+        self.timer.timeout.connect(self.dc.update_figure)
+        self.timer.start(300)  # Set the update time
         self.paused = False
 
     def pause_animation(self):
@@ -150,7 +156,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         the asphalt mixture sample
         """
         if self.paused:
-            self.timer.start(150)
+            self.timer.start(300)
             self.paused = False
         else:
             self.timer.stop()
@@ -168,7 +174,7 @@ class ApplicationWindow(QtGui.QMainWindow):
         This also enables the application window to show the animation of the
         treated sample
         """
-        self.progressBar = QtGui.QProgressBar(self)
+        self.progressBar = QtWidgets.QProgressBar(self)
         # self.progressBar.setGeometry(QtCore.QRect(50, 210, 460, 40))
         self.progressBar.setGeometry(self.window_size)
         controller = SegmentationController(self.collection)
@@ -200,12 +206,12 @@ class ApplicationWindow(QtGui.QMainWindow):
         """
         try:
             from output.render_3d import ToyModel3d
-            print "Running 3D Modeling..."
+            print("Running 3D Modeling...")
             self.update_staus("Running 3D Modeling...")
             ToyModel3d(self.collection)
         except:
-            print "Please check Mayavi installation"
-            QtGui.QMessageBox.information(self, "Error",
+            print("Please check Mayavi installation")
+            QtWidgets.QMessageBox.information(self, "Error",
                                           "Please check your Mayavi installation")
 
     def count_element_values(self):
@@ -222,7 +228,7 @@ class ApplicationWindow(QtGui.QMainWindow):
 
         total = (empty + mastic + aggregate)
 
-        QtGui.QMessageBox.about(self,
+        QtWidgets.QMessageBox.about(self,
                                 "Element counting",
                                 """
                     <br>
@@ -271,7 +277,7 @@ class ApplicationWindow(QtGui.QMainWindow):
     def about(self):
         """Shows the about dialog"""
 
-        QtGui.QMessageBox.about(self,
+        QtWidgets.QMessageBox.about(self,
                                 ("%s") % "About", \
                                 """
                                 <br><b>Asphalt Mixtures Aging Simulator</b>
@@ -296,7 +302,7 @@ class ApplicationWindow(QtGui.QMainWindow):
                                 """)
 
     def help_dialog(self):
-        QtGui.QMessageBox.about(self, "Help",
+        QtWidgets.QMessageBox.about(self, "Help",
                                 """<b>Asphalt Mixtures Aging Simulator</b>
 
         <p>You can find <a href="http://asphalt-mixtures-aging-simulator.readthedocs.org"> here </a>
@@ -330,8 +336,8 @@ class Canvas(FigureCanvas):
         self.setParent(parent)
 
         FigureCanvas.setSizePolicy(self,
-                                   QtGui.QSizePolicy.Expanding,
-                                   QtGui.QSizePolicy.Expanding)
+                                   QtWidgets.QSizePolicy.Expanding,
+                                   QtWidgets.QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
 
@@ -341,7 +347,7 @@ class MyDynamicMplCanvas(Canvas):
     """This Class implements the canvas update method to animate the samples """
 
     def __init__(self, main_widget, width=5, height=4, dpi=100):
-        super(MyDynamicMplCanvas, self).__init__(main_widget, width=5, height=4, dpi=100)
+        super(MyDynamicMplCanvas, self).__init__(main_widget, width=width, height=height, dpi=dpi)
         self.index = 0
         self.collection = "Empty"
         self.myFigure = Canvas()
@@ -394,7 +400,7 @@ class MyDynamicMplCanvas(Canvas):
 
 
 # ------------------------------------------------------------------------
-class ConfigureSimulationDialog(QtGui.QDialog):
+class ConfigureSimulationDialog(QtWidgets.QDialog):
     """
     This dialog enables the user to control the simulation parameters after
     the simulation runs
@@ -409,62 +415,68 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self._initUI()
 
     def _initUI(self):
-        self.title = QtGui.QLabel('<b> Select the vertical slice </b>')
+        self.title = QtWidgets.QLabel('<b> Select the vertical slice </b>')
 
-        self.slider = QtGui.QSlider()
+        self.slider = QtWidgets.QSlider()
         self.slider.setGeometry(QtCore.QRect(120, 380, 321, 31))
         self.slider.setOrientation(QtCore.Qt.Horizontal)
+        print("valude size_z", self.size_Z)
+        print("shape of collecton=", self.collection.shape)
         self.slider.setRange(0, self.size_Z)
-        self.slider.valueChanged.connect(self.changeText)
+        # self.slider.valueChanged.connect(self.changeText)
+        self.lcd = QtWidgets.QLCDNumber(self) # replaces the QLineEdit() object
+        # self.lcd.setDigitCount(2)
+        self.slider.valueChanged.connect(self.lcd.display) # replaces the QLineEdit() object
 
-        self.sliderSelected = QtGui.QLineEdit()
-        self.sliderSelected.setGeometry(QtCore.QRect(112, 280, 331, 20))
+        # self.sliderSelected = QtWidgets.QLineEdit()
+        # self.sliderSelected.setGeometry(QtCore.QRect(112, 280, 331, 20))
 
-        self.mechanicsLabel = QtGui.QLabel("<b> Young's modulus </b>")
-        self.modulusAggregateLabel = QtGui.QLabel("Aggregate:")
-        self.modulusMasticLabel = QtGui.QLabel("Mastic:")
-        self.modulusAirLabel = QtGui.QLabel("Air voids:")
-        self.mechanicalForceLabel = QtGui.QLabel("Applied force: ")
+        self.mechanicsLabel = QtWidgets.QLabel("<b> Young's modulus </b>")
+        self.modulusAggregateLabel = QtWidgets.QLabel("Aggregate:")
+        self.modulusMasticLabel = QtWidgets.QLabel("Mastic:")
+        self.modulusAirLabel = QtWidgets.QLabel("Air voids:")
+        self.mechanicalForceLabel = QtWidgets.QLabel("Applied force: ")
 
-        self.aggregate_YM = QtGui.QLineEdit()
-        self.mastic_YM = QtGui.QLineEdit()
-        self.air_YM = QtGui.QLineEdit()
-        self.mechanicalForceEdit = QtGui.QLineEdit()
+        self.aggregate_YM = QtWidgets.QLineEdit()
+        self.mastic_YM = QtWidgets.QLineEdit()
+        self.air_YM = QtWidgets.QLineEdit()
+        self.mechanicalForceEdit = QtWidgets.QLineEdit()
 
-        self.thermalLabel = QtGui.QLabel("<b> Thermal conductivity </b>")
-        self.thermalAggregateLabel = QtGui.QLabel("Aggregate:")
-        self.thermalMasticLabel = QtGui.QLabel("Mastic:")
-        self.thermalAirLabel = QtGui.QLabel("Air voids:")
+        self.thermalLabel = QtWidgets.QLabel("<b> Thermal conductivity </b>")
+        self.thermalAggregateLabel = QtWidgets.QLabel("Aggregate:")
+        self.thermalMasticLabel = QtWidgets.QLabel("Mastic:")
+        self.thermalAirLabel = QtWidgets.QLabel("Air voids:")
 
-        self.aggregate_TC = QtGui.QLineEdit()
-        self.mastic_TC = QtGui.QLineEdit()
-        self.air_TC = QtGui.QLineEdit()
+        self.aggregate_TC = QtWidgets.QLineEdit()
+        self.mastic_TC = QtWidgets.QLineEdit()
+        self.air_TC = QtWidgets.QLineEdit()
 
-        self.chemicalLabel = QtGui.QLabel("<b> Chemical constants </b>")
-        self.chemicalAggregateLabel = QtGui.QLabel("Chemical value1:")
-        self.chemicalMasticLabel = QtGui.QLabel("Chemical value2:")
-        self.chemicalAirLabel = QtGui.QLabel("Chemical value3:")
+        self.chemicalLabel = QtWidgets.QLabel("<b> Chemical constants </b>")
+        self.chemicalAggregateLabel = QtWidgets.QLabel("Chemical value1:")
+        self.chemicalMasticLabel = QtWidgets.QLabel("Chemical value2:")
+        self.chemicalAirLabel = QtWidgets.QLabel("Chemical value3:")
 
-        self.thermalStepsLabel = QtGui.QLabel("Steps:")
-        self.thermalSteps = QtGui.QLineEdit()
+        self.thermalStepsLabel = QtWidgets.QLabel("Steps:")
+        self.thermalSteps = QtWidgets.QLineEdit()
 
-        self.aggregate_CH = QtGui.QLineEdit()
-        self.mastic_CH = QtGui.QLineEdit()
-        self.air_CH = QtGui.QLineEdit()
+        self.aggregate_CH = QtWidgets.QLineEdit()
+        self.mastic_CH = QtWidgets.QLineEdit()
+        self.air_CH = QtWidgets.QLineEdit()
 
-        self.runSimulationButton = QtGui.QPushButton('Run simulation', self)
+        self.runSimulationButton = QtWidgets.QPushButton('Run simulation', self)
         self.runSimulationButton.clicked[bool].connect(self.runSimulation)  # Listener
 
-        self.cancelButton = QtGui.QPushButton('Cancel', self)
+        self.cancelButton = QtWidgets.QPushButton('Cancel', self)
         self.cancelButton.clicked[bool].connect(self.closeWindow)
 
-        self.grid = QtGui.QGridLayout()
+        self.grid = QtWidgets.QGridLayout()
         self.grid.setSpacing(2)
 
         self.grid.addWidget(self.title, 0, 0)
 
         self.grid.addWidget(self.slider, 1, 0)
-        self.grid.addWidget(self.sliderSelected, 1, 1)
+        # self.grid.addWidget(self.sliderSelected, 1, 1)
+        self.grid.addWidget(self.lcd, 1, 1)
 
         self.grid.addWidget(self.mechanicsLabel, 2, 0)
         self.grid.addWidget(self.modulusAggregateLabel, 3, 0)
@@ -521,6 +533,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.close()
 
     def changeText(self, value):
+        # deprecated
         self.z = value
         self.sliderSelected.setText(str(self.z))
 
@@ -549,7 +562,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
         self.air_TC.setText(str(conductAir))
         self.thermalSteps.setText(str(steps))
         self.mechanicalForceEdit.setText(str(mechanical_force))
-        self.sliderSelected.setText(str(target_slice))
+        # self.sliderSelected.setText(str(target_slice))
         self.aggregate_CH.setText('Chem Aggregate')
         self.mastic_CH.setText('Chem Mastic')
         self.air_CH.setText('Chem Air')
@@ -580,11 +593,12 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
         }
 
-        slice_id = int(self.sliderSelected.text())
-
+        # slice_id = int(self.sliderSelected.text())
+        slice_id = int(self.lcd.value())
+        print("slice_id", slice_id)
         # Close the dialog before the simulation starts
 
-        self.progressBar = QtGui.QProgressBar(self)
+        self.progressBar = QtWidgets.QProgressBar(self)
         self.progressBar.setGeometry(QtCore.QRect(self.window_size))
         self.controller = SimulationController(self.collection, slice_id, **options)
 
@@ -597,7 +611,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
             output_results1.showResults()
             output_results2 = Result(data2, "data2")
             output_results2.showResults()
-            QtGui.QMessageBox.about(self, "Information:",
+            QtWidgets.QMessageBox.about(self, "Information:",
                                     "Simulation done, results saved at Results folder")
 
         self.controller.finished.connect(onFinished)
@@ -608,7 +622,7 @@ class ConfigureSimulationDialog(QtGui.QDialog):
 
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
-    qApp = QtGui.QApplication(sys.argv)
+    qApp = QtWidgets.QApplication(sys.argv)
     aw = ApplicationWindow()
     aw.setWindowTitle("Asphalt Mixtures Aging Simulator")
     aw.show()

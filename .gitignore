@@ -3,6 +3,7 @@
 *.pdf
 *.so
 *.c
+/plain_images
 .idea/
 /samples/
 /docs/_build/

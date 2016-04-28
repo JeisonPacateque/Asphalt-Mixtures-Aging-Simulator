@@ -45,8 +45,8 @@ class Result(object):
         """
         heatmap = np.zeros(self.materials.shape)
 
-        for i in xrange(self.materials.shape[0]):
-            for j in xrange(self.materials.shape[1]):
+        for i in range(self.materials.shape[0]):
+            for j in range(self.materials.shape[1]):
                 heatmap[i,j] = self.materials[i,j].temperature
 
         return heatmap
@@ -57,16 +57,16 @@ class Result(object):
         """
         stresses = np.zeros(self.materials.shape)
 
-        for i in xrange(self.materials.shape[0]):
-            for j in xrange(self.materials.shape[1]):
+        for i in range(self.materials.shape[0]):
+            for j in range(self.materials.shape[1]):
                 stresses[i,j] = self.materials[i,j].stress
 
         return stresses
 
     def chemicalResults(self):
         rcas = np.zeros(self.materials.shape)
-        for i in xrange(self.materials.shape[0]):
-            for j in xrange(self.materials.shape[1]):
+        for i in range(self.materials.shape[0]):
+            for j in range(self.materials.shape[1]):
                 rcas[i,j] = self.materials[i,j].rca
 
         return rcas
@@ -84,7 +84,7 @@ class Result(object):
             os.makedirs(results_path)
 
 
-        print "Saving the results of " + self.name
+        print("Saving the results of " + self.name)
         plt.figure(1)
         plt.clf() # clear figure
         plt.title('Heat Map')

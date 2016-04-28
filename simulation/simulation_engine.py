@@ -15,11 +15,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>
 '''
 
-from thermal_model import ThermalModel
-from fem_mechanics import FEMMechanics
-from chemical_model import ChemicalModel
+from .fem_mechanics import FEMMechanics
+from .thermal_model import ThermalModel
+from .chemical_model import ChemicalModel
 import numpy as np
-from material import Material
+from .material import Material
 import copy
 import os
 from scipy.misc import imsave
@@ -60,7 +60,7 @@ class SimulationEngine(object):
         modulus for each material on the vertical slice selected by the user
         when the simulation is configured."""
 
-        print "Exporting matrix materials..."
+        print("Exporting matrix materials...")
         # matrix_modulus = np.empty([self.matrix_materials.shape[0], self.matrix_materials.shape[1]], dtype=int)
         matrix_modulus = np.empty(self.matrix_materials.shape, dtype=int)
 
@@ -69,8 +69,8 @@ class SimulationEngine(object):
             os.makedirs("plain_images")
 
         # Iterate over the slice to obtain the modulus from each node
-        for i in xrange(self.matrix_materials.shape[0]):
-            for j in xrange(self.matrix_materials.shape[1]):
+        for i in range(self.matrix_materials.shape[0]):
+            for j in range(self.matrix_materials.shape[1]):
                 matrix_modulus[i, j] = self.matrix_materials[i, j].young_modulus
 
         # Saves the files to the plain_images folder
@@ -96,13 +96,13 @@ class SimulationEngine(object):
             elif vertical_slice[x,y] == 0 or  vertical_slice[x,y] == -1:
                 material_matrix[x,y] = copy.deepcopy(self.airvoid)
 
-        print "Materials matrix created, size:", material_matrix.shape
+        print("Materials matrix created, size:", material_matrix.shape)
         return material_matrix
 
     def _calcNewModules(self, MM):
-        print "Recalculating Young's modules..."
-        for i in xrange(MM.shape[0]):
-            for j in xrange(MM.shape[1]):
+        print("Recalculating Young's modules...")
+        for i in range(MM.shape[0]):
+            for j in range(MM.shape[1]):
                 if MM[i,j].phase == 'mastic':
                     if MM[i,j].temperature <= 20:
                         MM[i,j].young_modulus = 16030

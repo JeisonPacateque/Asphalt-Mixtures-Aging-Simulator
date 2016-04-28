@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 from simulation.simulation_engine import SimulationEngine
 from imgprocessing.segmentation import Segmentation
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 class GraphicController(QtCore.QThread, QtCore.QObject):
     def __init__(self, collection, parent=None):

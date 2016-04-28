@@ -20,7 +20,7 @@ import numpy as np
 import time
 from scipy import ndimage
 from sklearn import cluster
-from slice_mask import sector_mask
+from .slice_mask import sector_mask
 
 class Segmentation(object):
 
@@ -61,7 +61,7 @@ class Segmentation(object):
         :return: the image rescaled
         :rtype: 3d numpy array
         """
-        print "Running reduction..."
+        print("Running reduction...")
         start_time = time.time()  # Measures file loading time
         reduced = ndimage.interpolation.zoom(img, factor, output=np.int16)
         # since the image is turned over when it is reduced
@@ -70,7 +70,7 @@ class Segmentation(object):
         reduced = np.fliplr(reduced)
 
         end_time = time.time()  # Get the time when method ends
-        print "Reduction completed in ", str(end_time - start_time), " seconds."
+        print("Reduction completed in ", str(end_time - start_time), " seconds.")
 
         return reduced[1:, 1:]  # return and cut "noise"
 
@@ -187,7 +187,7 @@ class Segmentation(object):
             values_kmeans = values_kmeans.tolist()
             values.sort()
             normalized_values = np.empty(len(values_kmeans))
-            for i in xrange(len(values)):
+            for i in range(len(values)):
                 index = values_kmeans.index(values[i])
                 normalized_values[index] = i
             # label the image with norma values [0, 1, 2, 3, ...]
@@ -216,14 +216,14 @@ class Segmentation(object):
         start_time = time.time()  # Measures file loading t
         segmented = samples
         col_length = len(segmented)
-        print "Running segmentation for", str(col_length), "samples..."
+        print("Running segmentation for", str(col_length), "samples...")
 
-        for i in xrange(col_length):
+        for i in range(col_length):
             segmented[i] = self.clasify(segmented[i])
 
         end_time = time.time()  # Get the time when method ends
-        print "Segmentation finished with", str(col_length), "samples in", \
-        str(end_time - start_time), "seconds."
+        print("Segmentation finished with", str(col_length), "samples in", \
+        str(end_time - start_time), "seconds.")
 
         return segmented
 

@@ -77,7 +77,7 @@ class FileLoader(object):
 
                 # print path to all sub-directories first
                 for subdirname in dirnames:
-                    print os.path.join(dirname, subdirname)
+                    print(os.path.join(dirname, subdirname))
 
                 filenames.sort(key=self.human_key)  # Sort files by name
                 # print "Loading " + str(len(filenames)) + " DICOM files from: " + path
@@ -97,9 +97,9 @@ class FileLoader(object):
 
             num_archivos = len(self.coleccion_imagenes)
             # end_time = time.time()  # Get the time when method ends
-            print num_archivos, "files loaded"#in ", str(end_time - start_time), " seconds."
+            print(num_archivos, "files loaded")#in ", str(end_time - start_time), " seconds."
         except Exception as e:
-            print "Error reading the image files", e
+            print("Error reading the image files", e)
             raise
         else:
             return self.get_collection()  # Access method to the loaded images

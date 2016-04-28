@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 '''
 
 import numpy as np
-from physical_model import PhysicalModel
+from .physical_model import PhysicalModel
 
 class ChemicalModel(PhysicalModel):
     def __init__(self, matrix_materials):
@@ -25,8 +25,8 @@ class ChemicalModel(PhysicalModel):
 
         # temperature field in kelvins
         self.u = np.zeros(self.MM.shape, dtype=np.float)
-        for i in xrange(self.MM.shape[0]):
-            for j in xrange(self.MM.shape[1]):
+        for i in range(self.MM.shape[0]):
+            for j in range(self.MM.shape[1]):
                  self.u[i,j] = self.MM[i,j].temperature + 273.15
 
     def applySimulationConditions(self, EnergyActivation):
@@ -41,8 +41,8 @@ class ChemicalModel(PhysicalModel):
 
         R = 8.3144621 # molar gas constant
 
-        for i in xrange(self.MM.shape[0]):
-            for j in xrange(self.MM.shape[1]):
+        for i in range(self.MM.shape[0]):
+            for j in range(self.MM.shape[1]):
                 if self.MM[i,j].phase == 'mastic':
                     T = self.u[i,j] # temperature in the given pixel
                     self.MM[i,j].rca = A*(P**alfa)*(np.e**(-self.Ea/(R*T)))
