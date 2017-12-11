@@ -1,3 +1,20 @@
+'''
+Copyright (C) 2015 Jeison Pacateque, Santiago Puerto, Wilmar Fernandez
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>
+'''
+
 from PyQt5 import QtWidgets, QtCore
 
 import matplotlib.image as mpimg
@@ -28,9 +45,9 @@ class DynamicMplCanvas(Canvas):
     def __init__(self, main_widget, width=5, height=4, dpi=100, collection=[]):
         super(DynamicMplCanvas, self).__init__(main_widget, width=width, height=height, dpi=dpi)
         self.timer = QtCore.QTimer()  # Timer intended to update the image
-        self.paused = False
+        self.paused = True
         self.index = 0
-        self.collection = collection
+        self._collection = collection
         self.myFigure = Canvas()
         initial = mpimg.imread('./images/python.png')
         self.temp = self.axes.imshow(initial)
@@ -63,9 +80,9 @@ class DynamicMplCanvas(Canvas):
         self.fig_colorbar.set_ticklabels(['', 'Voids', 'Mastic', 'Aggregate'])
         #if len(self.collection) <= 0:
         #    self.collection = aw.get_collection()
-        if self.index != len(self.collection):  # Conditional to restart the loop
+        if self.index != len(self._collection):  # Conditional to restart the loop
 
-            self.temp = self.axes.imshow(self.collection[self.index], cmap='seismic', interpolation='nearest')
+            self.temp = self.axes.imshow(self._collection[self.index], cmap='seismic', interpolation='nearest')
 
             status_text = "Sample: " + str(self.index)
             #aw.update_staus(status_text)  # Show in status bar the current index #TODO
@@ -74,21 +91,20 @@ class DynamicMplCanvas(Canvas):
         else:
             self.index = 0  # When iteration catches the len(self.collection) restart the loop
 
-    def reset_index(self, collection):
-        """Reset the slice index to restart the ui"""
-        self.index = 0
-        self.collection = collection
+    @property
+    def collection(self):
+        return self.collection
 
-    def start_animation(self, collection):
+    @collection.setter
+    def collection(self, collection):
+        self._collection = collection
+
+    def start_animation(self):
         """
         Run the 2D ui of the X-Ray raw or treated Dicom slices from
         the asphalt mixture sample
         """
-        self.collection = collection
-        self.reset_index(self.collection)
-        # QtCore.QObject.connect(self.timer, QtCore.SIGNAL("timeout()"), self.dc.update_figure)
-
-        # self.trigger.connect(self.timer,QtCore.QTimer.timeout(), self.dc.update_figure())
+        self.index = 0
         self.timer.timeout.connect(self.update_figure)
         self.timer.start(300)  # Set the update time
         self.paused = False

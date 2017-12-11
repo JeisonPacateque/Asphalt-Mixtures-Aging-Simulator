@@ -1,18 +1,33 @@
-import sys
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+'''
+Copyright (C) 2015 Jeison Pacateque, Santiago Puerto, Wilmar Fernandez
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>
+'''
+
 import os
 
-from PyQt5 import QtWidgets, QtGui, QtCore
+from PyQt5 import QtWidgets, QtCore
 
-from app.signals import signals
 from app.integration.file_loader import FileLoader
-from app.output.results import Result
-from app.ui.canvas_2d import DynamicMplCanvas
 from app.graphic_controller import SegmentationController
+from app.ui.canvas_2d import DynamicMplCanvas
 from app.ui.configure_simulation import ConfigureSimulationDialog
 
 
 class Application(QtWidgets.QMainWindow):
-    trigger = QtCore.pyqtSignal()
 
     def __init__(self):
         """This Class contains the main window of the program"""
@@ -39,7 +54,7 @@ class Application(QtWidgets.QMainWindow):
 
         self.animation_menu = QtWidgets.QMenu('Animation', self)
         self.action_animation_start = self.animation_menu.addAction('&Start',
-                                                                    lambda: self.dynamic_canvas.start_animation(self.collection),
+                                                                    self.dynamic_canvas.start_animation,
                                                                     QtCore.Qt.Key_S)
         self.action_animation_pause = self.animation_menu.addAction('Pause/Resume',
                                                                     self.dynamic_canvas.pause_animation,
@@ -68,14 +83,14 @@ class Application(QtWidgets.QMainWindow):
         open_button = QtWidgets.QPushButton('Choose work path', self)
         open_button.clicked[bool].connect(self.open_path)  # Button listener
 
-        l = QtWidgets.QGridLayout(self.main_widget)
+        layout = QtWidgets.QGridLayout(self.main_widget)
 
         self.folder_path = QtWidgets.QLineEdit(self)
         self.folder_path.setReadOnly(True)  # The only way to edit path should be by using the button
 
-        l.addWidget(self.folder_path, 1, 1)
-        l.addWidget(open_button, 1, 2)
-        l.addWidget(self.dynamic_canvas, 2, 1, 2, 2)
+        layout.addWidget(self.folder_path, 1, 1)
+        layout.addWidget(open_button, 1, 2)
+        layout.addWidget(self.dynamic_canvas, 2, 1, 2, 2)
         self.setGeometry(10, 35, 560, 520)
 
         window_size = self.geometry()
@@ -103,18 +118,21 @@ class Application(QtWidgets.QMainWindow):
 
         path = str(chosen_path + "/")  # QString to Python string
         # Prevents the execution of load_path if the user don't select a folder
-        try:
-            self.collection = self.loader.load_path(path)  # Load Files
-            print(type(self.collection[0]), self.collection[0].shape)
-        except Exception as msg_error:
-            print("Error loading the image files", msg_error)
-            QtWidgets.QMessageBox.information(self, "Error", str(msg_error))
-        else:
-            total_loaded = str(len(self.collection)) + " files loaded."
-            self.folder_path.setText(path)
-            self.update_staus(total_loaded)
-            self.menu_buttons_state(True)
-            QtWidgets.QMessageBox.about(self, "Information:", total_loaded)
+        if path != "/":
+            try:
+                self.collection = self.loader.load_path(path)  # Load Files
+                print(type(self.collection[0]), self.collection[0].shape)
+            except Exception as msg_error:
+                print("Error loading the image files", msg_error)
+                QtWidgets.QMessageBox.information(self, "Error", str(msg_error))
+            else:
+                total_loaded = str(len(self.collection)) + " files loaded."
+                self.folder_path.setText(path)
+                self.update_staus(total_loaded)
+                self.menu_buttons_state(True)
+                QtWidgets.QMessageBox.about(self, "Information:", total_loaded)
+                self.dynamic_canvas.collection = self.collection
+                self.dynamic_canvas.update_figure()
 
     def update_staus(self, message):
         """
@@ -143,18 +161,18 @@ class Application(QtWidgets.QMainWindow):
             self.collection = controller.getData()
             self.update_staus("Segmenting and reducing completed...")
 
-            self.dynamic_canvas.reset_index(self.collection)
             self.action_sample_3d.setEnabled(True)  # Enables the 3D Model viewer
             self.action_sample_count.setEnabled(True)  # Enables the count method
             self.simulation_setup.setEnabled(True)  # Enables the simulation setup
             self.action_sample_segment.setEnabled(False)  # Disables de segmentation action
             self.progressBar.close()
 
+            # Refresh canvas with segmented images and pause
+            self.dynamic_canvas.collection = self.collection
+            self.dynamic_canvas.update_figure()
+
             self.count_element_values()
 
-            # Refresh canvas with segmented images and pause
-            self.dynamic_canvas.update_figure()
-            self.dynamic_canvas.pause_animation()
 
         controller.finished.connect(onFinished)
         controller.start()
