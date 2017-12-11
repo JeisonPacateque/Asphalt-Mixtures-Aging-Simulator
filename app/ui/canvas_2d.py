@@ -25,12 +25,12 @@ class Canvas(FigureCanvas):
 class DynamicMplCanvas(Canvas):
     """This Class implements the canvas update method to animate the samples """
 
-    def __init__(self, main_widget, width=5, height=4, dpi=100):
+    def __init__(self, main_widget, width=5, height=4, dpi=100, collection=[]):
         super(DynamicMplCanvas, self).__init__(main_widget, width=width, height=height, dpi=dpi)
         self.timer = QtCore.QTimer()  # Timer intended to update the image
         self.paused = False
         self.index = 0
-        self.collection = "Empty"
+        self.collection = collection
         self.myFigure = Canvas()
         initial = mpimg.imread('./images/python.png')
         self.temp = self.axes.imshow(initial)
@@ -61,8 +61,8 @@ class DynamicMplCanvas(Canvas):
         """Read and plot all the images stored in the image list"""
         # Set the labels for the materials
         self.fig_colorbar.set_ticklabels(['', 'Voids', 'Mastic', 'Aggregate'])
-        if type(self.collection) == str:
-            self.collection = aw.get_collection()
+        #if len(self.collection) <= 0:
+        #    self.collection = aw.get_collection()
         if self.index != len(self.collection):  # Conditional to restart the loop
 
             self.temp = self.axes.imshow(self.collection[self.index], cmap='seismic', interpolation='nearest')
@@ -74,17 +74,18 @@ class DynamicMplCanvas(Canvas):
         else:
             self.index = 0  # When iteration catches the len(self.collection) restart the loop
 
-    def reset_index(self):
-        """Reset the slice index to restart the animation"""
+    def reset_index(self, collection):
+        """Reset the slice index to restart the ui"""
         self.index = 0
-        self.collection = "Empty"
+        self.collection = collection
 
-    def start_animation(self):
+    def start_animation(self, collection):
         """
-        Run the 2D animation of the X-Ray raw or treated Dicom slices from
+        Run the 2D ui of the X-Ray raw or treated Dicom slices from
         the asphalt mixture sample
         """
-        self.reset_index()
+        self.collection = collection
+        self.reset_index(self.collection)
         # QtCore.QObject.connect(self.timer, QtCore.SIGNAL("timeout()"), self.dc.update_figure)
 
         # self.trigger.connect(self.timer,QtCore.QTimer.timeout(), self.dc.update_figure())
@@ -94,7 +95,7 @@ class DynamicMplCanvas(Canvas):
 
     def pause_animation(self):
         """
-        Pause and Resume the 2D animation of the X-Ray raw or treated Dicom slices from
+        Pause and Resume the 2D ui of the X-Ray raw or treated Dicom slices from
         the asphalt mixture sample
         """
         if self.paused:
