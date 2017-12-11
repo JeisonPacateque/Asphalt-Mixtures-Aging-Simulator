@@ -15,11 +15,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>
 '''
 
-from simulation.simulation_engine import SimulationEngine
-from imgprocessing.segmentation import Segmentation
-from PyQt4 import QtCore
+from app.simulation.simulation_engine import SimulationEngine
+from app.imgprocessing.segmentation import Segmentation
+from PyQt5 import QtCore
+from app.signals import signals
 
-class GraphicController(QtCore.QThread, QtCore.QObject):
+class GraphicController(QtCore.QThread):
     def __init__(self, collection, parent=None):
         QtCore.QObject.__init__(self, parent)
         self.data = collection
@@ -28,7 +29,7 @@ class GraphicController(QtCore.QThread, QtCore.QObject):
         return self.data
 
 class SegmentationController(GraphicController):
-    finished = QtCore.pyqtSignal()
+
     def __init__(self, collection):
         super(SegmentationController, self).__init__(collection)
         self.segmenter = Segmentation()
@@ -37,11 +38,10 @@ class SegmentationController(GraphicController):
         reduced = self.segmenter.reduction(self.data)
         self.data = self.segmenter.segment_all_samples(reduced)
 
-#        self.emit(QtCore.SIGNAL("finished()"))
-        self.finished.emit()
+        signals.segmentation_finished.emit()
 
 class SimulationController(GraphicController):
-    finished = QtCore.pyqtSignal()
+
     def __init__(self, collection, slice_id, **options):
         super(SimulationController, self).__init__(collection)
         self.physical_cons = options['physical_cons']
@@ -51,4 +51,4 @@ class SimulationController(GraphicController):
     def run(self):
         self.engine = SimulationEngine(self.data, self.slice_id, **self.physical_cons)
         self.data = self.engine.simulationCicle(**self.inputs)
-        self.finished.emit()
+        signals.simulation_finished.emit()

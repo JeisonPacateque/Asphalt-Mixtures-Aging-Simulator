@@ -1,0 +1,7 @@
+numpy
+scipy
+matplotlib
+pydicom
+cython
+Pillow
+sklearn

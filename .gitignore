@@ -3,6 +3,7 @@
 *.pdf
 *.so
 *.c
+/plain_images
 .idea/
 /samples/
 /docs/_build/
@@ -19,7 +20,7 @@
 .idea/Proyecto-de-Grado-Codes.iml
 matriz_u.txt
 busy_widget.py
-/simulation/build
+/app/simulation/build
 laplacian.pyd
 *.pyc
 laplacian.html

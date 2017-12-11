@@ -17,8 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
 
 import numpy as np
 import time
-import laplacian
-from physical_model import PhysicalModel
+from . import laplacian
+from .physical_model import PhysicalModel
 
 class ThermalModel(PhysicalModel):
     def __init__(self, matrix_materials, meanTC):
@@ -70,8 +70,8 @@ class ThermalModel(PhysicalModel):
         self.TCs = np.zeros(self.MM.shape, dtype=np.float)
 
 #         copy all the thermal conductivities from the matrix materials
-        for i in xrange(self.MM.shape[0]):
-                for j in xrange(self.MM.shape[1]):
+        for i in range(self.MM.shape[0]):
+                for j in range(self.MM.shape[1]):
                     self.TCs[i,j] = self.MM[i,j].thermal_conductivity
 
         # Calculate dx, dy
@@ -81,14 +81,14 @@ class ThermalModel(PhysicalModel):
         dy = 10./self.lengthY
         self.dx2 = dx**2 # To save CPU cycles, we'll compute Delta x^2
         self.dy2 = dy**2 # and Delta y^2 only once and store them.
-        print "dx2=", self.dx2
-        print "dy2=", self.dy2
+        print("dx2=", self.dx2)
+        print("dy2=", self.dy2)
 
         # For stability, this is the largest interval possible
         # for the size of the time-step:
-        print meanTC
+        print(meanTC)
         self.dt = self.dx2*self.dy2/(2*7.8*(self.dx2 + self.dy2))
-        print "dt = ", self.dt
+        print("dt = ", self.dt)
 
         internal_temp=15
         self.ui.fill(internal_temp)    # internal temperature in asphalt
@@ -128,22 +128,21 @@ class ThermalModel(PhysicalModel):
 
         for step in np.nditer(steps):
             self.applySimulationConditions()
-            print "Thermal simulation step:", step
-            self. u = laplacian.evolve_ts(self.ui, self.u, self.TCs,
+            print("Thermal simulation step:", step)
+            self.u = laplacian.evolve_ts(self.ui, self.u, self.TCs,
                                 self.dt, self.dx2, self.dy2)
 
             arr = self.ui[1:-1, 1:-1]
             if (arr>39).all() :
-                "entro"
-                print "final step is ", step
-                print "each steap equal to ", step/14400., "seconds"
+                print("final step is ", step)
+                print("each steap equal to ", step/14400., "seconds")
                 break
 
             self.ui = self.u.copy()
 
         # copy the field temperature into the matrix materials
-        for i in xrange(self.MM.shape[0]):
-            for j in xrange(self.MM.shape[1]):
+        for i in range(self.MM.shape[0]):
+            for j in range(self.MM.shape[1]):
                 self.MM[i,j].temperature = self.u[i,j]
 
         end_time = time.time()  # Get the time when method ends

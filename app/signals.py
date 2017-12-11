@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 '''
 Copyright (C) 2015 Jeison Pacateque, Santiago Puerto, Wilmar Fernandez
@@ -17,17 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>
 '''
 
-import sys
-from PyQt5 import QtWidgets
+from PyQt5.QtCore import QObject, pyqtSignal, QProcess
 
-if __name__ == '__main__':
-    from app.application import Application
+class Signals(QObject):
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
-    qApp = QtWidgets.QApplication(sys.argv)
+    segmentation_finished = pyqtSignal()
 
-    asphalt_simulator = Application()
-    asphalt_simulator.setWindowTitle("Asphalt Mixtures Aging Simulator")
-    asphalt_simulator.show()
+    simulation_finished = pyqtSignal()
 
-    sys.exit(qApp.exec())
-
+signals = Signals()
