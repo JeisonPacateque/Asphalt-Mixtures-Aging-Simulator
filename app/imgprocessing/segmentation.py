@@ -20,7 +20,7 @@ import numpy as np
 import time
 from scipy import ndimage
 from sklearn import cluster
-from .slice_mask import sector_mask
+
 
 class Segmentation(object):
 
@@ -235,7 +235,7 @@ if __name__ == '__main__':
 
     sys.path.insert(0, os.path.abspath('../'))
 
-    from integration.file_loader import FileLoader
+    from app.integration import FileLoader
 
     loader = FileLoader()
     file_path = os.path.dirname('../')+'/samples/4/sample_20.dcm'
