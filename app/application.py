@@ -25,6 +25,7 @@ from app.integration.file_loader import FileLoader
 from app.graphic_controller import SegmentationController
 from app.ui.canvas_2d import DynamicMplCanvas
 from app.ui.configure_simulation import ConfigureSimulationDialog
+from app.signals import signals
 
 
 class Application(QtWidgets.QMainWindow):
@@ -104,12 +105,15 @@ class Application(QtWidgets.QMainWindow):
         self.setCentralWidget(self.main_widget)
         self.menu_buttons_state()
 
+        signals.slice_index.connect(self.update_status)
+
+
     def open_path(self):
         """
         Shows an "open folder dialog" looking for Dicom files to load
         """
         self.dynamic_canvas.pause_animation()
-        self.update_staus("Loading files from path...")
+        self.update_status("Loading files from path...")
         current_path = os.path.dirname(os.path.abspath(__file__)) + '/samples/4/'
         chosen_path = QtWidgets.QFileDialog.getExistingDirectory(None,
                                                              'Open working directory',
@@ -128,17 +132,19 @@ class Application(QtWidgets.QMainWindow):
             else:
                 total_loaded = str(len(self.collection)) + " files loaded."
                 self.folder_path.setText(path)
-                self.update_staus(total_loaded)
+                self.update_status(total_loaded)
                 self.menu_buttons_state(True)
                 QtWidgets.QMessageBox.about(self, "Information:", total_loaded)
                 self.dynamic_canvas.collection = self.collection
                 self.dynamic_canvas.update_figure()
 
-    def update_staus(self, message):
+    @QtCore.pyqtSlot(str)
+    def update_status(self, message):
         """
         Set text over the status bar on the main window of the application
         """
         self.statusBar().showMessage(message)
+
 
     def segment_sample(self):
         """
@@ -152,14 +158,14 @@ class Application(QtWidgets.QMainWindow):
         # self.progressBar.setGeometry(QtCore.QRect(50, 210, 460, 40))
         self.progressBar.setGeometry(self.window_size)
         controller = SegmentationController(self.collection)
-        self.update_staus("Segmenting and reducing the sample...")
+        self.update_status("Segmenting and reducing the sample...")
 
 
         def onFinished():
             self.progressBar.setRange(0, 1)
             self.progressBar.setValue(1)
             self.collection = controller.getData()
-            self.update_staus("Segmenting and reducing completed...")
+            self.update_status("Segmenting and reducing completed...")
 
             self.action_sample_3d.setEnabled(True)  # Enables the 3D Model viewer
             self.action_sample_count.setEnabled(True)  # Enables the count method
@@ -186,7 +192,7 @@ class Application(QtWidgets.QMainWindow):
         try:
             from app.ui.render_3d import ToyModel3d
             print("Running 3D Modeling...")
-            self.update_staus("Running 3D Modeling...")
+            self.update_status("Running 3D Modeling...")
             ToyModel3d(self.collection)
         except:
             print("Please check Mayavi installation")

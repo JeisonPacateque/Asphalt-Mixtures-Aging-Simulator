@@ -23,7 +23,8 @@ class Signals(QObject):
         super().__init__(parent)
 
     segmentation_finished = pyqtSignal()
-
     simulation_finished = pyqtSignal()
+
+    slice_index = pyqtSignal(str)
 
 signals = Signals()

@@ -23,6 +23,8 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
+from app.signals import signals
+
 class Canvas(FigureCanvas):
     """Set the graphical elements to show in a Qt Window"""
 
@@ -85,7 +87,7 @@ class DynamicMplCanvas(Canvas):
             self.temp = self.axes.imshow(self._collection[self.index], cmap='seismic', interpolation='nearest')
 
             status_text = "Sample: " + str(self.index)
-            #aw.update_staus(status_text)  # Show in status bar the current index #TODO
+            signals.slice_index.emit(status_text)  # Show in status bar the current index #TODO
             self.index += 1
             self.draw()
         else:
